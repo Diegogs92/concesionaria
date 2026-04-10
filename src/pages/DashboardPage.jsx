@@ -69,14 +69,18 @@ function CustomTooltip({ active, payload, label }) {
 
 // ─── Página principal ────────────────────────────────────────────────────────
 export default function DashboardPage() {
-  const { autos, ventas } = useApp()
+  const { autos, ventas, egresos } = useApp()
   const { isGerente, usuarios } = useAuth()
 
   const autosDisponibles = autos.filter(a => a.estado === 'disponible').length
   const autosVendidos    = autos.filter(a => a.estado === 'vendido').length
   const totalVentas      = ventas.length
-  const gananciaTotal    = sumBy(ventas, 'ganancia')
+  const gananciaBruta    = sumBy(ventas, 'ganancia')
   const ingresoTotal     = sumBy(ventas, 'precioFinal')
+  
+  const totalComisiones = sumBy(ventas, 'comisionVendedor')
+  const totalEgresosData = sumBy(egresos, 'monto')
+  const beneficioNeto = gananciaBruta - (totalComisiones + totalEgresosData)
 
   const ventasPorMes   = getVentasPorMes(ventas, 6)
   const rankingVendedores = getRankingVendedores(ventas, usuarios)
@@ -92,7 +96,9 @@ export default function DashboardPage() {
         />
         {isGerente && (
           <>
-            <StatCard icon={DollarSign}  label="Ganancias totales"   value={formatCurrency(gananciaTotal)} color="orange" />
+            <StatCard icon={DollarSign}  label="Beneficio Neto"   value={formatCurrency(beneficioNeto)} color="orange" 
+              subLabel={`Bruto: ${formatCurrency(gananciaBruta)} | Egresos: ${formatCurrency(totalComisiones + totalEgresosData)}`}
+            />
             <StatCard icon={TrendingUp}  label="Ingresos totales"    value={formatCurrency(ingresoTotal)}  color="purple" />
           </>
         )}
@@ -141,7 +147,7 @@ export default function DashboardPage() {
           <div className="card card-padding">
             <div style={{ marginBottom: 16 }}>
               <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
-                Ganancias por mes
+                Ganancia Bruta por mes
               </h3>
               <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>
                 Últimos 6 meses

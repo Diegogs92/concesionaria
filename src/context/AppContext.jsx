@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { INITIAL_AUTOS, INITIAL_CLIENTES, INITIAL_VENTAS } from '../data/initialData'
+import { INITIAL_AUTOS, INITIAL_CLIENTES, INITIAL_VENTAS, INITIAL_EGRESOS } from '../data/initialData'
 import { generateId, today } from '../utils/helpers'
 
 const AppContext = createContext(null)
@@ -9,6 +9,7 @@ export function AppProvider({ children }) {
   const [autos, setAutos]       = useLocalStorage('autos', INITIAL_AUTOS)
   const [clientes, setClientes] = useLocalStorage('clientes', INITIAL_CLIENTES)
   const [ventas, setVentas]     = useLocalStorage('ventas', INITIAL_VENTAS)
+  const [egresos, setEgresos]   = useLocalStorage('egresos', INITIAL_EGRESOS)
 
   // ===================== AUTOS =====================
 
@@ -71,6 +72,18 @@ export function AppProvider({ children }) {
     updateAuto(autoId, { estado: 'disponible' })
   }
 
+  // ===================== EGRESOS =====================
+
+  function addEgreso(data) {
+    const nuevo = { ...data, id: generateId('e'), createdAt: today() }
+    setEgresos(prev => [...prev, nuevo])
+    return nuevo
+  }
+
+  function deleteEgreso(id) {
+    setEgresos(prev => prev.filter(e => e.id !== id))
+  }
+
   // Helpers de lookup
   function getAutoById(id)     { return autos.find(a => a.id === id) }
   function getClienteById(id) { return clientes.find(c => c.id === id) }
@@ -88,6 +101,8 @@ export function AppProvider({ children }) {
         addCliente, updateCliente, deleteCliente,
         // Ventas
         addVenta, deleteVenta,
+        // Egresos
+        egresos, addEgreso, deleteEgreso,
         // Lookups
         getAutoById, getClienteById,
       }}

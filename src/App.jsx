@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage'
 import AutosPage from './pages/AutosPage'
 import ClientesPage from './pages/ClientesPage'
 import VentasPage from './pages/VentasPage'
+import FinanzasPage from './pages/FinanzasPage'
 import EmpleadosPage from './pages/EmpleadosPage'
 
 // ─── Ruta protegida: redirige al login si no hay sesión ──────────────────────
@@ -88,6 +89,16 @@ export default function App() {
                   <PrivateRoute>
                     <VentasPage />
                   </PrivateRoute>
+                }
+              />
+
+              {/* Finanzas — solo gerente */}
+              <Route
+                path="/finanzas"
+                element={
+                  <GerenteRoute>
+                    <FinanzasPage />
+                  </GerenteRoute>
                 }
               />
 

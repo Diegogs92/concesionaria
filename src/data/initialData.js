@@ -144,6 +144,25 @@ export const INITIAL_VENTAS = [
   },
 ]
 
+export const INITIAL_EGRESOS = [
+  {
+    id: 'e1',
+    tipo: 'operativo',
+    descripcion: 'Alquiler sucursal',
+    monto: 850000,
+    fecha: '2024-03-01',
+    createdAt: '2024-03-01',
+  },
+  {
+    id: 'e2',
+    tipo: 'varios',
+    descripcion: 'Insumos de cafetería y limpieza',
+    monto: 35000,
+    fecha: '2024-03-10',
+    createdAt: '2024-03-10',
+  },
+]
+
 // Configuraciones globales
 export const INITIAL_CONFIG = {
   comisionDefault: 3, // porcentaje por defecto para nuevos empleados

@@ -2,7 +2,7 @@ import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   Car, Users, ShoppingBag, UserCheck,
-  BarChart2, LogOut, Settings,
+  BarChart2, LogOut, Settings, Wallet
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { getInitials } from '../../utils/helpers'
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { to: '/autos',     label: 'Autos',      icon: Car,         roles: ['gerente', 'empleado'] },
   { to: '/clientes',  label: 'Clientes',   icon: Users,       roles: ['gerente', 'empleado'] },
   { to: '/ventas',    label: 'Ventas',     icon: ShoppingBag, roles: ['gerente', 'empleado'] },
+  { to: '/finanzas',  label: 'Finanzas',   icon: Wallet,      roles: ['gerente'] },
   { to: '/empleados', label: 'Empleados',  icon: UserCheck,   roles: ['gerente'] },
 ]
 
