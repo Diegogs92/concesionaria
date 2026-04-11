@@ -179,7 +179,7 @@ function VentaForm({ onSubmit, onCancel }) {
             background: ganancia >= 0 ? 'var(--success-light)' : 'var(--danger-light)',
             border: `1px solid ${ganancia >= 0 ? 'rgba(52,199,89,0.2)' : 'rgba(255,59,48,0.2)'}`,
             borderRadius: 10, padding: '12px 16px',
-            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12,
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 12,
           }}>
             <div>
               <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 2 }}>Ganancia</div>
@@ -281,13 +281,13 @@ export default function VentasPage() {
               <thead>
                 <tr>
                   <th>Auto</th>
-                  <th>Cliente</th>
-                  <th>Vendedor</th>
+                  <th className="hide-mobile">Cliente</th>
+                  <th className="hide-mobile">Vendedor</th>
                   <th>Pago</th>
                   <th>Precio final</th>
-                  {isGerente && <th>Ganancia</th>}
-                  {isGerente && <th>Comisión</th>}
-                  <th>Fecha</th>
+                  {isGerente && <th className="hide-mobile">Ganancia</th>}
+                  {isGerente && <th className="hide-mobile">Comisión</th>}
+                  <th className="hide-mobile">Fecha</th>
                   {isGerente && <th style={{ width: 60 }}>Acc.</th>}
                 </tr>
               </thead>
@@ -305,8 +305,8 @@ export default function VentasPage() {
                           <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{auto.año}</div>
                         )}
                       </td>
-                      <td>{cliente?.nombre ?? '—'}</td>
-                      <td>{getVendedorNombre(v.vendedorId)}</td>
+                      <td className="hide-mobile">{cliente?.nombre ?? '—'}</td>
+                      <td className="hide-mobile">{getVendedorNombre(v.vendedorId)}</td>
                       <td>
                         <TipoPagoBadge tipo={v.tipoPago} />
                         {v.tipoPago === 'financiado' && v.cuotas && (
@@ -317,16 +317,16 @@ export default function VentasPage() {
                       </td>
                       <td style={{ fontWeight: 700 }}>{formatCurrency(v.precioFinal)}</td>
                       {isGerente && (
-                        <td style={{ color: v.ganancia >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight: 600 }}>
+                        <td className="hide-mobile" style={{ color: v.ganancia >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight: 600 }}>
                           {formatCurrency(v.ganancia)}
                         </td>
                       )}
                       {isGerente && (
-                        <td style={{ color: 'var(--warning)', fontSize: 13 }}>
+                        <td className="hide-mobile" style={{ color: 'var(--warning)', fontSize: 13 }}>
                           {formatCurrency(v.comisionVendedor)}
                         </td>
                       )}
-                      <td style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>{formatDate(v.fecha)}</td>
+                      <td className="hide-mobile" style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>{formatDate(v.fecha)}</td>
                       {isGerente && (
                         <td>
                           <button

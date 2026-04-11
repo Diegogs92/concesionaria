@@ -136,11 +136,11 @@ export default function ClientesPage() {
               <thead>
                 <tr>
                   <th>Cliente</th>
-                  <th>DNI</th>
+                  <th className="hide-mobile">DNI</th>
                   <th>Teléfono</th>
-                  <th>Email</th>
+                  <th className="hide-mobile">Email</th>
                   <th>Compras</th>
-                  <th>Desde</th>
+                  <th className="hide-mobile">Desde</th>
                   <th style={{ width: 80 }}>Acciones</th>
                 </tr>
               </thead>
@@ -155,9 +155,9 @@ export default function ClientesPage() {
                         <span style={{ fontWeight: 600 }}>{c.nombre}</span>
                       </div>
                     </td>
-                    <td>{c.dni}</td>
+                    <td className="hide-mobile">{c.dni}</td>
                     <td>{c.telefono}</td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{c.email || '—'}</td>
+                    <td className="hide-mobile" style={{ color: 'var(--text-secondary)' }}>{c.email || '—'}</td>
                     <td>
                       <span style={{
                         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -169,7 +169,7 @@ export default function ClientesPage() {
                         {countVentas(c.id)}
                       </span>
                     </td>
-                    <td style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>{formatDate(c.createdAt)}</td>
+                    <td className="hide-mobile" style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>{formatDate(c.createdAt)}</td>
                     <td>
                       <div className="flex gap-2">
                         <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(c)} title="Editar">

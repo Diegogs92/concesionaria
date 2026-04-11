@@ -198,11 +198,11 @@ export default function EmpleadosPage() {
               <thead>
                 <tr>
                   <th>Empleado</th>
-                  <th>Usuario</th>
+                  <th className="hide-mobile">Usuario</th>
                   <th>Rol</th>
-                  <th>Comisión</th>
-                  <th>Ventas</th>
-                  <th>Ganado</th>
+                  <th className="hide-mobile">Comisión</th>
+                  <th className="hide-mobile">Ventas</th>
+                  <th className="hide-mobile">Ganado</th>
                   <th style={{ width: 80 }}>Acciones</th>
                 </tr>
               </thead>
@@ -223,20 +223,20 @@ export default function EmpleadosPage() {
                           </div>
                         </div>
                       </td>
-                      <td style={{ color: 'var(--text-tertiary)', fontFamily: 'monospace', fontSize: 13 }}>
+                      <td className="hide-mobile" style={{ color: 'var(--text-tertiary)', fontFamily: 'monospace', fontSize: 13 }}>
                         @{u.username}
                       </td>
                       <td><RolBadge rol={u.rol} /></td>
-                      <td>
+                      <td className="hide-mobile">
                         {u.rol === 'empleado'
                           ? <span style={{ fontWeight: 600 }}>{u.comision}%</span>
                           : <span style={{ color: 'var(--text-tertiary)' }}>—</span>
                         }
                       </td>
-                      <td>
+                      <td className="hide-mobile">
                         <span style={{ fontWeight: 600 }}>{stats.ventas}</span>
                       </td>
-                      <td style={{ color: 'var(--success)', fontWeight: 600 }}>
+                      <td className="hide-mobile" style={{ color: 'var(--success)', fontWeight: 600 }}>
                         {u.rol === 'empleado' ? formatCurrency(stats.comision) : '—'}
                       </td>
                       <td>

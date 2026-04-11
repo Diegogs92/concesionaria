@@ -940,27 +940,124 @@ tbody td {
   animation: slideIn 0.25s ease;
 }
 
+/* ===== HAMBURGER - visible solo en mobile ===== */
+.hamburger-btn {
+  display: none;
+}
+
 /* ===== RESPONSIVE ===== */
+
+/* ── Tablet (≤ 1024px) ──────────────────────── */
+@media (max-width: 1024px) {
+  :root { --sidebar-width: 220px; }
+  .stats-grid   { grid-template-columns: repeat(2, 1fr); }
+  .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Mobile (≤ 768px) ───────────────────────── */
 @media (max-width: 768px) {
-  :root {
-    --sidebar-width: 0px;
-  }
-
+  /* Sidebar → drawer deslizable */
   .main-content {
-    margin-left: 0;
+    margin-left: 0 !important;
   }
 
-  .form-grid, .form-grid-3 {
-    grid-template-columns: 1fr;
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform var(--transition-slow), box-shadow var(--transition-slow);
+    z-index: 300;
+    width: 260px;
   }
 
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+    box-shadow: var(--shadow-xl);
   }
 
-  .grid-2, .grid-3, .grid-4 {
-    grid-template-columns: 1fr;
+  /* Overlay que oscurece el fondo cuando el sidebar está abierto */
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-overlay);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 299;
+    animation: fadeIn 0.2s ease;
   }
+
+  /* Hamburger */
+  .hamburger-btn { display: flex; }
+
+  /* Header */
+  .header { padding: 0 16px; }
+  .header-title { font-size: 17px; }
+
+  /* Contenedor de página */
+  .page-container { padding: 16px; }
+
+  /* Page header apilado verticalmente */
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .page-header > div:last-child {
+    flex-wrap: wrap;
+  }
+  .page-header .search-bar {
+    max-width: none;
+    min-width: 0;
+    flex: 1;
+  }
+
+  /* Formularios a 1 columna */
+  .form-grid, .form-grid-3 { grid-template-columns: 1fr; }
+
+  /* Stats a 2 columnas */
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Grids a 1 columna */
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+
+  /* Columnas secundarias ocultas en mobile */
+  .hide-mobile { display: none !important; }
+
+  /* Modal → bottom sheet */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .modal {
+    max-width: 100%;
+    max-height: 92vh;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    animation: slideUpMobile 0.3s ease;
+  }
+  .modal-lg { max-width: 100%; }
+
+  /* Login */
+  .login-card { padding: 28px 20px; }
+
+  /* Tablas: compactar padding */
+  thead th, tbody td {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  /* Stat card value más pequeño */
+  .stat-card-value { font-size: 22px !important; }
+}
+
+/* ── Small mobile (≤ 480px) ─────────────────── */
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .page-title  { font-size: 20px; }
+  .stat-card-value { font-size: 18px !important; }
+  .btn { font-size: 13px; }
+}
+
+@keyframes slideUpMobile {
+  from { opacity: 0; transform: translateY(60px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ===== UTILIDADES VARIAS ===== */

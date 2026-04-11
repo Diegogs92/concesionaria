@@ -1,5 +1,5 @@
 import React from 'react'
-import { Sun, Moon, Bell } from 'lucide-react'
+import { Sun, Moon, Menu } from 'lucide-react'
 import { useTheme } from '../../context/ThemeContext'
 import { useLocation } from 'react-router-dom'
 
@@ -8,10 +8,15 @@ const ROUTE_TITLES = {
   '/autos':     'Autos',
   '/clientes':  'Clientes',
   '/ventas':    'Ventas',
+  '/finanzas':  'Finanzas',
   '/empleados': 'Empleados',
 }
 
-export default function Header() {
+/**
+ * Header sticky de la app.
+ * onToggleSidebar: función para abrir/cerrar el sidebar en mobile.
+ */
+export default function Header({ onToggleSidebar }) {
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
 
@@ -19,7 +24,18 @@ export default function Header() {
 
   return (
     <header className="header">
-      <h2 className="header-title">{title}</h2>
+      <div className="flex items-center gap-3">
+        {/* Botón hamburguesa: solo visible en mobile via CSS */}
+        <button
+          className="btn btn-ghost btn-icon hamburger-btn"
+          onClick={onToggleSidebar}
+          aria-label="Abrir menú"
+        >
+          <Menu size={20} />
+        </button>
+
+        <h2 className="header-title">{title}</h2>
+      </div>
 
       <div className="header-actions">
         <button

@@ -226,11 +226,11 @@ export default function AutosPage() {
               <thead>
                 <tr>
                   <th>Vehículo</th>
-                  <th>Año</th>
-                  <th>Km</th>
-                  {isGerente && <th>Compra</th>}
+                  <th className="hide-mobile">Año</th>
+                  <th className="hide-mobile">Km</th>
+                  {isGerente && <th className="hide-mobile">Compra</th>}
                   <th>Precio venta</th>
-                  {isGerente && <th>Margen</th>}
+                  {isGerente && <th className="hide-mobile">Margen</th>}
                   <th>Estado</th>
                   <th style={{ width: 100 }}>Acciones</th>
                 </tr>
@@ -264,12 +264,12 @@ export default function AutosPage() {
                           </div>
                         </div>
                       </td>
-                      <td>{auto.año}</td>
-                      <td>{auto.kilometraje.toLocaleString('es-AR')} km</td>
-                      {isGerente && <td>{formatCurrency(auto.precioCompra)}</td>}
+                      <td className="hide-mobile">{auto.año}</td>
+                      <td className="hide-mobile">{auto.kilometraje.toLocaleString('es-AR')} km</td>
+                      {isGerente && <td className="hide-mobile">{formatCurrency(auto.precioCompra)}</td>}
                       <td style={{ fontWeight: 600 }}>{formatCurrency(auto.precioVenta)}</td>
                       {isGerente && (
-                        <td>
+                        <td className="hide-mobile">
                           <span style={{ color: margen > 0 ? 'var(--success)' : 'var(--danger)', fontWeight: 500, fontSize: 13 }}>
                             {margen > 0 ? '+' : ''}{margen}%
                           </span>

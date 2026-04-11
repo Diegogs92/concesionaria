@@ -2,7 +2,7 @@ import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   Car, Users, ShoppingBag, UserCheck,
-  BarChart2, LogOut, Settings, Wallet
+  BarChart2, LogOut, Wallet, X,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { getInitials } from '../../utils/helpers'
@@ -17,8 +17,13 @@ const NAV_ITEMS = [
   { to: '/empleados', label: 'Empleados',  icon: UserCheck,   roles: ['gerente'] },
 ]
 
-export default function Sidebar() {
-  const { currentUser, logout, isGerente } = useAuth()
+/**
+ * Sidebar de navegación.
+ * En desktop: siempre visible.
+ * En mobile: drawer deslizable controlado por isOpen/onClose.
+ */
+export default function Sidebar({ isOpen, onClose }) {
+  const { currentUser, logout } = useAuth()
   const navigate = useNavigate()
 
   function handleLogout() {
@@ -26,13 +31,18 @@ export default function Sidebar() {
     navigate('/login')
   }
 
+  function handleNavClick() {
+    // Cerrar sidebar en mobile al navegar
+    onClose?.()
+  }
+
   const visibleItems = NAV_ITEMS.filter(item =>
     item.roles.includes(currentUser?.rol)
   )
 
   return (
-    <aside className="sidebar">
-      {/* Logo */}
+    <aside className={`sidebar${isOpen ? ' sidebar-open' : ''}`}>
+      {/* Logo + botón de cierre en mobile */}
       <div className="sidebar-logo">
         <div className="sidebar-logo-inner">
           <div className="sidebar-logo-icon">
@@ -42,6 +52,16 @@ export default function Sidebar() {
             <h1>AutoGestión</h1>
             <p>Concesionaria</p>
           </div>
+
+          {/* Botón X solo visible en mobile */}
+          <button
+            className="btn btn-ghost btn-icon hamburger-btn"
+            onClick={onClose}
+            aria-label="Cerrar menú"
+            style={{ marginLeft: 'auto', flexShrink: 0 }}
+          >
+            <X size={18} />
+          </button>
         </div>
       </div>
 
@@ -54,6 +74,7 @@ export default function Sidebar() {
             key={to}
             to={to}
             end={to === '/'}
+            onClick={handleNavClick}
             className={({ isActive }) =>
               `sidebar-link ${isActive ? 'active' : ''}`
             }
