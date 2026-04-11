@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Fondo redondeado azul -->
+  <rect width="64" height="64" rx="14" fill="#007AFF"/>
+
+  <!-- Carrocería del auto -->
+  <path d="M10 36 L14 24 Q16 20 20 20 L44 20 Q48 20 50 24 L54 36 L54 42 Q54 44 52 44 L12 44 Q10 44 10 42 Z"
+        fill="white" fill-opacity="0.95"/>
+
+  <!-- Techo / cabina -->
+  <path d="M20 20 L23 13 Q24 11 26 11 L38 11 Q40 11 41 13 L44 20 Z"
+        fill="white" fill-opacity="0.75"/>
+
+  <!-- Vidrio delantero -->
+  <path d="M41 20 L39 14 Q38.5 12 37 12 L27 12 Q25.5 12 25 14 L23 20 Z"
+        fill="#007AFF" fill-opacity="0.35"/>
+
+  <!-- Rueda delantera -->
+  <circle cx="20" cy="44" r="6" fill="#1C1C1E"/>
+  <circle cx="20" cy="44" r="3" fill="white" fill-opacity="0.5"/>
+
+  <!-- Rueda trasera -->
+  <circle cx="44" cy="44" r="6" fill="#1C1C1E"/>
+  <circle cx="44" cy="44" r="3" fill="white" fill-opacity="0.5"/>
+
+  <!-- Ventanilla lateral izquierda -->
+  <rect x="24" y="21" width="7" height="7" rx="1.5" fill="#007AFF" fill-opacity="0.4"/>
+
+  <!-- Ventanilla lateral derecha -->
+  <rect x="33" y="21" width="7" height="7" rx="1.5" fill="#007AFF" fill-opacity="0.4"/>
+
+  <!-- Faros delanteros -->
+  <rect x="50" y="33" width="4" height="4" rx="1" fill="#FFD60A" fill-opacity="0.9"/>
+
+  <!-- Faros traseros -->
+  <rect x="10" y="33" width="4" height="4" rx="1" fill="#FF453A" fill-opacity="0.9"/>
+</svg>

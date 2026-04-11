@@ -1,12 +1,31 @@
-import React, { createContext, useContext } from 'react'
+import React, { createContext, useContext, useEffect } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { INITIAL_AUTOS, INITIAL_CLIENTES, INITIAL_VENTAS, INITIAL_EGRESOS } from '../data/initialData'
 import { generateId, today } from '../utils/helpers'
+
+// Mapa de fotos rotas → URL correcta.
+// Si en localStorage hay una URL vieja/rota, se reemplaza automáticamente.
+const FOTO_FIXES = {
+  'https://images.unsplash.com/photo-NRtl1nSWXtY?w=600&q=80':
+    'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600&q=80',
+  'https://images.unsplash.com/photo-1617814076229-8e6a88d5a8a1?w=400&q=80':
+    'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80',
+  'https://images.unsplash.com/photo-1617814065893-00757125efeb?w=400&q=80':
+    'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=600&q=80',
+}
 
 const AppContext = createContext(null)
 
 export function AppProvider({ children }) {
   const [autos, setAutos]       = useLocalStorage('autos', INITIAL_AUTOS)
+
+  // Migración: corregir fotos rotas que puedan estar en localStorage
+  useEffect(() => {
+    setAutos(prev => prev.map(a =>
+      FOTO_FIXES[a.foto] ? { ...a, foto: FOTO_FIXES[a.foto] } : a
+    ))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const [clientes, setClientes] = useLocalStorage('clientes', INITIAL_CLIENTES)
   const [ventas, setVentas]     = useLocalStorage('ventas', INITIAL_VENTAS)
   const [egresos, setEgresos]   = useLocalStorage('egresos', INITIAL_EGRESOS)
