@@ -65,7 +65,7 @@ export default function Login() {
       <button
         className="btn btn-ghost btn-icon"
         onClick={toggleTheme}
-        style={{ position: 'fixed', top: 20, right: 20 }}
+        style={{ position: 'fixed', top: 'calc(20px + env(safe-area-inset-top))', right: 'calc(20px + env(safe-area-inset-right))' }}
         title="Cambiar tema"
       >
         {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
