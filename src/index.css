@@ -1117,10 +1117,22 @@ tbody td {
 
 /* ── Mobile (≤ 768px) ───────────────────────── */
 @media (max-width: 768px) {
+  /* Prevenir scroll horizontal */
+  body, html {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  /* Evitar overflow en cualquier elemento */
+  * {
+    max-width: 100%;
+  }
+
   /* Touch targets mínimos de 44x44px */
   /* Sidebar → drawer deslizable */
   .main-content {
     margin-left: 0 !important;
+    overflow-x: hidden;
   }
 
   .sidebar {
@@ -1187,14 +1199,27 @@ tbody td {
   .modal-overlay {
     align-items: flex-end;
     padding: 0;
+    overflow: hidden;
   }
   .modal {
-    max-width: 100%;
+    width: 100%;
+    max-width: 100vw;
     max-height: 92vh;
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
     animation: slideUpMobile 0.3s ease;
+    overflow-x: hidden;
   }
-  .modal-lg { max-width: 100%; }
+  .modal-lg {
+    width: 100%;
+    max-width: 100vw;
+  }
+  .modal-body {
+    overflow-x: hidden;
+    word-break: break-word;
+  }
+  .modal-header {
+    overflow-x: hidden;
+  }
 
   /* Login */
   .login-card { padding: 28px 20px; }
@@ -1205,10 +1230,22 @@ tbody td {
     min-width: 44px;
   }
 
-  /* Tablas: compactar padding */
+  /* Tablas: compactar padding sin scroll horizontal */
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: visible;
+  }
+
+  table {
+    min-width: 100%;
+    overflow-x: auto;
+  }
+
   thead th, tbody td {
     padding: 10px 12px;
     font-size: 13px;
+    white-space: nowrap;
   }
 
   tbody tr {
@@ -1217,6 +1254,42 @@ tbody td {
 
   /* Stat card value más pequeño */
   .stat-card-value { font-size: 22px !important; }
+
+  /* Inputs y formularios sin overflow */
+  .form-input, input, select, textarea {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .card {
+    overflow-x: hidden;
+    word-break: break-word;
+  }
+
+  /* Prevenir overflow en textos largos */
+  th, td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Page header responsive sin overflow */
+  .page-header {
+    overflow-x: hidden;
+  }
+
+  .page-header > div {
+    min-width: 0;
+  }
+
+  /* SearchBar no se desborda */
+  .search-bar {
+    min-width: 0;
+  }
+
+  .search-bar input {
+    width: 100%;
+  }
 }
 
 /* ── Small mobile (≤ 480px) ─────────────────── */
