@@ -1,0 +1,27 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#007aff" rx="100"/>
+
+  <!-- Icono de auto stylizado -->
+  <g transform="translate(256, 256)">
+    <!-- Body del auto -->
+    <rect x="-80" y="-40" width="160" height="80" rx="20" fill="white" opacity="0.95"/>
+
+    <!-- Techo del auto -->
+    <path d="M -60 -40 Q -60 -80 0 -85 Q 60 -80 60 -40 Z" fill="white" opacity="0.9"/>
+
+    <!-- Ventanas -->
+    <rect x="-50" y="-70" width="35" height="25" rx="4" fill="#007aff" opacity="0.2"/>
+    <rect x="15" y="-70" width="35" height="25" rx="4" fill="#007aff" opacity="0.2"/>
+
+    <!-- Ruedas -->
+    <circle cx="-50" cy="50" r="18" fill="white" opacity="0.9"/>
+    <circle cx="50" cy="50" r="18" fill="white" opacity="0.9"/>
+
+    <!-- Detalles de ruedas -->
+    <circle cx="-50" cy="50" r="12" fill="#007aff" opacity="0.3"/>
+    <circle cx="50" cy="50" r="12" fill="#007aff" opacity="0.3"/>
+
+    <!-- Línea de división -->
+    <line x1="-80" y1="0" x2="80" y2="0" stroke="white" stroke-width="2" opacity="0.7"/>
+  </g>
+</svg>
