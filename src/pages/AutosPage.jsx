@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { Plus, Pencil, Trash2, Car, Image } from 'lucide-react'
+import { Plus, Pencil, Trash2, Car, Image, Clock } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import { formatCurrency, formatDate, today } from '../utils/helpers'
@@ -144,7 +144,7 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel }) {
 
 // ─── Página principal ─────────────────────────────────────────────────────────
 export default function AutosPage() {
-  const { autos, addAuto, updateAuto, deleteAuto } = useApp()
+  const { autos, addAuto, updateAuto, deleteAuto, historialPrecios } = useApp()
   const { isGerente } = useAuth()
 
   const [search, setSearch]       = useState('')
@@ -367,6 +367,32 @@ export default function AutosPage() {
                 <p style={{ fontSize: 14, lineHeight: 1.6 }}>{previewAuto.descripcion}</p>
               </div>
             )}
+
+            {/* Historial de precios */}
+            {(() => {
+              const historialAuto = historialPrecios.filter(h => h.autoId === previewAuto.id)
+              return historialAuto.length > 0 ? (
+                <div style={{ background: 'var(--bg-input)', borderRadius: 8, padding: '12px 14px', marginTop: 8 }}>
+                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Clock size={12} /> Historial de precios
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {historialAuto.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).map(h => (
+                      <div key={h.id} style={{ fontSize: 12, paddingBottom: 8, borderBottom: '1px solid var(--divider)' }}>
+                        <div style={{ color: 'var(--text-tertiary)', marginBottom: 2 }}>{formatDate(h.fecha)}</div>
+                        <div>
+                          {h.campo === 'precioVenta' ? 'Precio de venta' : 'Precio de compra'}:
+                          <br />
+                          <span style={{ color: 'var(--danger)' }}>{formatCurrency(h.valorAnterior)}</span>
+                          {' → '}
+                          <span style={{ color: 'var(--success)', fontWeight: 600 }}>{formatCurrency(h.valorNuevo)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null
+            })()}
           </div>
         )}
       </Modal>

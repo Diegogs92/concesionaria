@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { Plus, Trash2, ShoppingBag, DollarSign } from 'lucide-react'
+import { Plus, Trash2, ShoppingBag, DollarSign, FileText } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import { formatCurrency, formatDate, today } from '../utils/helpers'
@@ -7,6 +7,7 @@ import { TipoPagoBadge } from '../components/ui/Badge'
 import Modal from '../components/ui/Modal'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import SearchBar from '../components/ui/SearchBar'
+import { generateFacturaPDF } from '../utils/pdfGenerator'
 
 // ─── Formulario de venta ──────────────────────────────────────────────────────
 function VentaForm({ onSubmit, onCancel }) {
@@ -232,6 +233,10 @@ export default function VentasPage() {
     return usuarios.find(u => u.id === id)?.nombre ?? '—'
   }
 
+  function getVendedorObj(id) {
+    return usuarios.find(u => u.id === id) || { id, nombre: '—' }
+  }
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
     if (!q) return ventas
@@ -327,18 +332,27 @@ export default function VentasPage() {
                         </td>
                       )}
                       <td className="hide-mobile" style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>{formatDate(v.fecha)}</td>
-                      {isGerente && (
-                        <td>
+                      <td>
+                        <div className="flex gap-2">
                           <button
                             className="btn btn-ghost btn-icon btn-sm"
-                            onClick={() => setDel(v)}
-                            style={{ color: 'var(--danger)' }}
-                            title="Anular venta"
+                            onClick={() => generateFacturaPDF(v, auto, cliente, getVendedorObj(v.vendedorId))}
+                            title="Descargar factura"
                           >
-                            <Trash2 size={15} />
+                            <FileText size={15} />
                           </button>
-                        </td>
-                      )}
+                          {isGerente && (
+                            <button
+                              className="btn btn-ghost btn-icon btn-sm"
+                              onClick={() => setDel(v)}
+                              style={{ color: 'var(--danger)' }}
+                              title="Anular venta"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   )
                 })}

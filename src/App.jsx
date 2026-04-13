@@ -11,6 +11,8 @@ import ClientesPage from './pages/ClientesPage'
 import VentasPage from './pages/VentasPage'
 import FinanzasPage from './pages/FinanzasPage'
 import EmpleadosPage from './pages/EmpleadosPage'
+import TestDrivesPage from './pages/TestDrivesPage'
+import ReportesPage from './pages/ReportesPage'
 
 // ─── Ruta protegida: redirige al login si no hay sesión ──────────────────────
 function PrivateRoute({ children }) {
@@ -108,6 +110,26 @@ export default function App() {
                 element={
                   <GerenteRoute>
                     <EmpleadosPage />
+                  </GerenteRoute>
+                }
+              />
+
+              {/* Test Drives — ambos roles */}
+              <Route
+                path="/test-drives"
+                element={
+                  <PrivateRoute>
+                    <TestDrivesPage />
+                  </PrivateRoute>
+                }
+              />
+
+              {/* Reportes — solo gerente */}
+              <Route
+                path="/reportes"
+                element={
+                  <GerenteRoute>
+                    <ReportesPage />
                   </GerenteRoute>
                 }
               />

@@ -6,13 +6,13 @@ import {
 } from 'recharts'
 import {
   Car, ShoppingBag, DollarSign, TrendingUp,
-  Users, Award, ArrowUpRight,
+  Users, Award, ArrowUpRight, AlertCircle, TrendingDown,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import {
   formatCurrency, getVentasPorMes, getRankingVendedores,
-  sumBy, getInitials,
+  sumBy, getInitials, diffDays, getMargenPorMarca, getMargenPorVendedor,
 } from '../utils/helpers'
 
 // ─── Componente de tarjeta de estadística ───────────────────────────────────
@@ -69,7 +69,7 @@ function CustomTooltip({ active, payload, label }) {
 
 // ─── Página principal ────────────────────────────────────────────────────────
 export default function DashboardPage() {
-  const { autos, ventas, egresos } = useApp()
+  const { autos, ventas, egresos, clientes } = useApp()
   const { isGerente, usuarios } = useAuth()
 
   const autosDisponibles = autos.filter(a => a.estado === 'disponible').length
@@ -77,13 +77,35 @@ export default function DashboardPage() {
   const totalVentas      = ventas.length
   const gananciaBruta    = sumBy(ventas, 'ganancia')
   const ingresoTotal     = sumBy(ventas, 'precioFinal')
-  
+
   const totalComisiones = sumBy(ventas, 'comisionVendedor')
   const totalEgresosData = sumBy(egresos, 'monto')
   const beneficioNeto = gananciaBruta - (totalComisiones + totalEgresosData)
 
   const ventasPorMes   = getVentasPorMes(ventas, 6)
   const rankingVendedores = getRankingVendedores(ventas, usuarios)
+
+  // ─── ALERTAS ───
+  const autosConMuchoDiasSinVender = autos
+    .filter(a => a.estado === 'disponible' && diffDays(a.createdAt) >= 60)
+    .sort((a, b) => diffDays(b.createdAt) - diffDays(a.createdAt))
+
+  const clientesSinVenta = clientes
+    .map(c => {
+      const ultimaVenta = ventas
+        .filter(v => v.clienteId === c.id)
+        .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))[0]
+      const diasDesdeUltimaVenta = ultimaVenta ? diffDays(ultimaVenta.fecha) : diffDays(c.createdAt)
+      return { ...c, diasDesdeContacto: diasDesdeUltimaVenta, ultimaVenta }
+    })
+    .filter(c => c.diasDesdeContacto >= 90)
+    .sort((a, b) => b.diasDesdeContacto - a.diasDesdeContacto)
+
+  const totalAlertas = autosConMuchoDiasSinVender.length + clientesSinVenta.length
+
+  // ─── COMPARADOR DE MÁRGENES ───
+  const margenPorMarca = getMargenPorMarca(autos, ventas)
+  const margenPorVendedor = getMargenPorVendedor(ventas, usuarios)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -241,6 +263,152 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* ── Alertas ── */}
+      <div className="card card-padding">
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <AlertCircle size={18} color="var(--warning)" />
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
+              Alertas
+            </h3>
+            {totalAlertas > 0 && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                width: 24, height: 24, borderRadius: '50%',
+                background: 'var(--danger-light)', color: 'var(--danger)',
+                fontSize: 12, fontWeight: 700,
+              }}>
+                {totalAlertas}
+              </span>
+            )}
+          </div>
+          <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>
+            Autos sin vender +60 días y clientes sin contacto +90 días
+          </p>
+        </div>
+
+        {totalAlertas === 0 ? (
+          <p style={{ fontSize: 14, color: 'var(--text-tertiary)', textAlign: 'center', padding: '20px 0' }}>
+            ✓ Sin alertas
+          </p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {/* Autos sin vender */}
+            {autosConMuchoDiasSinVender.map(auto => (
+              <div key={auto.id} style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '12px 14px',
+                background: 'var(--danger-light)',
+                borderRadius: 10,
+              }}>
+                <Car size={16} color="var(--danger)" style={{ flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {auto.marca} {auto.modelo} sin vender
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+                    {diffDays(auto.createdAt)} días en stock • {formatCurrency(auto.precioVenta)}
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Clientes sin contacto */}
+            {clientesSinVenta.map(cliente => (
+              <div key={cliente.id} style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '12px 14px',
+                background: 'var(--warning-light)',
+                borderRadius: 10,
+              }}>
+                <Users size={16} color="var(--warning)" style={{ flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {cliente.nombre} sin contacto
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+                    {cliente.diasDesdeContacto} días sin venta • {cliente.telefono}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Comparador de márgenes (solo gerente) ── */}
+      {isGerente && (
+        <div className={margenPorMarca.length > 0 ? 'grid-2' : ''}>
+          {/* Márgenes por marca */}
+          {margenPorMarca.length > 0 && (
+            <div className="card card-padding">
+              <div style={{ marginBottom: 16 }}>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Margen por marca
+                </h3>
+                <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                  Margen promedio de ventas
+                </p>
+              </div>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={margenPorMarca}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--divider)" />
+                  <XAxis dataKey="marca" tick={{ fontSize: 11, fill: 'var(--text-tertiary)' }} axisLine={false} tickLine={false} />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: 'var(--text-tertiary)' }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={v => `$${(v / 1000000).toFixed(0)}M`}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar
+                    dataKey="margenPromedio"
+                    name="Margen Promedio"
+                    fill="var(--info)"
+                    radius={[6, 6, 0, 0]}
+                    opacity={0.85}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Márgenes por vendedor */}
+          {margenPorVendedor.length > 0 && (
+            <div className="card card-padding">
+              <div style={{ marginBottom: 16 }}>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Margen por vendedor
+                </h3>
+                <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                  Margen promedio y comisión
+                </p>
+              </div>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={margenPorVendedor}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--divider)" />
+                  <XAxis dataKey="nombre" tick={{ fontSize: 11, fill: 'var(--text-tertiary)' }} axisLine={false} tickLine={false} />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: 'var(--text-tertiary)' }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={v => `$${(v / 1000000).toFixed(0)}M`}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar
+                    dataKey="margenPromedio"
+                    name="Margen Promedio"
+                    fill="var(--success)"
+                    radius={[6, 6, 0, 0]}
+                    opacity={0.85}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

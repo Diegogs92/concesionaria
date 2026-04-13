@@ -29,6 +29,8 @@ export function AppProvider({ children }) {
   const [clientes, setClientes] = useLocalStorage('clientes', INITIAL_CLIENTES)
   const [ventas, setVentas]     = useLocalStorage('ventas', INITIAL_VENTAS)
   const [egresos, setEgresos]   = useLocalStorage('egresos', INITIAL_EGRESOS)
+  const [testDrives, setTestDrives] = useLocalStorage('testDrives', [])
+  const [historialPrecios, setHistorialPrecios] = useLocalStorage('historialPrecios', [])
 
   // ===================== AUTOS =====================
 
@@ -39,6 +41,34 @@ export function AppProvider({ children }) {
   }
 
   function updateAuto(id, data) {
+    const autoActual = autos.find(a => a.id === id)
+    if (autoActual) {
+      // Registrar cambios de precio automáticamente en historial
+      if (data.precioVenta && data.precioVenta !== autoActual.precioVenta) {
+        const historialEntry = {
+          id: generateId('hp'),
+          autoId: id,
+          campo: 'precioVenta',
+          valorAnterior: autoActual.precioVenta,
+          valorNuevo: data.precioVenta,
+          fecha: today(),
+          createdAt: today(),
+        }
+        setHistorialPrecios(prev => [...prev, historialEntry])
+      }
+      if (data.precioCompra && data.precioCompra !== autoActual.precioCompra) {
+        const historialEntry = {
+          id: generateId('hp'),
+          autoId: id,
+          campo: 'precioCompra',
+          valorAnterior: autoActual.precioCompra,
+          valorNuevo: data.precioCompra,
+          fecha: today(),
+          createdAt: today(),
+        }
+        setHistorialPrecios(prev => [...prev, historialEntry])
+      }
+    }
     setAutos(prev => prev.map(a => (a.id === id ? { ...a, ...data } : a)))
   }
 
@@ -103,6 +133,22 @@ export function AppProvider({ children }) {
     setEgresos(prev => prev.filter(e => e.id !== id))
   }
 
+  // ===================== TEST DRIVES =====================
+
+  function addTestDrive(data) {
+    const nuevo = { ...data, id: generateId('td'), createdAt: today() }
+    setTestDrives(prev => [...prev, nuevo])
+    return nuevo
+  }
+
+  function updateTestDrive(id, data) {
+    setTestDrives(prev => prev.map(td => (td.id === id ? { ...td, ...data } : td)))
+  }
+
+  function deleteTestDrive(id) {
+    setTestDrives(prev => prev.filter(td => td.id !== id))
+  }
+
   // Helpers de lookup
   function getAutoById(id)     { return autos.find(a => a.id === id) }
   function getClienteById(id) { return clientes.find(c => c.id === id) }
@@ -114,6 +160,9 @@ export function AppProvider({ children }) {
         autos,
         clientes,
         ventas,
+        egresos,
+        testDrives,
+        historialPrecios,
         // Autos
         addAuto, updateAuto, deleteAuto, marcarVendido,
         // Clientes
@@ -121,7 +170,9 @@ export function AppProvider({ children }) {
         // Ventas
         addVenta, deleteVenta,
         // Egresos
-        egresos, addEgreso, deleteEgreso,
+        addEgreso, deleteEgreso,
+        // Test Drives
+        addTestDrive, updateTestDrive, deleteTestDrive,
         // Lookups
         getAutoById, getClienteById,
       }}

@@ -127,3 +127,93 @@ export function getRankingVendedores(ventas, usuarios) {
     })
     .sort((a, b) => b.ventas - a.ventas)
 }
+
+/**
+ * Calcula días transcurridos desde una fecha hasta hoy.
+ */
+export function diffDays(dateStr) {
+  if (!dateStr) return 0
+  const d = new Date(dateStr + 'T00:00:00')
+  const now = new Date()
+  return Math.floor((now - d) / (1000 * 60 * 60 * 24))
+}
+
+/**
+ * Filtra un array por rango de fechas en un campo específico.
+ */
+export function filterByDateRange(arr, field, fromDate, toDate) {
+  if (!fromDate || !toDate) return arr
+  return arr.filter(item => {
+    const itemDate = item[field]
+    return itemDate >= fromDate && itemDate <= toDate
+  })
+}
+
+/**
+ * Exporta array de objetos a CSV y lo descarga.
+ */
+export function exportToCSV(rows, filename = 'export.csv') {
+  if (!rows || rows.length === 0) return
+
+  const headers = Object.keys(rows[0])
+  const csv = [
+    headers.join(','),
+    ...rows.map(row =>
+      headers.map(h => {
+        const val = row[h]
+        if (val == null) return ''
+        if (typeof val === 'string' && val.includes(',')) {
+          return `"${val.replace(/"/g, '""')}"`
+        }
+        return val
+      }).join(',')
+    )
+  ].join('\n')
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  const url = URL.createObjectURL(blob)
+  link.setAttribute('href', url)
+  link.setAttribute('download', filename)
+  link.style.visibility = 'hidden'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
+/**
+ * Calcula margen promedio por marca de auto.
+ */
+export function getMargenPorMarca(autos, ventas) {
+  const marcas = {}
+  ventas.forEach(venta => {
+    const auto = autos.find(a => a.id === venta.autoId)
+    if (!auto) return
+    if (!marcas[auto.marca]) {
+      marcas[auto.marca] = { ventas: 0, margenTotal: 0, ingresoTotal: 0 }
+    }
+    marcas[auto.marca].ventas += 1
+    marcas[auto.marca].margenTotal += venta.ganancia || 0
+    marcas[auto.marca].ingresoTotal += venta.precioFinal || 0
+  })
+
+  return Object.entries(marcas)
+    .map(([marca, data]) => ({
+      marca,
+      ventasTotales: data.ventas,
+      margenPromedio: data.ventas > 0 ? data.margenTotal / data.ventas : 0,
+      ingresoTotal: data.ingresoTotal,
+    }))
+    .sort((a, b) => b.margenPromedio - a.margenPromedio)
+}
+
+/**
+ * Extiende el ranking de vendedores con margen promedio.
+ */
+export function getMargenPorVendedor(ventas, usuarios) {
+  const ranking = getRankingVendedores(ventas, usuarios)
+  return ranking.map(emp => ({
+    ...emp,
+    margenPromedio: emp.ventas > 0 ? (sumBy(ventas.filter(v => v.vendedorId === emp.id), 'ganancia') / emp.ventas) : 0,
+  }))
+}
