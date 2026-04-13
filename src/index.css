@@ -1329,3 +1329,136 @@ tbody td {
   border-radius: var(--radius-md) !important;
   box-shadow: var(--shadow-md) !important;
 }
+
+/* ===== LIQUID GLASS MOBILE DESIGN ===== */
+
+/* Base para componentes liquid glass */
+.liquid-glass-card,
+.liquid-glass-widget {
+  position: relative;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  will-change: transform, backdrop-filter;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* Animación de entrada fluida */
+@keyframes liquidGlassSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    backdrop-filter: blur(20px);
+  }
+}
+
+.liquid-glass-card,
+.liquid-glass-widget {
+  animation: liquidGlassSlideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+.liquid-glass-grid > * {
+  animation: liquidGlassSlideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+.liquid-glass-grid > :nth-child(1) { animation-delay: 0s; }
+.liquid-glass-grid > :nth-child(2) { animation-delay: 0.1s; }
+.liquid-glass-grid > :nth-child(3) { animation-delay: 0.2s; }
+.liquid-glass-grid > :nth-child(4) { animation-delay: 0.3s; }
+.liquid-glass-grid > :nth-child(5) { animation-delay: 0.4s; }
+.liquid-glass-grid > :nth-child(6) { animation-delay: 0.5s; }
+
+/* Grid responsive para móvil */
+.liquid-glass-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+}
+
+@media (max-width: 640px) {
+  .liquid-glass-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+}
+
+/* Efecto hover suave */
+.liquid-glass-card:hover,
+.liquid-glass-widget:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Overlay modal con glassmorphism */
+.liquid-glass-overlay {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+[data-theme="dark"] .liquid-glass-overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Menú móvil con liquid glass */
+.liquid-glass-menu {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 256px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  transform: translateX(-100%);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 40;
+}
+
+.liquid-glass-menu.active {
+  transform: translateX(0);
+}
+
+[data-theme="dark"] .liquid-glass-menu {
+  background: rgba(28, 28, 30, 0.2);
+  border-right-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Touch targets - 44x44px mínimo (Apple HIG) */
+@media (hover: none) and (pointer: coarse) {
+  .liquid-glass-card,
+  .liquid-glass-widget,
+  button.liquid-glass-card,
+  button.liquid-glass-widget {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 16px;
+  }
+}
+
+/* Reducción de movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .liquid-glass-card,
+  .liquid-glass-widget,
+  .liquid-glass-menu {
+    animation: none !important;
+  }
+
+  .liquid-glass-card:hover,
+  .liquid-glass-widget:hover {
+    transform: none !important;
+  }
+
+  .liquid-glass-menu {
+    transition: none !important;
+  }
+}
