@@ -308,7 +308,7 @@ export default function DashboardPage() {
                     {auto.marca} {auto.modelo} sin vender
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
-                    {diffDays(auto.createdAt)} días en stock • {formatCurrency(auto.precioVenta)}
+                    {diffDays(auto.createdAt)} días en stock • {formatCurrency(auto.precio)}
                   </div>
                 </div>
               </div>

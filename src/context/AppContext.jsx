@@ -60,10 +60,10 @@ export function AppProvider({ children }) {
   async function updateAuto(id, data) {
     const autoActual = autos.find(a => a.id === id)
     if (autoActual) {
-      if (data.precioVenta && data.precioVenta !== autoActual.precioVenta) {
+      if (data.precio && data.precio !== autoActual.precio) {
         const hp = await historialService.create({
-          autoId: id, campo: 'precioVenta',
-          valorAnterior: autoActual.precioVenta, valorNuevo: data.precioVenta,
+          autoId: id, campo: 'precio',
+          valorAnterior: autoActual.precio, valorNuevo: data.precio,
           fecha: today(), createdAt: today(),
         })
         setHistorialPrecios(prev => [hp, ...prev])

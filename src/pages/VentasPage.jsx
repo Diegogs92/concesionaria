@@ -37,7 +37,7 @@ function VentaForm({ onSubmit, onCancel }) {
   function handleAutoChange(autoId) {
     const auto = autos.find(a => a.id === autoId)
     set('autoId', autoId)
-    if (auto) set('precioFinal', auto.precioVenta)
+    if (auto) set('precioFinal', auto.precio)
   }
 
   const autoSeleccionado = autos.find(a => a.id === form.autoId)
@@ -85,7 +85,7 @@ function VentaForm({ onSubmit, onCancel }) {
             <option value="">Seleccionar auto...</option>
             {autosDisponibles.map(a => (
               <option key={a.id} value={a.id}>
-                {a.marca} {a.modelo} {a.año} — {formatCurrency(a.precioVenta)}
+                {a.marca} {a.modelo} {a.año} — {formatCurrency(a.precio)}
               </option>
             ))}
           </select>

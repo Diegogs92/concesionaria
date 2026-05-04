@@ -2,21 +2,33 @@ import React, { useState, useMemo } from 'react'
 import { Plus, Pencil, Trash2, Car, Image, Clock } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
-import { formatCurrency, formatDate, today } from '../utils/helpers'
+import { formatCurrency, formatDate } from '../utils/helpers'
 import { AutoEstadoBadge } from '../components/ui/Badge'
 import Modal from '../components/ui/Modal'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import SearchBar from '../components/ui/SearchBar'
 
-// ─── Formulario de auto ───────────────────────────────────────────────────────
+// ─── Opciones de selects ──────────────────────────────────────────────────────
+const COMBUSTIBLES  = ['Nafta', 'Diesel', 'Eléctrico', 'Híbrido', 'GNC', 'Otro']
+const TRANSMISIONES = ['Manual', 'Automática', 'CVT', 'Doble embrague']
+const CARROCERIAS   = ['Sedán', 'SUV', 'Pickup', 'Hatchback', 'Coupé', 'Cabrio', 'Minivan', 'Furgoneta', 'Otro']
+const TRACCIONES    = ['4x2', '4x4', 'AWD', 'FWD', 'RWD']
+const PUERTAS       = [2, 3, 4, 5]
+
 const EMPTY_FORM = {
-  marca: '', modelo: '', año: new Date().getFullYear(),
-  precioCompra: '', precioVenta: '',
-  kilometraje: '', foto: '', descripcion: '',
+  marca: '', modelo: '', version: '',
+  año: new Date().getFullYear(),
+  condicion: 'Usado',
+  precioCompra: '', precio: '',
+  kilometraje: '',
+  combustible: '', transmision: '',
+  puertas: '', carroceria: '', traccion: '', color: '',
+  foto: '', descripcion: '',
 }
 
+// ─── Formulario ───────────────────────────────────────────────────────────────
 function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel }) {
-  const [form, setForm] = useState(initial)
+  const [form, setForm] = useState({ ...EMPTY_FORM, ...initial })
   const [errors, setErrors] = useState({})
 
   function set(field, value) {
@@ -26,12 +38,10 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel }) {
 
   function validate() {
     const e = {}
-    if (!form.marca.trim())      e.marca      = 'Requerido'
-    if (!form.modelo.trim())     e.modelo     = 'Requerido'
-    if (!form.año)               e.año        = 'Requerido'
-    if (!form.precioCompra)      e.precioCompra = 'Requerido'
-    if (!form.precioVenta)       e.precioVenta  = 'Requerido'
-    if (!form.kilometraje && form.kilometraje !== 0) e.kilometraje = 'Requerido'
+    if (!form.marca.trim())   e.marca   = 'Requerido'
+    if (!form.modelo.trim())  e.modelo  = 'Requerido'
+    if (!form.año)            e.año     = 'Requerido'
+    if (!form.precio)         e.precio  = 'Requerido'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -42,31 +52,38 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel }) {
     onSubmit({
       ...form,
       año: Number(form.año),
-      precioCompra: Number(form.precioCompra),
-      precioVenta: Number(form.precioVenta),
-      kilometraje: Number(form.kilometraje),
+      precioCompra: form.precioCompra ? Number(form.precioCompra) : 0,
+      precio: Number(form.precio),
+      kilometraje: form.kilometraje ? Number(form.kilometraje) : 0,
+      puertas: form.puertas ? Number(form.puertas) : null,
     })
   }
 
-  const margen = form.precioVenta && form.precioCompra
-    ? ((form.precioVenta - form.precioCompra) / form.precioCompra * 100).toFixed(1)
+  const margen = form.precio && form.precioCompra
+    ? ((form.precio - form.precioCompra) / form.precioCompra * 100).toFixed(1)
     : null
 
   return (
     <form onSubmit={handleSubmit}>
       <div className="form-grid" style={{ gap: 14 }}>
+
+        {/* Fila 1: Marca / Modelo / Versión */}
         <div className="form-group">
           <label className="form-label">Marca *</label>
           <input className="form-input" value={form.marca} onChange={e => set('marca', e.target.value)} placeholder="Toyota" />
           {errors.marca && <span className="form-error">{errors.marca}</span>}
         </div>
-
         <div className="form-group">
           <label className="form-label">Modelo *</label>
           <input className="form-input" value={form.modelo} onChange={e => set('modelo', e.target.value)} placeholder="Corolla" />
           {errors.modelo && <span className="form-error">{errors.modelo}</span>}
         </div>
+        <div className="form-group">
+          <label className="form-label">Versión</label>
+          <input className="form-input" value={form.version} onChange={e => set('version', e.target.value)} placeholder="XEI CVT" />
+        </div>
 
+        {/* Fila 2: Año / Condición / Color */}
         <div className="form-group">
           <label className="form-label">Año *</label>
           <input
@@ -76,27 +93,74 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel }) {
           />
           {errors.año && <span className="form-error">{errors.año}</span>}
         </div>
-
         <div className="form-group">
-          <label className="form-label">Kilometraje *</label>
+          <label className="form-label">Condición</label>
+          <select className="form-input form-select" value={form.condicion} onChange={e => set('condicion', e.target.value)}>
+            <option value="Usado">Usado</option>
+            <option value="Nuevo">Nuevo</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Color</label>
+          <input className="form-input" value={form.color} onChange={e => set('color', e.target.value)} placeholder="Blanco" />
+        </div>
+
+        {/* Fila 3: Kilometraje / Puertas / Carrocería */}
+        <div className="form-group">
+          <label className="form-label">Kilometraje</label>
           <input
             type="number" className="form-input" value={form.kilometraje}
             onChange={e => set('kilometraje', e.target.value)}
             placeholder="15000" min="0"
           />
-          {errors.kilometraje && <span className="form-error">{errors.kilometraje}</span>}
+        </div>
+        <div className="form-group">
+          <label className="form-label">Puertas</label>
+          <select className="form-input form-select" value={form.puertas} onChange={e => set('puertas', e.target.value)}>
+            <option value="">—</option>
+            {PUERTAS.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Carrocería</label>
+          <select className="form-input form-select" value={form.carroceria} onChange={e => set('carroceria', e.target.value)}>
+            <option value="">—</option>
+            {CARROCERIAS.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
         </div>
 
+        {/* Fila 4: Combustible / Transmisión / Tracción */}
         <div className="form-group">
-          <label className="form-label">Precio de compra *</label>
+          <label className="form-label">Combustible</label>
+          <select className="form-input form-select" value={form.combustible} onChange={e => set('combustible', e.target.value)}>
+            <option value="">—</option>
+            {COMBUSTIBLES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Transmisión</label>
+          <select className="form-input form-select" value={form.transmision} onChange={e => set('transmision', e.target.value)}>
+            <option value="">—</option>
+            {TRANSMISIONES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Tracción</label>
+          <select className="form-input form-select" value={form.traccion} onChange={e => set('traccion', e.target.value)}>
+            <option value="">—</option>
+            {TRACCIONES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+
+        {/* Fila 5: Precios */}
+        <div className="form-group">
+          <label className="form-label">Precio de compra</label>
           <input
             type="number" className="form-input" value={form.precioCompra}
             onChange={e => set('precioCompra', e.target.value)}
             placeholder="18000000" min="0"
           />
-          {errors.precioCompra && <span className="form-error">{errors.precioCompra}</span>}
         </div>
-
         <div className="form-group">
           <label className="form-label">
             Precio de venta *
@@ -107,13 +171,14 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel }) {
             )}
           </label>
           <input
-            type="number" className="form-input" value={form.precioVenta}
-            onChange={e => set('precioVenta', e.target.value)}
+            type="number" className="form-input" value={form.precio}
+            onChange={e => set('precio', e.target.value)}
             placeholder="22500000" min="0"
           />
-          {errors.precioVenta && <span className="form-error">{errors.precioVenta}</span>}
+          {errors.precio && <span className="form-error">{errors.precio}</span>}
         </div>
 
+        {/* URL foto */}
         <div className="form-group form-full">
           <label className="form-label">URL de foto (opcional)</label>
           <input
@@ -128,7 +193,7 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel }) {
           <textarea
             className="form-input" value={form.descripcion}
             onChange={e => set('descripcion', e.target.value)}
-            rows={3} placeholder="Descripción del vehículo..."
+            rows={3} placeholder="Descripción adicional..."
             style={{ resize: 'vertical' }}
           />
         </div>
@@ -160,13 +225,15 @@ export default function AutosPage() {
       const matchSearch = !q
         || a.marca.toLowerCase().includes(q)
         || a.modelo.toLowerCase().includes(q)
+        || (a.version || '').toLowerCase().includes(q)
         || String(a.año).includes(q)
+        || (a.color || '').toLowerCase().includes(q)
       const matchEstado = filtroEstado === 'todos' || a.estado === filtroEstado
       return matchSearch && matchEstado
     })
   }, [autos, search, filtroEstado])
 
-  function openAdd()  { setEditing(null); setModalOpen(true) }
+  function openAdd()      { setEditing(null); setModalOpen(true) }
   function openEdit(auto) { setEditing(auto); setModalOpen(true) }
   function closeModal()   { setModalOpen(false); setEditing(null) }
 
@@ -178,27 +245,21 @@ export default function AutosPage() {
 
   return (
     <>
-      {/* Header de página */}
       <div className="page-header">
         <div>
           <h1 className="page-title">Autos</h1>
-          <p className="page-subtitle">{autos.filter(a=>a.estado==='disponible').length} disponibles · {autos.length} en total</p>
+          <p className="page-subtitle">{autos.filter(a => a.estado === 'disponible').length} disponibles · {autos.length} en total</p>
         </div>
-
         <div className="flex items-center gap-2">
-          <SearchBar value={search} onChange={setSearch} placeholder="Buscar marca, modelo..." />
-
+          <SearchBar value={search} onChange={setSearch} placeholder="Buscar marca, modelo, color..." />
           <select
-            className="form-input form-select"
-            style={{ width: 'auto' }}
-            value={filtroEstado}
-            onChange={e => setFiltro(e.target.value)}
+            className="form-input form-select" style={{ width: 'auto' }}
+            value={filtroEstado} onChange={e => setFiltro(e.target.value)}
           >
             <option value="todos">Todos</option>
             <option value="disponible">Disponibles</option>
             <option value="vendido">Vendidos</option>
           </select>
-
           {isGerente && (
             <button className="btn btn-primary" onClick={openAdd}>
               <Plus size={16} /> Agregar auto
@@ -228,8 +289,9 @@ export default function AutosPage() {
                   <th>Vehículo</th>
                   <th className="hide-mobile">Año</th>
                   <th className="hide-mobile">Km</th>
+                  <th className="hide-mobile">Combustible</th>
                   {isGerente && <th className="hide-mobile">Compra</th>}
-                  <th>Precio venta</th>
+                  <th>Precio</th>
                   {isGerente && <th className="hide-mobile">Margen</th>}
                   <th>Estado</th>
                   <th style={{ width: 100 }}>Acciones</th>
@@ -237,8 +299,8 @@ export default function AutosPage() {
               </thead>
               <tbody>
                 {filtered.map(auto => {
-                  const margen = isGerente
-                    ? ((auto.precioVenta - auto.precioCompra) / auto.precioCompra * 100).toFixed(1)
+                  const margen = isGerente && auto.precioCompra
+                    ? ((auto.precio - auto.precioCompra) / auto.precioCompra * 100).toFixed(1)
                     : null
                   return (
                     <tr key={auto.id}>
@@ -255,34 +317,34 @@ export default function AutosPage() {
                             }
                           </div>
                           <div>
-                            <div style={{ fontWeight: 600 }}>{auto.marca} {auto.modelo}</div>
-                            {auto.descripcion && (
-                              <div style={{ fontSize: 12, color: 'var(--text-tertiary)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {auto.descripcion}
-                              </div>
-                            )}
+                            <div style={{ fontWeight: 600 }}>
+                              {auto.marca} {auto.modelo}
+                              {auto.version && <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}> {auto.version}</span>}
+                            </div>
+                            <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                              {[auto.condicion, auto.color, auto.carroceria].filter(Boolean).join(' · ')}
+                            </div>
                           </div>
                         </div>
                       </td>
                       <td className="hide-mobile">{auto.año}</td>
-                      <td className="hide-mobile">{auto.kilometraje.toLocaleString('es-AR')} km</td>
-                      {isGerente && <td className="hide-mobile">{formatCurrency(auto.precioCompra)}</td>}
-                      <td style={{ fontWeight: 600 }}>{formatCurrency(auto.precioVenta)}</td>
+                      <td className="hide-mobile">{auto.kilometraje ? `${Number(auto.kilometraje).toLocaleString('es-AR')} km` : '—'}</td>
+                      <td className="hide-mobile">{auto.combustible || '—'}</td>
+                      {isGerente && <td className="hide-mobile">{auto.precioCompra ? formatCurrency(auto.precioCompra) : '—'}</td>}
+                      <td style={{ fontWeight: 600 }}>{formatCurrency(auto.precio)}</td>
                       {isGerente && (
                         <td className="hide-mobile">
-                          <span style={{ color: margen > 0 ? 'var(--success)' : 'var(--danger)', fontWeight: 500, fontSize: 13 }}>
-                            {margen > 0 ? '+' : ''}{margen}%
-                          </span>
+                          {margen ? (
+                            <span style={{ color: margen > 0 ? 'var(--success)' : 'var(--danger)', fontWeight: 500, fontSize: 13 }}>
+                              {margen > 0 ? '+' : ''}{margen}%
+                            </span>
+                          ) : '—'}
                         </td>
                       )}
                       <td><AutoEstadoBadge estado={auto.estado} /></td>
                       <td>
                         <div className="flex gap-2">
-                          <button
-                            className="btn btn-ghost btn-icon btn-sm"
-                            onClick={() => setPreview(auto)}
-                            title="Ver detalle"
-                          >
+                          <button className="btn btn-ghost btn-icon btn-sm" onClick={() => setPreview(auto)} title="Ver detalle">
                             <Image size={15} />
                           </button>
                           {isGerente && (
@@ -318,24 +380,15 @@ export default function AutosPage() {
       </div>
 
       {/* Modal agregar/editar */}
-      <Modal
-        open={modalOpen}
-        onClose={closeModal}
-        title={editingAuto ? 'Editar auto' : 'Nuevo auto'}
-        size="lg"
-      >
-        <AutoForm
-          initial={editingAuto ?? EMPTY_FORM}
-          onSubmit={handleSubmit}
-          onCancel={closeModal}
-        />
+      <Modal open={modalOpen} onClose={closeModal} title={editingAuto ? 'Editar auto' : 'Nuevo auto'} size="lg">
+        <AutoForm initial={editingAuto ?? EMPTY_FORM} onSubmit={handleSubmit} onCancel={closeModal} />
       </Modal>
 
       {/* Modal preview */}
       <Modal
         open={!!previewAuto}
         onClose={() => setPreview(null)}
-        title={previewAuto ? `${previewAuto.marca} ${previewAuto.modelo}` : ''}
+        title={previewAuto ? `${previewAuto.marca} ${previewAuto.modelo}${previewAuto.version ? ' ' + previewAuto.version : ''}` : ''}
       >
         {previewAuto && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -348,19 +401,27 @@ export default function AutosPage() {
             )}
             <div className="form-grid" style={{ gap: 10 }}>
               {[
-                ['Año', previewAuto.año],
-                ['Kilometraje', `${previewAuto.kilometraje.toLocaleString('es-AR')} km`],
-                ['Estado', <AutoEstadoBadge key="e" estado={previewAuto.estado} />],
-                isGerente && ['Precio compra', formatCurrency(previewAuto.precioCompra)],
-                ['Precio venta', formatCurrency(previewAuto.precioVenta)],
-                ['Agregado', formatDate(previewAuto.createdAt)],
-              ].filter(Boolean).map(([k, v]) => (
+                ['Año',          previewAuto.año],
+                ['Condición',    previewAuto.condicion],
+                ['Kilometraje',  previewAuto.kilometraje ? `${Number(previewAuto.kilometraje).toLocaleString('es-AR')} km` : '—'],
+                ['Combustible',  previewAuto.combustible],
+                ['Transmisión',  previewAuto.transmision],
+                ['Tracción',     previewAuto.traccion],
+                ['Carrocería',   previewAuto.carroceria],
+                ['Puertas',      previewAuto.puertas],
+                ['Color',        previewAuto.color],
+                ['Estado',       <AutoEstadoBadge key="e" estado={previewAuto.estado} />],
+                isGerente && previewAuto.precioCompra && ['Precio compra', formatCurrency(previewAuto.precioCompra)],
+                ['Precio',       formatCurrency(previewAuto.precio)],
+                ['Agregado',     formatDate(previewAuto.createdAt)],
+              ].filter(Boolean).map(([k, v]) => v ? (
                 <div key={k} style={{ background: 'var(--bg-input)', borderRadius: 8, padding: '10px 14px' }}>
                   <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 3 }}>{k}</div>
                   <div style={{ fontSize: 14, fontWeight: 600 }}>{v}</div>
                 </div>
-              ))}
+              ) : null)}
             </div>
+
             {previewAuto.descripcion && (
               <div style={{ background: 'var(--bg-input)', borderRadius: 8, padding: '12px 14px' }}>
                 <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Descripción</div>
@@ -368,11 +429,10 @@ export default function AutosPage() {
               </div>
             )}
 
-            {/* Historial de precios */}
             {(() => {
               const historialAuto = historialPrecios.filter(h => h.autoId === previewAuto.id)
               return historialAuto.length > 0 ? (
-                <div style={{ background: 'var(--bg-input)', borderRadius: 8, padding: '12px 14px', marginTop: 8 }}>
+                <div style={{ background: 'var(--bg-input)', borderRadius: 8, padding: '12px 14px' }}>
                   <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <Clock size={12} /> Historial de precios
                   </div>
@@ -381,8 +441,7 @@ export default function AutosPage() {
                       <div key={h.id} style={{ fontSize: 12, paddingBottom: 8, borderBottom: '1px solid var(--divider)' }}>
                         <div style={{ color: 'var(--text-tertiary)', marginBottom: 2 }}>{formatDate(h.fecha)}</div>
                         <div>
-                          {h.campo === 'precioVenta' ? 'Precio de venta' : 'Precio de compra'}:
-                          <br />
+                          {h.campo === 'precio' ? 'Precio de venta' : 'Precio de compra'}:{' '}
                           <span style={{ color: 'var(--danger)' }}>{formatCurrency(h.valorAnterior)}</span>
                           {' → '}
                           <span style={{ color: 'var(--success)', fontWeight: 600 }}>{formatCurrency(h.valorNuevo)}</span>
@@ -397,7 +456,6 @@ export default function AutosPage() {
         )}
       </Modal>
 
-      {/* Confirmar eliminación */}
       <ConfirmDialog
         open={!!deletingId}
         onClose={() => setDeleting(null)}
