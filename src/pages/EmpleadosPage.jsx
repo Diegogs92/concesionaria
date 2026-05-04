@@ -7,7 +7,6 @@ import { RolBadge } from '../components/ui/Badge'
 import Modal from '../components/ui/Modal'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import SearchBar from '../components/ui/SearchBar'
-import { generateId } from '../utils/helpers'
 
 const EMPTY_FORM = {
   nombre: '', username: '', password: '', rol: 'empleado', comision: 3,
@@ -127,7 +126,7 @@ function EmpleadoForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCan
 }
 
 export default function EmpleadosPage() {
-  const { usuarios, setUsuarios, currentUser } = useAuth()
+  const { usuarios, addUsuario, updateUsuario, deleteUsuario, currentUser } = useAuth()
   const { ventas } = useApp()
 
   const [search, setSearch]   = useState('')
@@ -146,19 +145,17 @@ export default function EmpleadosPage() {
   function openEdit(u)  { setEditing(u); setModal(true) }
   function closeModal() { setModal(false); setEditing(null) }
 
-  function handleSubmit(data) {
+  async function handleSubmit(data) {
     if (editing) {
-      setUsuarios(prev => prev.map(u =>
-        u.id === editing.id ? { ...u, ...data } : u
-      ))
+      await updateUsuario(editing.id, data)
     } else {
-      setUsuarios(prev => [...prev, { ...data, id: generateId('u'), createdAt: new Date().toISOString().split('T')[0] }])
+      await addUsuario(data)
     }
     closeModal()
   }
 
-  function handleDelete(id) {
-    setUsuarios(prev => prev.filter(u => u.id !== id))
+  async function handleDelete(id) {
+    await deleteUsuario(id)
   }
 
   function getStatsEmpleado(userId) {

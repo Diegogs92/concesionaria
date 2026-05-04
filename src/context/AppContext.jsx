@@ -1,179 +1,181 @@
-import React, { createContext, useContext, useEffect } from 'react'
-import { useLocalStorage } from '../hooks/useLocalStorage'
-import { INITIAL_AUTOS, INITIAL_CLIENTES, INITIAL_VENTAS, INITIAL_EGRESOS } from '../data/initialData'
-import { generateId, today } from '../utils/helpers'
-
-// Mapa de fotos rotas → URL correcta.
-// Si en localStorage hay una URL vieja/rota, se reemplaza automáticamente.
-const FOTO_FIXES = {
-  'https://images.unsplash.com/photo-NRtl1nSWXtY?w=600&q=80':
-    'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600&q=80',
-  'https://images.unsplash.com/photo-1617814076229-8e6a88d5a8a1?w=400&q=80':
-    'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80',
-  'https://images.unsplash.com/photo-1617814065893-00757125efeb?w=400&q=80':
-    'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=600&q=80',
-}
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { today } from '../utils/helpers'
+import {
+  autosService,
+  clientesService,
+  ventasService,
+  egresosService,
+  testDrivesService,
+  historialService,
+} from '../services/database'
 
 const AppContext = createContext(null)
 
 export function AppProvider({ children }) {
-  const [autos, setAutos]       = useLocalStorage('autos', INITIAL_AUTOS)
+  const [autos,           setAutos]           = useState([])
+  const [clientes,        setClientes]        = useState([])
+  const [ventas,          setVentas]          = useState([])
+  const [egresos,         setEgresos]         = useState([])
+  const [testDrives,      setTestDrives]      = useState([])
+  const [historialPrecios, setHistorialPrecios] = useState([])
+  const [loading,         setLoading]         = useState(true)
+  const [error,           setError]           = useState(null)
 
-  // Migración: corregir fotos rotas que puedan estar en localStorage
+  // Cargar todos los datos al iniciar
   useEffect(() => {
-    setAutos(prev => prev.map(a =>
-      FOTO_FIXES[a.foto] ? { ...a, foto: FOTO_FIXES[a.foto] } : a
-    ))
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    async function cargarDatos() {
+      try {
+        const [a, c, v, e, td, hp] = await Promise.all([
+          autosService.list(),
+          clientesService.list(),
+          ventasService.list(),
+          egresosService.list(),
+          testDrivesService.list(),
+          historialService.list(),
+        ])
+        setAutos(a)
+        setClientes(c)
+        setVentas(v)
+        setEgresos(e)
+        setTestDrives(td)
+        setHistorialPrecios(hp)
+      } catch (err) {
+        setError('Error al conectar con la base de datos.')
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    cargarDatos()
   }, [])
-  const [clientes, setClientes] = useLocalStorage('clientes', INITIAL_CLIENTES)
-  const [ventas, setVentas]     = useLocalStorage('ventas', INITIAL_VENTAS)
-  const [egresos, setEgresos]   = useLocalStorage('egresos', INITIAL_EGRESOS)
-  const [testDrives, setTestDrives] = useLocalStorage('testDrives', [])
-  const [historialPrecios, setHistorialPrecios] = useLocalStorage('historialPrecios', [])
 
   // ===================== AUTOS =====================
 
-  function addAuto(data) {
-    const nuevo = { ...data, id: generateId('a'), estado: 'disponible', createdAt: today() }
-    setAutos(prev => [...prev, nuevo])
+  async function addAuto(data) {
+    const nuevo = await autosService.create({ ...data, estado: 'disponible', createdAt: today() })
+    setAutos(prev => [nuevo, ...prev])
     return nuevo
   }
 
-  function updateAuto(id, data) {
+  async function updateAuto(id, data) {
     const autoActual = autos.find(a => a.id === id)
     if (autoActual) {
-      // Registrar cambios de precio automáticamente en historial
       if (data.precioVenta && data.precioVenta !== autoActual.precioVenta) {
-        const historialEntry = {
-          id: generateId('hp'),
-          autoId: id,
-          campo: 'precioVenta',
-          valorAnterior: autoActual.precioVenta,
-          valorNuevo: data.precioVenta,
-          fecha: today(),
-          createdAt: today(),
-        }
-        setHistorialPrecios(prev => [...prev, historialEntry])
+        const hp = await historialService.create({
+          autoId: id, campo: 'precioVenta',
+          valorAnterior: autoActual.precioVenta, valorNuevo: data.precioVenta,
+          fecha: today(), createdAt: today(),
+        })
+        setHistorialPrecios(prev => [hp, ...prev])
       }
       if (data.precioCompra && data.precioCompra !== autoActual.precioCompra) {
-        const historialEntry = {
-          id: generateId('hp'),
-          autoId: id,
-          campo: 'precioCompra',
-          valorAnterior: autoActual.precioCompra,
-          valorNuevo: data.precioCompra,
-          fecha: today(),
-          createdAt: today(),
-        }
-        setHistorialPrecios(prev => [...prev, historialEntry])
+        const hp = await historialService.create({
+          autoId: id, campo: 'precioCompra',
+          valorAnterior: autoActual.precioCompra, valorNuevo: data.precioCompra,
+          fecha: today(), createdAt: today(),
+        })
+        setHistorialPrecios(prev => [hp, ...prev])
       }
     }
-    setAutos(prev => prev.map(a => (a.id === id ? { ...a, ...data } : a)))
+    const actualizado = await autosService.update(id, data)
+    setAutos(prev => prev.map(a => a.id === id ? { ...a, ...actualizado } : a))
   }
 
-  function deleteAuto(id) {
+  async function deleteAuto(id) {
+    await autosService.delete(id)
     setAutos(prev => prev.filter(a => a.id !== id))
   }
 
-  function marcarVendido(id) {
-    setAutos(prev => prev.map(a => (a.id === id ? { ...a, estado: 'vendido' } : a)))
+  async function marcarVendido(id) {
+    await autosService.update(id, { estado: 'vendido' })
+    setAutos(prev => prev.map(a => a.id === id ? { ...a, estado: 'vendido' } : a))
   }
 
   // ===================== CLIENTES =====================
 
-  function addCliente(data) {
-    const nuevo = { ...data, id: generateId('c'), createdAt: today() }
-    setClientes(prev => [...prev, nuevo])
+  async function addCliente(data) {
+    const nuevo = await clientesService.create({ ...data, createdAt: today() })
+    setClientes(prev => [nuevo, ...prev])
     return nuevo
   }
 
-  function updateCliente(id, data) {
-    setClientes(prev => prev.map(c => (c.id === id ? { ...c, ...data } : c)))
+  async function updateCliente(id, data) {
+    const actualizado = await clientesService.update(id, data)
+    setClientes(prev => prev.map(c => c.id === id ? { ...c, ...actualizado } : c))
   }
 
-  function deleteCliente(id) {
+  async function deleteCliente(id) {
+    await clientesService.delete(id)
     setClientes(prev => prev.filter(c => c.id !== id))
   }
 
   // ===================== VENTAS =====================
 
-  function addVenta(data, autoInfo, vendedorComision) {
+  async function addVenta(data, autoInfo, vendedorComision) {
     const ganancia = data.precioFinal - autoInfo.precioCompra
-    const comisionVendedor = (ganancia * vendedorComision) / 100
-
-    const nueva = {
+    const comisionVendedor = Math.round((ganancia * vendedorComision) / 100)
+    const nueva = await ventasService.create({
       ...data,
-      id: generateId('v'),
       ganancia,
       comisionVendedor,
       fecha: data.fecha || today(),
       createdAt: today(),
-    }
-    setVentas(prev => [...prev, nueva])
-    marcarVendido(data.autoId)
+    })
+    setVentas(prev => [nueva, ...prev])
+    await marcarVendido(data.autoId)
     return nueva
   }
 
-  function deleteVenta(id, autoId) {
+  async function deleteVenta(id, autoId) {
+    await ventasService.delete(id)
     setVentas(prev => prev.filter(v => v.id !== id))
-    // Devolver el auto a disponible
-    updateAuto(autoId, { estado: 'disponible' })
+    await updateAuto(autoId, { estado: 'disponible' })
   }
 
   // ===================== EGRESOS =====================
 
-  function addEgreso(data) {
-    const nuevo = { ...data, id: generateId('e'), createdAt: today() }
-    setEgresos(prev => [...prev, nuevo])
+  async function addEgreso(data) {
+    const nuevo = await egresosService.create({ ...data, createdAt: today() })
+    setEgresos(prev => [nuevo, ...prev])
     return nuevo
   }
 
-  function deleteEgreso(id) {
+  async function deleteEgreso(id) {
+    await egresosService.delete(id)
     setEgresos(prev => prev.filter(e => e.id !== id))
   }
 
   // ===================== TEST DRIVES =====================
 
-  function addTestDrive(data) {
-    const nuevo = { ...data, id: generateId('td'), createdAt: today() }
-    setTestDrives(prev => [...prev, nuevo])
+  async function addTestDrive(data) {
+    const nuevo = await testDrivesService.create({ ...data, createdAt: today() })
+    setTestDrives(prev => [nuevo, ...prev])
     return nuevo
   }
 
-  function updateTestDrive(id, data) {
-    setTestDrives(prev => prev.map(td => (td.id === id ? { ...td, ...data } : td)))
+  async function updateTestDrive(id, data) {
+    const actualizado = await testDrivesService.update(id, data)
+    setTestDrives(prev => prev.map(td => td.id === id ? { ...td, ...actualizado } : td))
   }
 
-  function deleteTestDrive(id) {
+  async function deleteTestDrive(id) {
+    await testDrivesService.delete(id)
     setTestDrives(prev => prev.filter(td => td.id !== id))
   }
 
-  // Helpers de lookup
-  function getAutoById(id)     { return autos.find(a => a.id === id) }
+  function getAutoById(id)    { return autos.find(a => a.id === id) }
   function getClienteById(id) { return clientes.find(c => c.id === id) }
 
   return (
     <AppContext.Provider
       value={{
-        // Estado
-        autos,
-        clientes,
-        ventas,
-        egresos,
-        testDrives,
-        historialPrecios,
-        // Autos
+        autos, clientes, ventas, egresos, testDrives, historialPrecios,
+        loading, error,
         addAuto, updateAuto, deleteAuto, marcarVendido,
-        // Clientes
         addCliente, updateCliente, deleteCliente,
-        // Ventas
         addVenta, deleteVenta,
-        // Egresos
         addEgreso, deleteEgreso,
-        // Test Drives
         addTestDrive, updateTestDrive, deleteTestDrive,
-        // Lookups
         getAutoById, getClienteById,
       }}
     >

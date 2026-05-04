@@ -1,28 +1,23 @@
-import React, { createContext, useContext, useState } from 'react'
-import { useLocalStorage } from '../hooks/useLocalStorage'
-import { INITIAL_USERS } from '../data/initialData'
+import React, { createContext, useContext, useState, useEffect } from 'react'
+import { usuariosService } from '../services/database'
+import { today } from '../utils/helpers'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  // Usuarios persistidos (gerentes y empleados)
-  const [usuarios, setUsuarios] = useLocalStorage('usuarios', INITIAL_USERS)
-
-  // Sesión activa (no se persiste entre recargas para mayor seguridad)
+  const [usuarios, setUsuarios] = useState([])
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = sessionStorage.getItem('currentUser')
     return saved ? JSON.parse(saved) : null
   })
 
-  /**
-   * Login simulado: verifica usuario y contraseña contra localStorage.
-   * Retorna { ok: true } o { ok: false, error: '...' }
-   */
-  function login(username, password) {
-    const user = usuarios.find(
-      u => u.username === username.trim() && u.password === password
-    )
-    if (!user) {
+  useEffect(() => {
+    usuariosService.list().then(setUsuarios).catch(console.error)
+  }, [])
+
+  async function login(username, password) {
+    const user = await usuariosService.findByUsername(username.trim())
+    if (!user || user.password !== password) {
       return { ok: false, error: 'Usuario o contraseña incorrectos.' }
     }
     setCurrentUser(user)
@@ -35,13 +30,27 @@ export function AuthProvider({ children }) {
     sessionStorage.removeItem('currentUser')
   }
 
-  /**
-   * Refresca el currentUser desde los usuarios actuales
-   * (útil si se edita el empleado logueado).
-   */
   function refreshCurrentUser(updatedUser) {
     setCurrentUser(updatedUser)
     sessionStorage.setItem('currentUser', JSON.stringify(updatedUser))
+  }
+
+  async function addUsuario(data) {
+    const nuevo = await usuariosService.create({ ...data, createdAt: today() })
+    setUsuarios(prev => [...prev, nuevo])
+    return nuevo
+  }
+
+  async function updateUsuario(id, data) {
+    const actualizado = await usuariosService.update(id, data)
+    setUsuarios(prev => prev.map(u => u.id === id ? { ...u, ...actualizado } : u))
+    if (currentUser?.id === id) refreshCurrentUser({ ...currentUser, ...actualizado })
+    return actualizado
+  }
+
+  async function deleteUsuario(id) {
+    await usuariosService.delete(id)
+    setUsuarios(prev => prev.filter(u => u.id !== id))
   }
 
   const isGerente = currentUser?.rol === 'gerente'
@@ -55,6 +64,9 @@ export function AuthProvider({ children }) {
         logout,
         usuarios,
         setUsuarios,
+        addUsuario,
+        updateUsuario,
+        deleteUsuario,
         refreshCurrentUser,
       }}
     >
