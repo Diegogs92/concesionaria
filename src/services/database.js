@@ -12,10 +12,17 @@ function normalizeList(res) {
 }
 
 // Appwrite no soporta ñ en nombres de atributos
-// Convertimos año ↔ anio al guardar/leer
+// Convertimos año ↔ anio al guardar/leer.
+// También filtramos null/undefined/'' para no romper campos integer opcionales.
 function autoToDb(data) {
-  const { año, ...rest } = data
-  return año !== undefined ? { ...rest, anio: año } : rest
+  const { año, id, estado, ...rest } = data
+  const clean = {}
+  for (const [k, v] of Object.entries(rest)) {
+    if (v !== null && v !== undefined && v !== '') clean[k] = v
+  }
+  if (año !== undefined && año !== '') clean.anio = Number(año)
+  if (estado !== undefined) clean.estado = estado
+  return clean
 }
 
 function autoFromDb(doc) {
