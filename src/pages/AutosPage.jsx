@@ -197,11 +197,11 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
           <div className="form-grid">
             <div className="form-group form-full">
               <label className="form-label">Tipo de vehículo</label>
-              <ToggleGroup options={['Auto', 'Moto', 'Utilitario', 'Camión']} value={form.tipo} onChange={v => set('tipo', v)} />
+              <ToggleGroup options={['Auto', 'Moto']} value={form.tipo} onChange={v => set('tipo', v)} />
             </div>
             <div className="form-group form-full">
               <label className="form-label">Estado de publicación</label>
-              <ToggleGroup options={['En venta', 'Novedad', 'Reservado']} value={form.estadoPublicacion} onChange={v => set('estadoPublicacion', v)} />
+              <ToggleGroup options={['En venta', 'Novedad']} value={form.estadoPublicacion} onChange={v => set('estadoPublicacion', v)} />
             </div>
           </div>
 
@@ -409,7 +409,15 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
 // ─── Preview carousel ──────────────────────────────────────────────────────────
 function PhotoCarousel({ fotos }) {
   const [idx, setIdx] = useState(0)
-  if (!fotos || fotos.length === 0) return null
+  if (!fotos || fotos.length === 0) return (
+    <div style={{
+      width: '100%', height: 180, borderRadius: 12,
+      background: 'var(--bg-input)', display: 'flex',
+      alignItems: 'center', justifyContent: 'center', marginBottom: 4,
+    }}>
+      <Car size={64} color="var(--text-tertiary)" strokeWidth={1} />
+    </div>
+  )
   return (
     <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', marginBottom: 4 }}>
       <img
