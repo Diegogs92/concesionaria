@@ -11,10 +11,10 @@ import { supabase } from '../lib/supabase'
 
 // ─── Opciones ─────────────────────────────────────────────────────────────────
 const AÑOS = Array.from({ length: new Date().getFullYear() - 1969 + 2 }, (_, i) => new Date().getFullYear() + 1 - i)
-const COMBUSTIBLES  = ['Nafta', 'Diesel', 'Eléctrico', 'Híbrido', 'GNC', 'Otro']
-const TRANSMISIONES = ['Manual', 'Automática', 'CVT', 'Doble embrague']
-const CARROCERIAS   = ['Sedán', 'SUV', 'Pickup', 'Hatchback', 'Coupé', 'Cabrio', 'Minivan', 'Furgoneta', 'Otro']
-const TRACCIONES    = ['4x2', '4x4', 'AWD', 'FWD', 'RWD']
+const COMBUSTIBLES  = ['Nafta', 'Diesel', 'Híbrida', 'GNC']
+const TRANSMISIONES = ['Manual', 'Automática']
+const CARROCERIAS   = ['Sedán', 'SUV', 'Pickup', 'Hatchback', 'Coupé', 'Convertible', 'Van']
+const TRACCIONES    = ['Delantera', 'Trasera', '4x4']
 const PUERTAS       = ['2', '3', '4', '5']
 
 const EMPTY_FORM = {
