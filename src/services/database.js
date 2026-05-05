@@ -229,9 +229,8 @@ export const usuariosService = {
 
   findByUsername: async (username) => {
     const { data, error } = await supabase
-      .from('usuarios').select('*').eq('username', username).single()
-    if (error?.code === 'PGRST116') return null
+      .from('usuarios').select('*').eq('username', username).maybeSingle()
     throwIfError(error, 'usuarios.findByUsername')
-    return data
+    return data // null si no existe
   },
 }
