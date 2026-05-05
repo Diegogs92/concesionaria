@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react'
-import { Plus, Pencil, Trash2, Car, Image, Clock, ChevronLeft, ChevronRight, Upload, X, DollarSign } from 'lucide-react'
+import { Plus, Pencil, Trash2, Car, Clock, ChevronLeft, ChevronRight, Upload, X } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import { formatCurrency, formatDate } from '../utils/helpers'
@@ -592,7 +592,7 @@ export default function AutosPage() {
                     : null
                   const thumb = thumbUrl(auto)
                   return (
-                    <tr key={auto.id}>
+                    <tr key={auto.id} onClick={() => setPreview(auto)} style={{ cursor: 'pointer' }}>
                       <td>
                         <div className="flex items-center gap-3">
                           <div style={{
@@ -628,11 +628,8 @@ export default function AutosPage() {
                         </td>
                       )}
                       <td><AutoEstadoBadge estado={auto.estado} /></td>
-                      <td>
+                      <td onClick={e => e.stopPropagation()}>
                         <div className="flex gap-2">
-                          <button className="btn btn-ghost btn-icon btn-sm" onClick={() => setPreview(auto)} title="Ver detalle">
-                            <Image size={15} />
-                          </button>
                           {isGerente && (
                             <>
                               <button
