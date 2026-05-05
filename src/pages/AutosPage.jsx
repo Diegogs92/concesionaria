@@ -101,6 +101,28 @@ function StepBar({ step, steps }) {
   )
 }
 
+// ─── Input numérico con separador de miles ────────────────────────────────────
+function NumInput({ value, onChange, placeholder, className = 'form-input' }) {
+  function fmt(v) {
+    const n = String(v ?? '').replace(/\D/g, '')
+    return n ? Number(n).toLocaleString('es-AR') : ''
+  }
+  function handleChange(e) {
+    const raw = e.target.value.replace(/\D/g, '')
+    onChange(raw)
+  }
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      className={className}
+      value={fmt(value)}
+      onChange={handleChange}
+      placeholder={placeholder}
+    />
+  )
+}
+
 // ─── Formulario multi-paso ────────────────────────────────────────────────────
 function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
   const [step, setStep] = useState(1)
@@ -284,7 +306,7 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
             </div>
             <div className="form-group">
               <label className="form-label">Kilometraje</label>
-              <input type="number" className="form-input" value={form.kilometraje} onChange={e => set('kilometraje', e.target.value)} placeholder="15000" min="0" />
+              <NumInput value={form.kilometraje} onChange={v => set('kilometraje', v)} placeholder="15.000" />
             </div>
           </div>
         </div>
@@ -296,11 +318,7 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
           {isGerente && (
             <div className="form-group">
               <label className="form-label">Precio de compra ($ ARS)</label>
-              <input
-                type="number" className="form-input" value={form.precioCompra}
-                onChange={e => set('precioCompra', e.target.value)}
-                placeholder="18.000.000" min="0"
-              />
+              <NumInput value={form.precioCompra} onChange={v => set('precioCompra', v)} placeholder="18.000.000" />
               {margen && (
                 <span style={{ fontSize: 12, color: Number(margen) > 0 ? 'var(--success)' : 'var(--danger)', marginTop: 4, display: 'block' }}>
                   Margen: {Number(margen) > 0 ? '+' : ''}{margen}%
@@ -318,11 +336,7 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
                 </span>
               )}
             </label>
-            <input
-              type="number" className="form-input" value={form.precio}
-              onChange={e => set('precio', e.target.value)}
-              placeholder="22.500.000" min="0"
-            />
+            <NumInput value={form.precio} onChange={v => set('precio', v)} placeholder="22.500.000" />
             {errors.precio && <span className="form-error">{errors.precio}</span>}
           </div>
 
