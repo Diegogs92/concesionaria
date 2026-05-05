@@ -101,6 +101,19 @@ function StepBar({ step, steps }) {
   )
 }
 
+// ─── Thumbnail con fallback a ícono ──────────────────────────────────────────
+function Thumbnail({ src }) {
+  const [failed, setFailed] = useState(false)
+  if (!src || failed) return <Car size={20} color="var(--text-tertiary)" />
+  return (
+    <img
+      src={src} alt=""
+      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+      onError={() => setFailed(true)}
+    />
+  )
+}
+
 // ─── Input numérico con separador de miles ────────────────────────────────────
 function NumInput({ value, onChange, placeholder, className = 'form-input' }) {
   function fmt(v) {
@@ -583,20 +596,11 @@ export default function AutosPage() {
                       <td>
                         <div className="flex items-center gap-3">
                           <div style={{
-                            position: 'relative',
                             width: 44, height: 44, borderRadius: 8,
                             background: 'var(--bg-input)', overflow: 'hidden',
                             flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
                           }}>
-                            <Car size={20} color="var(--text-tertiary)" style={{ position: 'absolute' }} />
-                            {thumb && (
-                              <img
-                                src={thumb}
-                                alt=""
-                                style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'relative' }}
-                                onError={e => { e.target.style.display = 'none' }}
-                              />
-                            )}
+                            <Thumbnail src={thumb} />
                           </div>
                           <div>
                             <div style={{ fontWeight: 600 }}>
