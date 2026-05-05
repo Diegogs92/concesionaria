@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react'
-import { Plus, Pencil, Trash2, Car, Clock, ChevronLeft, ChevronRight, Upload, X } from 'lucide-react'
+import { Plus, Pencil, Trash2, Car, Clock, ChevronLeft, ChevronRight, Upload, X, LayoutGrid, List } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import { formatCurrency, formatDate } from '../utils/helpers'
@@ -434,22 +434,23 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
 }
 
 // ─── Preview carousel ──────────────────────────────────────────────────────────
-function PhotoCarousel({ fotos }) {
+function PhotoCarousel({ fotos, compact = false }) {
   const [idx, setIdx] = useState(0)
+  const h = compact ? 180 : 220
   if (!fotos || fotos.length === 0) return (
     <div style={{
-      width: '100%', height: 180, borderRadius: 12,
+      width: '100%', height: h, borderRadius: compact ? 0 : 12,
       background: 'var(--bg-input)', display: 'flex',
-      alignItems: 'center', justifyContent: 'center', marginBottom: 4,
+      alignItems: 'center', justifyContent: 'center', marginBottom: compact ? 0 : 4,
     }}>
       <Car size={64} color="var(--text-tertiary)" strokeWidth={1} />
     </div>
   )
   return (
-    <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', marginBottom: 4 }}>
+    <div style={{ position: 'relative', borderRadius: compact ? 0 : 12, overflow: 'hidden', marginBottom: compact ? 0 : 4 }}>
       <img
         src={fotos[idx]} alt=""
-        style={{ width: '100%', height: 220, objectFit: 'cover', display: 'block' }}
+        style={{ width: '100%', height: h, objectFit: 'cover', display: 'block' }}
       />
       {fotos.length > 1 && (
         <>
@@ -501,6 +502,7 @@ export default function AutosPage() {
 
   const [search, setSearch]       = useState('')
   const [filtroEstado, setFiltro] = useState('todos')
+  const [vista, setVista]         = useState('tabla')
   const [modalOpen, setModalOpen] = useState(false)
   const [editingAuto, setEditing] = useState(null)
   const [deletingId, setDeleting] = useState(null)
@@ -508,17 +510,23 @@ export default function AutosPage() {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
-    return autos.filter(a => {
-      const matchSearch = !q
-        || (a.marca || '').toLowerCase().includes(q)
-        || (a.modelo || '').toLowerCase().includes(q)
-        || (a.version || '').toLowerCase().includes(q)
-        || String(a.año || '').includes(q)
-        || (a.color || '').toLowerCase().includes(q)
-        || (a.patente || '').toLowerCase().includes(q)
-      const matchEstado = filtroEstado === 'todos' || a.estado === filtroEstado
-      return matchSearch && matchEstado
-    })
+    return autos
+      .filter(a => {
+        const matchSearch = !q
+          || (a.marca || '').toLowerCase().includes(q)
+          || (a.modelo || '').toLowerCase().includes(q)
+          || (a.version || '').toLowerCase().includes(q)
+          || String(a.año || '').includes(q)
+          || (a.color || '').toLowerCase().includes(q)
+          || (a.patente || '').toLowerCase().includes(q)
+        const matchEstado = filtroEstado === 'todos' || a.estado === filtroEstado
+        return matchSearch && matchEstado
+      })
+      .sort((a, b) => {
+        const ma = `${a.marca || ''} ${a.modelo || ''}`.toLowerCase()
+        const mb = `${b.marca || ''} ${b.modelo || ''}`.toLowerCase()
+        return ma.localeCompare(mb, 'es')
+      })
   }, [autos, search, filtroEstado])
 
   function openAdd()      { setEditing(null); setModalOpen(true) }
@@ -553,24 +561,42 @@ export default function AutosPage() {
             <option value="disponible">Disponibles</option>
             <option value="vendido">Vendidos</option>
           </select>
+          <div style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border-strong)' }}>
+            <button
+              className="btn btn-ghost btn-icon"
+              style={{ borderRadius: 0, background: vista === 'tabla' ? 'var(--accent)' : 'var(--bg-input)', color: vista === 'tabla' ? '#fff' : 'var(--text-secondary)' }}
+              onClick={() => setVista('tabla')} title="Vista lista"
+            >
+              <List size={16} />
+            </button>
+            <button
+              className="btn btn-ghost btn-icon"
+              style={{ borderRadius: 0, background: vista === 'mosaico' ? 'var(--accent)' : 'var(--bg-input)', color: vista === 'mosaico' ? '#fff' : 'var(--text-secondary)' }}
+              onClick={() => setVista('mosaico')} title="Vista mosaico"
+            >
+              <LayoutGrid size={16} />
+            </button>
+          </div>
           <button className="btn btn-primary" onClick={openAdd}>
             <Plus size={16} /> Agregar
           </button>
         </div>
       </div>
 
-      <div className="card">
-        <div className="table-wrapper">
-          {filtered.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-state-icon"><Car size={24} /></div>
-              <strong>Sin resultados</strong>
-              <p>No se encontraron vehículos con esos criterios.</p>
-              <button className="btn btn-primary btn-sm" onClick={openAdd}>
-                <Plus size={14} /> Agregar el primero
-              </button>
-            </div>
-          ) : (
+      {filtered.length === 0 ? (
+        <div className="card">
+          <div className="empty-state">
+            <div className="empty-state-icon"><Car size={24} /></div>
+            <strong>Sin resultados</strong>
+            <p>No se encontraron vehículos con esos criterios.</p>
+            <button className="btn btn-primary btn-sm" onClick={openAdd}>
+              <Plus size={14} /> Agregar el primero
+            </button>
+          </div>
+        </div>
+      ) : vista === 'tabla' ? (
+        <div className="card">
+          <div className="table-wrapper">
             <table>
               <thead>
                 <tr>
@@ -582,7 +608,7 @@ export default function AutosPage() {
                   <th>Precio</th>
                   {isGerente && <th className="hide-mobile">Margen</th>}
                   <th>Estado</th>
-                  <th style={{ width: 100 }}>Acciones</th>
+                  <th style={{ width: 80 }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -658,9 +684,102 @@ export default function AutosPage() {
                 })}
               </tbody>
             </table>
-          )}
+          </div>
         </div>
-      </div>
+      ) : (
+        /* ── Vista mosaico ── */
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+          gap: 16,
+        }}>
+          {filtered.map(auto => {
+            const margen = isGerente && auto.precioCompra
+              ? ((auto.precio - auto.precioCompra) / auto.precioCompra * 100).toFixed(1)
+              : null
+            return (
+              <div
+                key={auto.id}
+                onClick={() => setPreview(auto)}
+                style={{
+                  background: 'var(--bg-card)', borderRadius: 16,
+                  border: '1px solid var(--divider)', overflow: 'hidden',
+                  cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}
+              >
+                {/* Carrusel o ícono */}
+                {auto.fotos && auto.fotos.length > 0
+                  ? <PhotoCarousel fotos={auto.fotos} compact />
+                  : (
+                    <div style={{
+                      height: 180, background: 'var(--bg-input)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <Car size={56} color="var(--text-tertiary)" strokeWidth={1} />
+                    </div>
+                  )
+                }
+
+                {/* Info */}
+                <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.3 }}>
+                        {auto.marca} {auto.modelo}
+                      </div>
+                      {auto.version && (
+                        <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{auto.version}</div>
+                      )}
+                    </div>
+                    <AutoEstadoBadge estado={auto.estado} />
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 10, fontSize: 12, color: 'var(--text-tertiary)', flexWrap: 'wrap' }}>
+                    {auto.año && <span>{auto.año}</span>}
+                    {auto.kilometraje && <span>{Number(auto.kilometraje).toLocaleString('es-AR')} km</span>}
+                    {auto.combustible && <span>{auto.combustible}</span>}
+                    {auto.condicion && <span>{auto.condicion}</span>}
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 16 }}>
+                        {auto.precio ? formatCurrency(auto.precio) : '—'}
+                      </div>
+                      {isGerente && margen && (
+                        <div style={{ fontSize: 11, color: Number(margen) > 0 ? 'var(--success)' : 'var(--danger)' }}>
+                          {Number(margen) > 0 ? '+' : ''}{margen}% margen
+                        </div>
+                      )}
+                    </div>
+                    {isGerente && (
+                      <div onClick={e => e.stopPropagation()} className="flex gap-1">
+                        <button
+                          className="btn btn-ghost btn-icon btn-sm"
+                          onClick={() => openEdit(auto)}
+                          disabled={auto.estado === 'vendido'}
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          className="btn btn-ghost btn-icon btn-sm"
+                          onClick={() => setDeleting(auto.id)}
+                          style={{ color: 'var(--danger)' }}
+                          disabled={auto.estado === 'vendido'}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* Modal agregar/editar */}
       <Modal open={modalOpen} onClose={closeModal} title={editingAuto ? 'Editar vehículo' : 'Nuevo vehículo'} size="lg" disableOutsideClick>
