@@ -1,162 +1,237 @@
-import { databases, DB_ID, COL, ID, Query } from '../lib/appwrite'
+import { supabase } from '../lib/supabase'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function normalize(doc) {
-  const { $id, $collectionId, $databaseId, $permissions, ...rest } = doc
-  return { id: $id, ...rest }
-}
-
-function normalizeList(res) {
-  return res.documents.map(normalize)
-}
-
-// Appwrite no soporta ñ en nombres de atributos
-// Convertimos año ↔ anio al guardar/leer.
-// También filtramos null/undefined/'' para no romper campos integer opcionales.
 function autoToDb(data) {
-  const { año, id, estado, ...rest } = data
+  const { año, id, ...rest } = data
   const clean = {}
   for (const [k, v] of Object.entries(rest)) {
     if (v !== null && v !== undefined && v !== '') clean[k] = v
   }
   if (año !== undefined && año !== '') clean.anio = Number(año)
-  if (estado !== undefined) clean.estado = estado
   return clean
 }
 
-function autoFromDb(doc) {
-  const normalized = normalize(doc)
-  const { anio, ...rest } = normalized
+function autoFromDb(row) {
+  if (!row) return null
+  const { anio, ...rest } = row
   return anio !== undefined ? { ...rest, año: anio } : rest
 }
 
-function autoListFromDb(res) {
-  return res.documents.map(autoFromDb)
+function throwIfError(error, context) {
+  if (error) {
+    console.error(`Supabase error [${context}]:`, error)
+    throw new Error(error.message)
+  }
 }
 
 // ─── AUTOS ────────────────────────────────────────────────────────────────────
 
 export const autosService = {
-  list: () =>
-    databases.listDocuments(DB_ID, COL.AUTOS, [Query.orderDesc('createdAt'), Query.limit(200)])
-      .then(autoListFromDb),
+  list: async () => {
+    const { data, error } = await supabase
+      .from('autos')
+      .select('*')
+      .order('createdAt', { ascending: false })
+    throwIfError(error, 'autos.list')
+    return (data || []).map(autoFromDb)
+  },
 
-  create: (data) =>
-    databases.createDocument(DB_ID, COL.AUTOS, ID.unique(), autoToDb(data))
-      .then(autoFromDb),
+  create: async (data) => {
+    const { data: row, error } = await supabase
+      .from('autos')
+      .insert(autoToDb(data))
+      .select()
+      .single()
+    throwIfError(error, 'autos.create')
+    return autoFromDb(row)
+  },
 
-  update: (id, data) =>
-    databases.updateDocument(DB_ID, COL.AUTOS, id, autoToDb(data))
-      .then(autoFromDb),
+  update: async (id, data) => {
+    const { data: row, error } = await supabase
+      .from('autos')
+      .update(autoToDb(data))
+      .eq('id', id)
+      .select()
+      .single()
+    throwIfError(error, 'autos.update')
+    return autoFromDb(row)
+  },
 
-  delete: (id) =>
-    databases.deleteDocument(DB_ID, COL.AUTOS, id),
+  delete: async (id) => {
+    const { error } = await supabase.from('autos').delete().eq('id', id)
+    throwIfError(error, 'autos.delete')
+  },
 }
 
 // ─── CLIENTES ─────────────────────────────────────────────────────────────────
 
 export const clientesService = {
-  list: () =>
-    databases.listDocuments(DB_ID, COL.CLIENTES, [Query.orderDesc('createdAt'), Query.limit(200)])
-      .then(normalizeList),
+  list: async () => {
+    const { data, error } = await supabase
+      .from('clientes')
+      .select('*')
+      .order('createdAt', { ascending: false })
+    throwIfError(error, 'clientes.list')
+    return data || []
+  },
 
-  create: (data) =>
-    databases.createDocument(DB_ID, COL.CLIENTES, ID.unique(), data)
-      .then(normalize),
+  create: async (data) => {
+    const { data: row, error } = await supabase
+      .from('clientes').insert(data).select().single()
+    throwIfError(error, 'clientes.create')
+    return row
+  },
 
-  update: (id, data) =>
-    databases.updateDocument(DB_ID, COL.CLIENTES, id, data)
-      .then(normalize),
+  update: async (id, data) => {
+    const { data: row, error } = await supabase
+      .from('clientes').update(data).eq('id', id).select().single()
+    throwIfError(error, 'clientes.update')
+    return row
+  },
 
-  delete: (id) =>
-    databases.deleteDocument(DB_ID, COL.CLIENTES, id),
+  delete: async (id) => {
+    const { error } = await supabase.from('clientes').delete().eq('id', id)
+    throwIfError(error, 'clientes.delete')
+  },
 }
 
 // ─── VENTAS ───────────────────────────────────────────────────────────────────
 
 export const ventasService = {
-  list: () =>
-    databases.listDocuments(DB_ID, COL.VENTAS, [Query.orderDesc('createdAt'), Query.limit(200)])
-      .then(normalizeList),
+  list: async () => {
+    const { data, error } = await supabase
+      .from('ventas')
+      .select('*')
+      .order('createdAt', { ascending: false })
+    throwIfError(error, 'ventas.list')
+    return data || []
+  },
 
-  create: (data) =>
-    databases.createDocument(DB_ID, COL.VENTAS, ID.unique(), data)
-      .then(normalize),
+  create: async (data) => {
+    const { data: row, error } = await supabase
+      .from('ventas').insert(data).select().single()
+    throwIfError(error, 'ventas.create')
+    return row
+  },
 
-  delete: (id) =>
-    databases.deleteDocument(DB_ID, COL.VENTAS, id),
+  delete: async (id) => {
+    const { error } = await supabase.from('ventas').delete().eq('id', id)
+    throwIfError(error, 'ventas.delete')
+  },
 }
 
 // ─── EGRESOS ──────────────────────────────────────────────────────────────────
 
 export const egresosService = {
-  list: () =>
-    databases.listDocuments(DB_ID, COL.EGRESOS, [Query.orderDesc('createdAt'), Query.limit(200)])
-      .then(normalizeList),
+  list: async () => {
+    const { data, error } = await supabase
+      .from('egresos')
+      .select('*')
+      .order('createdAt', { ascending: false })
+    throwIfError(error, 'egresos.list')
+    return data || []
+  },
 
-  create: (data) =>
-    databases.createDocument(DB_ID, COL.EGRESOS, ID.unique(), data)
-      .then(normalize),
+  create: async (data) => {
+    const { data: row, error } = await supabase
+      .from('egresos').insert(data).select().single()
+    throwIfError(error, 'egresos.create')
+    return row
+  },
 
-  delete: (id) =>
-    databases.deleteDocument(DB_ID, COL.EGRESOS, id),
+  delete: async (id) => {
+    const { error } = await supabase.from('egresos').delete().eq('id', id)
+    throwIfError(error, 'egresos.delete')
+  },
 }
 
 // ─── TEST DRIVES ──────────────────────────────────────────────────────────────
 
 export const testDrivesService = {
-  list: () =>
-    databases.listDocuments(DB_ID, COL.TEST_DRIVES, [Query.orderDesc('createdAt'), Query.limit(200)])
-      .then(normalizeList),
+  list: async () => {
+    const { data, error } = await supabase
+      .from('test_drives')
+      .select('*')
+      .order('createdAt', { ascending: false })
+    throwIfError(error, 'testDrives.list')
+    return data || []
+  },
 
-  create: (data) =>
-    databases.createDocument(DB_ID, COL.TEST_DRIVES, ID.unique(), data)
-      .then(normalize),
+  create: async (data) => {
+    const { data: row, error } = await supabase
+      .from('test_drives').insert(data).select().single()
+    throwIfError(error, 'testDrives.create')
+    return row
+  },
 
-  update: (id, data) =>
-    databases.updateDocument(DB_ID, COL.TEST_DRIVES, id, data)
-      .then(normalize),
+  update: async (id, data) => {
+    const { data: row, error } = await supabase
+      .from('test_drives').update(data).eq('id', id).select().single()
+    throwIfError(error, 'testDrives.update')
+    return row
+  },
 
-  delete: (id) =>
-    databases.deleteDocument(DB_ID, COL.TEST_DRIVES, id),
+  delete: async (id) => {
+    const { error } = await supabase.from('test_drives').delete().eq('id', id)
+    throwIfError(error, 'testDrives.delete')
+  },
 }
 
 // ─── HISTORIAL DE PRECIOS ─────────────────────────────────────────────────────
 
 export const historialService = {
-  list: () =>
-    databases.listDocuments(DB_ID, COL.HISTORIAL, [Query.orderDesc('createdAt'), Query.limit(500)])
-      .then(normalizeList),
+  list: async () => {
+    const { data, error } = await supabase
+      .from('historial_precios')
+      .select('*')
+      .order('createdAt', { ascending: false })
+    throwIfError(error, 'historial.list')
+    return data || []
+  },
 
-  create: (data) =>
-    databases.createDocument(DB_ID, COL.HISTORIAL, ID.unique(), data)
-      .then(normalize),
+  create: async (data) => {
+    const { data: row, error } = await supabase
+      .from('historial_precios').insert(data).select().single()
+    throwIfError(error, 'historial.create')
+    return row
+  },
 }
 
 // ─── USUARIOS ─────────────────────────────────────────────────────────────────
 
 export const usuariosService = {
-  list: () =>
-    databases.listDocuments(DB_ID, COL.USUARIOS, [Query.limit(100)])
-      .then(normalizeList),
+  list: async () => {
+    const { data, error } = await supabase
+      .from('usuarios').select('*')
+    throwIfError(error, 'usuarios.list')
+    return data || []
+  },
 
-  create: (data) =>
-    databases.createDocument(DB_ID, COL.USUARIOS, ID.unique(), data)
-      .then(normalize),
+  create: async (data) => {
+    const { data: row, error } = await supabase
+      .from('usuarios').insert(data).select().single()
+    throwIfError(error, 'usuarios.create')
+    return row
+  },
 
-  update: (id, data) =>
-    databases.updateDocument(DB_ID, COL.USUARIOS, id, data)
-      .then(normalize),
+  update: async (id, data) => {
+    const { data: row, error } = await supabase
+      .from('usuarios').update(data).eq('id', id).select().single()
+    throwIfError(error, 'usuarios.update')
+    return row
+  },
 
-  delete: (id) =>
-    databases.deleteDocument(DB_ID, COL.USUARIOS, id),
+  delete: async (id) => {
+    const { error } = await supabase.from('usuarios').delete().eq('id', id)
+    throwIfError(error, 'usuarios.delete')
+  },
 
   findByUsername: async (username) => {
-    const res = await databases.listDocuments(DB_ID, COL.USUARIOS, [
-      Query.equal('username', username),
-      Query.limit(1),
-    ])
-    return res.documents.length > 0 ? normalize(res.documents[0]) : null
+    const { data, error } = await supabase
+      .from('usuarios').select('*').eq('username', username).single()
+    if (error?.code === 'PGRST116') return null
+    throwIfError(error, 'usuarios.findByUsername')
+    return data
   },
 }
