@@ -11,7 +11,7 @@ import { X } from 'lucide-react'
  *   children
  *   footer  - JSX (opcional, reemplaza el footer por defecto)
  */
-export default function Modal({ open, onClose, title, size = 'default', children, footer }) {
+export default function Modal({ open, onClose, title, size = 'default', children, footer, disableOutsideClick = false }) {
   // Cerrar con Escape
   useEffect(() => {
     if (!open) return
@@ -35,7 +35,7 @@ export default function Modal({ open, onClose, title, size = 'default', children
   if (!open) return null
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={disableOutsideClick ? undefined : onClose}>
       <div
         className={`modal ${size === 'lg' ? 'modal-lg' : ''}`}
         onClick={e => e.stopPropagation()}

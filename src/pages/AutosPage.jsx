@@ -634,7 +634,7 @@ export default function AutosPage() {
       </div>
 
       {/* Modal agregar/editar */}
-      <Modal open={modalOpen} onClose={closeModal} title={editingAuto ? 'Editar vehículo' : 'Nuevo vehículo'} size="lg">
+      <Modal open={modalOpen} onClose={closeModal} title={editingAuto ? 'Editar vehículo' : 'Nuevo vehículo'} size="lg" disableOutsideClick>
         <AutoForm
           initial={editingAuto ?? EMPTY_FORM}
           onSubmit={handleSubmit}
