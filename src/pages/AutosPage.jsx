@@ -33,8 +33,8 @@ const EMPTY_FORM = {
 // ─── ToggleGroup ──────────────────────────────────────────────────────────────
 function ToggleGroup({ options, value, onChange }) {
   return (
-    <div style={{ display: 'flex', gap: 0, borderRadius: 10, overflow: 'hidden', border: '1px solid var(--divider)' }}>
-      {options.map(opt => {
+    <div style={{ display: 'flex', gap: 0, borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border-strong)' }}>
+      {options.map((opt, i) => {
         const active = value === opt
         return (
           <button
@@ -46,12 +46,12 @@ function ToggleGroup({ options, value, onChange }) {
               padding: '10px 8px',
               fontSize: 13,
               fontWeight: active ? 700 : 400,
-              background: active ? 'var(--primary)' : 'var(--bg-input)',
-              color: active ? '#fff' : 'var(--text-secondary)',
+              background: active ? 'var(--accent)' : 'var(--bg-input)',
+              color: active ? '#ffffff' : 'var(--text-secondary)',
               border: 'none',
+              borderRight: i < options.length - 1 ? '1px solid var(--border-strong)' : 'none',
               cursor: 'pointer',
               transition: 'all 0.15s',
-              borderRight: '1px solid var(--divider)',
             }}
           >
             {opt}
@@ -77,14 +77,14 @@ function StepBar({ step, steps }) {
                 width: 32, height: 32, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 13, fontWeight: 700,
-                background: done || active ? 'var(--primary)' : 'var(--bg-input)',
-                color: done || active ? '#fff' : 'var(--text-tertiary)',
-                border: active ? '2px solid var(--primary)' : '2px solid transparent',
-                boxShadow: active ? '0 0 0 3px rgba(var(--primary-rgb),0.2)' : 'none',
+                background: done || active ? 'var(--accent)' : 'var(--bg-input)',
+                color: done || active ? '#ffffff' : 'var(--text-tertiary)',
+                border: active ? '2px solid var(--accent)' : '2px solid transparent',
+                boxShadow: active ? '0 0 0 3px var(--accent-light)' : 'none',
               }}>
                 {done ? '✓' : n}
               </div>
-              <span style={{ fontSize: 11, color: active ? 'var(--primary)' : 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 11, color: active ? 'var(--accent)' : 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
                 {label}
               </span>
             </div>
