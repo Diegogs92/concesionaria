@@ -10,7 +10,6 @@ import AutosPage from './pages/AutosPage'
 import ClientesPage from './pages/ClientesPage'
 import VentasPage from './pages/VentasPage'
 import FinanzasPage from './pages/FinanzasPage'
-import EmpleadosPage from './pages/EmpleadosPage'
 import UsuariosPage from './pages/UsuariosPage'
 import TestDrivesPage from './pages/TestDrivesPage'
 import ReportesPage from './pages/ReportesPage'
@@ -113,15 +112,6 @@ export default function App() {
                 }
               />
 
-              {/* Empleados — solo gerente */}
-              <Route
-                path="/empleados"
-                element={
-                  <GerenteRoute>
-                    <EmpleadosPage />
-                  </GerenteRoute>
-                }
-              />
 
               {/* Test Drives — ambos roles */}
               <Route
@@ -143,13 +133,13 @@ export default function App() {
                 }
               />
 
-              {/* Usuarios — solo developer */}
+              {/* Usuarios — gerente y developer */}
               <Route
                 path="/usuarios"
                 element={
-                  <DevRoute>
+                  <GerenteRoute>
                     <UsuariosPage />
-                  </DevRoute>
+                  </GerenteRoute>
                 }
               />
 
