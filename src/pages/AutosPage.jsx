@@ -480,64 +480,102 @@ function CardCarousel({ fotos }) {
 }
 
 // ─── Preview carousel ──────────────────────────────────────────────────────────
-function PhotoCarousel({ fotos, compact = false }) {
+function PhotoCarousel({ fotos, compact = false, fillHeight = false, expandable = false }) {
   const [idx, setIdx] = useState(0)
+  const [lightbox, setLightbox] = useState(false)
   const h = compact ? 180 : 220
+
+  const navBtn = (side, onClick) => (
+    <button
+      onClick={onClick}
+      style={{
+        position: 'absolute', [side]: 8, top: '50%', transform: 'translateY(-50%)',
+        background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%',
+        width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'pointer', color: '#fff',
+      }}
+    >
+      {side === 'left' ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
+    </button>
+  )
+
   if (!fotos || fotos.length === 0) return (
     <div style={{
-      width: '100%', height: h, borderRadius: compact ? 0 : 12,
+      width: '100%',
+      ...(fillHeight ? { flex: 1, minHeight: 120 } : { height: h }),
+      borderRadius: compact ? 0 : 12,
       background: 'var(--bg-input)', display: 'flex',
-      alignItems: 'center', justifyContent: 'center', marginBottom: compact ? 0 : 4,
+      alignItems: 'center', justifyContent: 'center',
     }}>
       <Car size={64} color="var(--text-tertiary)" strokeWidth={1} />
     </div>
   )
+
   return (
-    <div style={{ position: 'relative', borderRadius: compact ? 0 : 12, overflow: 'hidden', marginBottom: compact ? 0 : 4 }}>
-      <img
-        src={fotos[idx]} alt=""
-        style={{ width: '100%', height: h, objectFit: 'cover', display: 'block' }}
-      />
-      {fotos.length > 1 && (
-        <>
-          <button
-            onClick={() => setIdx(i => (i - 1 + fotos.length) % fotos.length)}
-            style={{
-              position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
-              background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%',
-              width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: '#fff',
-            }}
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <button
-            onClick={() => setIdx(i => (i + 1) % fotos.length)}
-            style={{
-              position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-              background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%',
-              width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: '#fff',
-            }}
-          >
-            <ChevronRight size={18} />
-          </button>
-          <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5 }}>
-            {fotos.map((_, i) => (
-              <div
-                key={i}
-                onClick={() => setIdx(i)}
-                style={{
+    <>
+      <div style={{
+        position: 'relative', borderRadius: compact ? 0 : 12, overflow: 'hidden',
+        ...(fillHeight ? { flex: 1, minHeight: 0 } : {}),
+      }}>
+        <img
+          src={fotos[idx]} alt=""
+          style={{
+            width: '100%', objectFit: 'cover', display: 'block',
+            ...(fillHeight ? { height: '100%', position: 'absolute', inset: 0 } : { height: h }),
+            cursor: expandable ? 'zoom-in' : 'default',
+          }}
+          onClick={expandable ? () => setLightbox(true) : undefined}
+        />
+        {/* spacer para que el div tenga altura cuando fillHeight */}
+        {fillHeight && <div style={{ paddingTop: '66%' }} />}
+        {fotos.length > 1 && (
+          <>
+            {navBtn('left',  e => { e.stopPropagation(); setIdx(i => (i - 1 + fotos.length) % fotos.length) })}
+            {navBtn('right', e => { e.stopPropagation(); setIdx(i => (i + 1) % fotos.length) })}
+            <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5 }}>
+              {fotos.map((_, i) => (
+                <div key={i} onClick={() => setIdx(i)} style={{
                   width: i === idx ? 16 : 6, height: 6, borderRadius: 3,
                   background: i === idx ? '#fff' : 'rgba(255,255,255,0.5)',
                   cursor: 'pointer', transition: 'all 0.2s',
-                }}
-              />
-            ))}
-          </div>
-        </>
+                }} />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          onClick={() => setLightbox(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 500,
+            background: 'rgba(0,0,0,0.92)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          {fotos.length > 1 && navBtn('left', e => { e.stopPropagation(); setIdx(i => (i - 1 + fotos.length) % fotos.length) })}
+          <img
+            src={fotos[idx]} alt=""
+            style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: 8 }}
+            onClick={e => e.stopPropagation()}
+          />
+          {fotos.length > 1 && navBtn('right', e => { e.stopPropagation(); setIdx(i => (i + 1) % fotos.length) })}
+          <button
+            onClick={() => setLightbox(false)}
+            style={{
+              position: 'absolute', top: 16, right: 16,
+              background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%',
+              width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', color: '#fff',
+            }}
+          >
+            <X size={20} />
+          </button>
+        </div>
       )}
-    </div>
+    </>
   )
 }
 
@@ -945,11 +983,11 @@ export default function AutosPage() {
 
         return (
           <Modal open={!!previewAuto} onClose={() => setPreview(null)} title={previewTitle} size="xl" noScroll>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, height: '100%' }}>
 
               {/* Izquierda: carrusel + descripción + historial */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <PhotoCarousel fotos={previewAuto.fotos} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minHeight: 0 }}>
+                <PhotoCarousel fotos={previewAuto.fotos} fillHeight expandable />
                 {previewAuto.descripcion && (
                   <div style={{ background: 'var(--bg-input)', borderRadius: 8, padding: '10px 14px' }}>
                     <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Descripción</div>
