@@ -9,15 +9,15 @@ import { getInitials } from '../../utils/helpers'
 import { RolBadge } from '../ui/Badge'
 
 const NAV_ITEMS = [
-  { to: '/',          label: 'Dashboard',  icon: BarChart2,   roles: ['gerente', 'empleado'] },
-  { to: '/autos',     label: 'Autos',      icon: Car,         roles: ['gerente', 'empleado'] },
-  { to: '/clientes',  label: 'Clientes',   icon: Users,       roles: ['gerente', 'empleado'] },
-  { to: '/ventas',    label: 'Ventas',     icon: ShoppingBag, roles: ['gerente', 'empleado'] },
-  { to: '/test-drives', label: 'Test Drive', icon: CalendarCheck, roles: ['gerente', 'empleado'] },
-  { to: '/finanzas',  label: 'Finanzas',   icon: Wallet,      roles: ['gerente'] },
-  { to: '/reportes',  label: 'Reportes',   icon: FileBarChart, roles: ['gerente'] },
-  { to: '/empleados', label: 'Usuarios',   icon: UserCheck,   roles: ['gerente'] },
-  { to: '/usuarios',  label: 'Usuarios',   icon: Shield,      roles: ['developer'] },
+  { to: '/',            label: 'Dashboard',  icon: BarChart2,     roles: ['gerente', 'empleado', 'developer'] },
+  { to: '/autos',       label: 'Autos',      icon: Car,           roles: ['gerente', 'empleado', 'developer'] },
+  { to: '/clientes',    label: 'Clientes',   icon: Users,         roles: ['gerente', 'empleado', 'developer'] },
+  { to: '/ventas',      label: 'Ventas',     icon: ShoppingBag,   roles: ['gerente', 'empleado', 'developer'] },
+  { to: '/test-drives', label: 'Test Drive', icon: CalendarCheck, roles: ['gerente', 'empleado', 'developer'] },
+  { to: '/finanzas',    label: 'Finanzas',   icon: Wallet,        roles: ['gerente', 'developer'] },
+  { to: '/reportes',    label: 'Reportes',   icon: FileBarChart,  roles: ['gerente', 'developer'] },
+  { to: '/empleados',   label: 'Usuarios',   icon: UserCheck,     roles: ['gerente', 'developer'] },
+  { to: '/usuarios',    label: 'Gestión usuarios', icon: Shield,  roles: ['developer'] },
 ]
 
 /**

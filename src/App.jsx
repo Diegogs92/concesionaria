@@ -17,18 +17,16 @@ import ReportesPage from './pages/ReportesPage'
 
 // ─── Ruta protegida: redirige al login si no hay sesión ──────────────────────
 function PrivateRoute({ children }) {
-  const { currentUser, isDeveloper } = useAuth()
+  const { currentUser } = useAuth()
   if (!currentUser) return <Navigate to="/login" replace />
-  if (isDeveloper)  return <Navigate to="/usuarios" replace />
   return <Layout>{children}</Layout>
 }
 
-// ─── Ruta solo para gerentes ─────────────────────────────────────────────────
+// ─── Ruta para gerentes y developer ──────────────────────────────────────────
 function GerenteRoute({ children }) {
   const { currentUser, isGerente, isDeveloper } = useAuth()
-  if (!currentUser) return <Navigate to="/login" replace />
-  if (isDeveloper)  return <Navigate to="/usuarios" replace />
-  if (!isGerente)   return <Navigate to="/" replace />
+  if (!currentUser)              return <Navigate to="/login" replace />
+  if (!isGerente && !isDeveloper) return <Navigate to="/" replace />
   return <Layout>{children}</Layout>
 }
 
@@ -42,8 +40,8 @@ function DevRoute({ children }) {
 
 // ─── Rutas públicas: redirige al dashboard si ya está logueado ───────────────
 function PublicRoute({ children }) {
-  const { currentUser, isDeveloper } = useAuth()
-  if (currentUser) return <Navigate to={isDeveloper ? '/usuarios' : '/'} replace />
+  const { currentUser } = useAuth()
+  if (currentUser) return <Navigate to="/" replace />
   return children
 }
 
