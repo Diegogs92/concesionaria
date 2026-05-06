@@ -626,6 +626,11 @@ textarea.form-input {
   max-width: 720px;
 }
 
+.modal-xl {
+  max-width: 960px;
+  max-height: 94vh;
+}
+
 /* Tablet: modal más optimizado */
 @media (min-width: 769px) and (max-width: 1024px) {
   .modal-overlay {
@@ -639,6 +644,11 @@ textarea.form-input {
 
   .modal-lg {
     max-width: 85vw;
+  }
+
+  .modal-xl {
+    max-width: 96vw;
+    max-height: 94vh;
   }
 }
 
@@ -1089,6 +1099,11 @@ tbody td {
     max-width: 90vw;
     max-height: 85vh;
     border-radius: var(--radius-xl);
+  }
+
+  .modal-xl {
+    max-width: 97vw;
+    max-height: 96vh;
   }
 
   .modal-header { padding: 24px; }

@@ -137,23 +137,12 @@ function NumInput({ value, onChange, placeholder, className = 'form-input' }) {
 }
 
 // ─── Formulario multi-paso ────────────────────────────────────────────────────
-function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin }) {
+function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizaciones }) {
   const [step, setStep] = useState(1)
   const [form, setForm] = useState({ ...EMPTY_FORM, ...initial })
   const [errors, setErrors] = useState({})
   const [uploading, setUploading] = useState(false)
-  const [cotizaciones, setCotizaciones] = useState(null)
   const [submitting, setSubmitting] = useState(false)
-
-  useEffect(() => {
-    fetch('https://dolarapi.com/v1/dolares')
-      .then(r => r.json())
-      .then(list => {
-        const get = casa => list.find(d => d.casa === casa)?.venta ?? null
-        setCotizaciones({ oficial: get('oficial'), mep: get('bolsa'), blue: get('blue') })
-      })
-      .catch(() => {})
-  }, [])
 
   function set(field, value) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -564,6 +553,17 @@ export default function AutosPage() {
   const [editingAuto, setEditing] = useState(null)
   const [deletingId, setDeleting] = useState(null)
   const [previewAuto, setPreview] = useState(null)
+  const [cotizaciones, setCotizaciones] = useState(null)
+
+  useEffect(() => {
+    fetch('https://dolarapi.com/v1/dolares')
+      .then(r => r.json())
+      .then(list => {
+        const get = casa => list.find(d => d.casa === casa)?.venta ?? null
+        setCotizaciones({ oficial: get('oficial'), mep: get('bolsa'), blue: get('blue') })
+      })
+      .catch(() => {})
+  }, [])
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
@@ -890,79 +890,108 @@ export default function AutosPage() {
           onSubmit={handleSubmit}
           onCancel={closeModal}
           isAdmin={isAdmin}
+          cotizaciones={cotizaciones}
         />
       </Modal>
 
       {/* Modal preview */}
-      <Modal
-        open={!!previewAuto}
-        onClose={() => setPreview(null)}
-        title={previewAuto ? `${(previewAuto.marca || '').toUpperCase()} ${(previewAuto.modelo || '').toUpperCase()}${previewAuto.version ? ' ' + previewAuto.version.toUpperCase() : ''}` : ''}
-      >
-        {previewAuto && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <PhotoCarousel fotos={previewAuto.fotos} />
-
-            <div className="form-grid" style={{ gap: 10 }}>
-              {[
-                ['Tipo',         previewAuto.tipo],
-                ['Año',          previewAuto.año],
-                ['Condición',    previewAuto.condicion],
-                ['Kilometraje',  previewAuto.kilometraje ? `${Number(previewAuto.kilometraje).toLocaleString('es-AR')} km` : null],
-                ['Combustible',  previewAuto.combustible],
-                ['Transmisión',  previewAuto.transmision],
-                ['Tracción',     previewAuto.traccion],
-                ['Carrocería',   previewAuto.carroceria],
-                ['Puertas',      previewAuto.puertas],
-                ['Motor',        previewAuto.motor],
-                ['Color',        previewAuto.color],
-                ['Patente',      previewAuto.patente],
-                ['Publicación',  previewAuto.estadoPublicacion],
-                ['Estado',       <AutoEstadoBadge key="e" estado={previewAuto.estado} />],
-                isAdmin && previewAuto.precioCompra ? ['Precio compra', formatCurrency(previewAuto.precioCompra)] : null,
-                ['Precio',       previewAuto.precio ? formatCurrency(previewAuto.precio) : null],
-                ['Agregado',     formatDate(previewAuto.createdAt)],
-              ].filter(row => row && row[1]).map(([k, v]) => (
-                <div key={k} style={{ background: 'var(--bg-input)', borderRadius: 8, padding: '10px 14px' }}>
-                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 3 }}>{k}</div>
-                  <div style={{ fontSize: 14, fontWeight: 600, textTransform: typeof v === 'string' ? 'uppercase' : 'none' }}>{v}</div>
-                </div>
-              ))}
+      {previewAuto && (() => {
+        const toUSD = rate => rate && previewAuto.precio
+          ? Math.round(previewAuto.precio / rate).toLocaleString('es-AR')
+          : null
+        const previewTitle = (
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 17, lineHeight: 1.2 }}>
+              {`${(previewAuto.marca || '').toUpperCase()} ${(previewAuto.modelo || '').toUpperCase()}${previewAuto.version ? ' ' + previewAuto.version.toUpperCase() : ''}`}
             </div>
-
-            {previewAuto.descripcion && (
-              <div style={{ background: 'var(--bg-input)', borderRadius: 8, padding: '12px 14px' }}>
-                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Descripción</div>
-                <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0, textTransform: 'uppercase' }}>{previewAuto.descripcion}</p>
+            {previewAuto.precio && (
+              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px 14px', marginTop: 5 }}>
+                <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 16 }}>
+                  {formatCurrency(previewAuto.precio)}
+                </span>
+                {cotizaciones && (
+                  <div style={{ display: 'flex', gap: 10, fontSize: 12, color: 'var(--text-tertiary)' }}>
+                    {toUSD(cotizaciones.oficial) && <span>Oficial <strong style={{ color: 'var(--text-secondary)' }}>U$D {toUSD(cotizaciones.oficial)}</strong></span>}
+                    {toUSD(cotizaciones.mep)     && <span>MEP <strong style={{ color: 'var(--text-secondary)' }}>U$D {toUSD(cotizaciones.mep)}</strong></span>}
+                    {toUSD(cotizaciones.blue)    && <span>Blue <strong style={{ color: 'var(--text-secondary)' }}>U$D {toUSD(cotizaciones.blue)}</strong></span>}
+                  </div>
+                )}
               </div>
             )}
-
-            {(() => {
-              const historialAuto = historialPrecios.filter(h => h.autoId === previewAuto.id)
-              return historialAuto.length > 0 ? (
-                <div style={{ background: 'var(--bg-input)', borderRadius: 8, padding: '12px 14px' }}>
-                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <Clock size={12} /> Historial de precios
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {historialAuto.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).map(h => (
-                      <div key={h.id} style={{ fontSize: 12, paddingBottom: 8, borderBottom: '1px solid var(--divider)' }}>
-                        <div style={{ color: 'var(--text-tertiary)', marginBottom: 2 }}>{formatDate(h.fecha)}</div>
-                        <div>
-                          {h.campo === 'precio' ? 'Precio de venta' : 'Precio de compra'}:{' '}
-                          <span style={{ color: 'var(--danger)' }}>{formatCurrency(h.valorAnterior)}</span>
-                          {' → '}
-                          <span style={{ color: 'var(--success)', fontWeight: 600 }}>{formatCurrency(h.valorNuevo)}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null
-            })()}
           </div>
-        )}
-      </Modal>
+        )
+
+        const specs = [
+          ['Tipo',        previewAuto.tipo],
+          ['Año',         previewAuto.año],
+          ['Condición',   previewAuto.condicion],
+          ['Kilometraje', previewAuto.kilometraje ? `${Number(previewAuto.kilometraje).toLocaleString('es-AR')} km` : null],
+          ['Combustible', previewAuto.combustible],
+          ['Transmisión', previewAuto.transmision],
+          ['Tracción',    previewAuto.traccion],
+          ['Carrocería',  previewAuto.carroceria],
+          ['Puertas',     previewAuto.puertas],
+          ['Motor',       previewAuto.motor],
+          ['Color',       previewAuto.color],
+          ['Patente',     previewAuto.patente],
+          ['Estado',      <AutoEstadoBadge key="e" estado={previewAuto.estado} />],
+          isAdmin && previewAuto.precioCompra ? ['Precio compra', formatCurrency(previewAuto.precioCompra)] : null,
+          ['Publicación', previewAuto.estadoPublicacion],
+          ['Agregado',    formatDate(previewAuto.createdAt)],
+        ].filter(row => row && row[1])
+
+        const historialAuto = historialPrecios.filter(h => h.autoId === previewAuto.id)
+          .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+
+        return (
+          <Modal open={!!previewAuto} onClose={() => setPreview(null)} title={previewTitle} size="xl" noScroll>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+
+              {/* Izquierda: carrusel + descripción + historial */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <PhotoCarousel fotos={previewAuto.fotos} />
+                {previewAuto.descripcion && (
+                  <div style={{ background: 'var(--bg-input)', borderRadius: 8, padding: '10px 14px' }}>
+                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Descripción</div>
+                    <p style={{ fontSize: 13, lineHeight: 1.5, margin: 0, textTransform: 'uppercase' }}>{previewAuto.descripcion}</p>
+                  </div>
+                )}
+                {historialAuto.length > 0 && (
+                  <div style={{ background: 'var(--bg-input)', borderRadius: 8, padding: '10px 14px' }}>
+                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Clock size={12} /> Historial de precios
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {historialAuto.map(h => (
+                        <div key={h.id} style={{ fontSize: 12, paddingBottom: 6, borderBottom: '1px solid var(--divider)' }}>
+                          <div style={{ color: 'var(--text-tertiary)', marginBottom: 1 }}>{formatDate(h.fecha)}</div>
+                          <div>
+                            {h.campo === 'precio' ? 'Precio de venta' : 'Precio de compra'}:{' '}
+                            <span style={{ color: 'var(--danger)' }}>{formatCurrency(h.valorAnterior)}</span>
+                            {' → '}
+                            <span style={{ color: 'var(--success)', fontWeight: 600 }}>{formatCurrency(h.valorNuevo)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Derecha: especificaciones */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignContent: 'start' }}>
+                {specs.map(([k, v]) => (
+                  <div key={k} style={{ background: 'var(--bg-input)', borderRadius: 8, padding: '8px 12px' }}>
+                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 2 }}>{k}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, textTransform: typeof v === 'string' ? 'uppercase' : 'none' }}>{v}</div>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+          </Modal>
+        )
+      })()}
 
       <ConfirmDialog
         open={!!deletingId}
