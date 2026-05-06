@@ -2,9 +2,10 @@ import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   Car, Users, ShoppingBag, UserCheck,
-  BarChart2, LogOut, Wallet, X, CalendarCheck, FileBarChart, Shield,
+  BarChart2, LogOut, Wallet, X, CalendarCheck, FileBarChart,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 import { getInitials } from '../../utils/helpers'
 import { RolBadge } from '../ui/Badge'
 
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
  */
 export default function Sidebar({ isOpen, onClose }) {
   const { currentUser, logout } = useAuth()
+  const { theme } = useTheme()
   const navigate = useNavigate()
 
   function handleLogout() {
@@ -50,9 +52,11 @@ export default function Sidebar({ isOpen, onClose }) {
       {/* Logo + botón de cierre en mobile */}
       <div className="sidebar-logo">
         <div className="sidebar-logo-inner">
-          <div className="sidebar-logo-icon">
-            <Car size={22} />
-          </div>
+          <img
+            src={theme === 'dark' ? '/logo.png' : '/dark_logo.webp'}
+            alt="Logo"
+            style={{ height: 40, width: 'auto', objectFit: 'contain' }}
+          />
           <div className="sidebar-logo-text">
             <h1>AutoGestión</h1>
             <p>Concesionaria</p>

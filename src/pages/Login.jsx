@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Car, Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Sun, Moon } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
-import { Sun, Moon } from 'lucide-react'
 
 export default function Login() {
   const { login } = useAuth()
@@ -74,9 +73,11 @@ export default function Login() {
       {/* Card de login */}
       <div className="login-card">
         <div className="login-logo">
-          <div className="login-logo-icon">
-            <Car size={32} />
-          </div>
+          <img
+            src={theme === 'dark' ? '/logo.png' : '/dark_logo.webp'}
+            alt="Logo"
+            style={{ height: 80, width: 'auto', objectFit: 'contain', marginBottom: 4 }}
+          />
           <h1>AutoGestión</h1>
           <p>Sistema de administración de concesionaria</p>
         </div>
