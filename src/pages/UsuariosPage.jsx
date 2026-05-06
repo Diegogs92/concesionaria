@@ -201,8 +201,8 @@ export default function UsuariosPage() {
                       </div>
                     </td>
                   </tr>
-                  )})
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           )}
