@@ -142,13 +142,16 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin }) {
   const [form, setForm] = useState({ ...EMPTY_FORM, ...initial })
   const [errors, setErrors] = useState({})
   const [uploading, setUploading] = useState(false)
-  const [dolarBlue, setDolarBlue] = useState(null)
+  const [cotizaciones, setCotizaciones] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    fetch('https://dolarapi.com/v1/dolares/blue')
+    fetch('https://dolarapi.com/v1/dolares')
       .then(r => r.json())
-      .then(d => setDolarBlue(d.venta))
+      .then(list => {
+        const get = casa => list.find(d => d.casa === casa)?.venta ?? null
+        setCotizaciones({ oficial: get('oficial'), mep: get('bolsa'), blue: get('blue') })
+      })
       .catch(() => {})
   }, [])
 
@@ -213,9 +216,13 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin }) {
     setSubmitting(false)
   }
 
-  const usdEquiv = dolarBlue && form.precio
-    ? Math.round(Number(form.precio) / dolarBlue).toLocaleString('en-US')
-    : null
+  function toUSD(rate) {
+    if (!rate || !form.precio) return null
+    return Math.round(Number(form.precio) / rate).toLocaleString('es-AR')
+  }
+  const usdOficial = cotizaciones ? toUSD(cotizaciones.oficial) : null
+  const usdMep     = cotizaciones ? toUSD(cotizaciones.mep)     : null
+  const usdBlue    = cotizaciones ? toUSD(cotizaciones.blue)    : null
 
   const margen = form.precio && form.precioCompra
     ? ((Number(form.precio) - Number(form.precioCompra)) / Number(form.precioCompra) * 100).toFixed(1)
@@ -340,16 +347,28 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin }) {
           )}
 
           <div className="form-group">
-            <label className="form-label">
-              Precio de venta * ($ ARS)
-              {usdEquiv && (
-                <span style={{ color: 'var(--text-tertiary)', fontWeight: 400, marginLeft: 8, fontSize: 12 }}>
-                  ≈ USD {usdEquiv}
-                </span>
-              )}
-            </label>
+            <label className="form-label">Precio de venta * ($ ARS)</label>
             <NumInput value={form.precio} onChange={v => set('precio', v)} placeholder="22.500.000" />
             {errors.precio && <span className="form-error">{errors.precio}</span>}
+            {(usdOficial || usdMep || usdBlue) && (
+              <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
+                {usdOficial && (
+                  <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                    Oficial <strong style={{ color: 'var(--text-secondary)' }}>U$D {usdOficial}</strong>
+                  </span>
+                )}
+                {usdMep && (
+                  <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                    MEP <strong style={{ color: 'var(--text-secondary)' }}>U$D {usdMep}</strong>
+                  </span>
+                )}
+                {usdBlue && (
+                  <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                    Blue <strong style={{ color: 'var(--text-secondary)' }}>U$D {usdBlue}</strong>
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="form-group">
