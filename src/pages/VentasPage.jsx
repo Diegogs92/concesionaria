@@ -222,7 +222,7 @@ function VentaForm({ onSubmit, onCancel }) {
 // ─── Página principal ─────────────────────────────────────────────────────────
 export default function VentasPage() {
   const { ventas, addVenta, deleteVenta, getAutoById, getClienteById } = useApp()
-  const { isGerente, usuarios } = useAuth()
+  const { isAdmin, usuarios } = useAuth()
 
   const [search, setSearch]    = useState('')
   const [modalOpen, setModal]  = useState(false)
@@ -289,10 +289,10 @@ export default function VentasPage() {
                   <th className="hide-mobile">Vendedor</th>
                   <th>Pago</th>
                   <th>Precio final</th>
-                  {isGerente && <th className="hide-mobile">Ganancia</th>}
-                  {isGerente && <th className="hide-mobile">Comisión</th>}
+                  {isAdmin && <th className="hide-mobile">Ganancia</th>}
+                  {isAdmin && <th className="hide-mobile">Comisión</th>}
                   <th className="hide-mobile">Fecha</th>
-                  {isGerente && <th style={{ width: 60 }}>Acc.</th>}
+                  {isAdmin && <th style={{ width: 60 }}>Acc.</th>}
                 </tr>
               </thead>
               <tbody>
@@ -320,12 +320,12 @@ export default function VentasPage() {
                         )}
                       </td>
                       <td style={{ fontWeight: 700 }}>{formatCurrency(v.precioFinal)}</td>
-                      {isGerente && (
+                      {isAdmin && (
                         <td className="hide-mobile" style={{ color: v.ganancia >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight: 600 }}>
                           {formatCurrency(v.ganancia)}
                         </td>
                       )}
-                      {isGerente && (
+                      {isAdmin && (
                         <td className="hide-mobile" style={{ color: 'var(--warning)', fontSize: 13 }}>
                           {formatCurrency(v.comisionVendedor)}
                         </td>
@@ -340,7 +340,7 @@ export default function VentasPage() {
                           >
                             <FileText size={15} />
                           </button>
-                          {isGerente && (
+                          {isAdmin && (
                             <button
                               className="btn btn-ghost btn-icon btn-sm"
                               onClick={() => setDel(v)}

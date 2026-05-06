@@ -137,7 +137,7 @@ function NumInput({ value, onChange, placeholder, className = 'form-input' }) {
 }
 
 // ─── Formulario multi-paso ────────────────────────────────────────────────────
-function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
+function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin }) {
   const [step, setStep] = useState(1)
   const [form, setForm] = useState({ ...EMPTY_FORM, ...initial })
   const [errors, setErrors] = useState({})
@@ -327,7 +327,7 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
       {/* ── Paso 3 ── */}
       {step === 3 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {isGerente && (
+          {isAdmin && (
             <div className="form-group">
               <label className="form-label">Precio de compra ($ ARS)</label>
               <NumInput value={form.precioCompra} onChange={v => set('precioCompra', v)} placeholder="18.000.000" />
@@ -536,7 +536,7 @@ function PhotoCarousel({ fotos, compact = false }) {
 // ─── Página principal ─────────────────────────────────────────────────────────
 export default function AutosPage() {
   const { autos, addAuto, updateAuto, deleteAuto, historialPrecios } = useApp()
-  const { isGerente } = useAuth()
+  const { isAdmin } = useAuth()
 
   const [search, setSearch]       = useState('')
   const [filtroEstado, setFiltro] = useState('todos')
@@ -642,16 +642,16 @@ export default function AutosPage() {
                   <th className="hide-mobile">Año</th>
                   <th className="hide-mobile">Km</th>
                   <th className="hide-mobile">Combustible</th>
-                  {isGerente && <th className="hide-mobile">Compra</th>}
+                  {isAdmin && <th className="hide-mobile">Compra</th>}
                   <th>Precio</th>
-                  {isGerente && <th className="hide-mobile">Margen</th>}
+                  {isAdmin && <th className="hide-mobile">Margen</th>}
                   <th>Estado</th>
                   <th style={{ width: 80 }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(auto => {
-                  const margen = isGerente && auto.precioCompra
+                  const margen = isAdmin && auto.precioCompra
                     ? ((auto.precio - auto.precioCompra) / auto.precioCompra * 100).toFixed(1)
                     : null
                   const thumb = thumbUrl(auto)
@@ -680,9 +680,9 @@ export default function AutosPage() {
                       <td className="hide-mobile">{auto.año}</td>
                       <td className="hide-mobile">{auto.kilometraje ? `${Number(auto.kilometraje).toLocaleString('es-AR')} km` : '—'}</td>
                       <td className="hide-mobile">{auto.combustible || '—'}</td>
-                      {isGerente && <td className="hide-mobile">{auto.precioCompra ? formatCurrency(auto.precioCompra) : '—'}</td>}
+                      {isAdmin && <td className="hide-mobile">{auto.precioCompra ? formatCurrency(auto.precioCompra) : '—'}</td>}
                       <td style={{ fontWeight: 600 }}>{auto.precio ? formatCurrency(auto.precio) : '—'}</td>
-                      {isGerente && (
+                      {isAdmin && (
                         <td className="hide-mobile">
                           {margen ? (
                             <span style={{ color: Number(margen) > 0 ? 'var(--success)' : 'var(--danger)', fontWeight: 500, fontSize: 13 }}>
@@ -694,7 +694,7 @@ export default function AutosPage() {
                       <td><AutoEstadoBadge estado={auto.estado} /></td>
                       <td onClick={e => e.stopPropagation()}>
                         <div className="flex gap-2">
-                          {isGerente && (
+                          {isAdmin && (
                             <>
                               <button
                                 className="btn btn-ghost btn-icon btn-sm"
@@ -732,7 +732,7 @@ export default function AutosPage() {
           gap: 16,
         }}>
           {filtered.map(auto => {
-            const margen = isGerente && auto.precioCompra
+            const margen = isAdmin && auto.precioCompra
               ? ((auto.precio - auto.precioCompra) / auto.precioCompra * 100).toFixed(1)
               : null
             const stats = [
@@ -777,7 +777,7 @@ export default function AutosPage() {
                 </div>
 
                 {/* Botones acción top-right */}
-                {isGerente && (
+                {isAdmin && (
                   <div
                     onClick={e => e.stopPropagation()}
                     style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, display: 'flex', gap: 6 }}
@@ -818,7 +818,7 @@ export default function AutosPage() {
                   <div style={{ fontWeight: 800, fontSize: 22, color: '#fff', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
                     {auto.precio ? formatCurrency(auto.precio) : '—'}
                   </div>
-                  {isGerente && margen && (
+                  {isAdmin && margen && (
                     <div style={{ fontSize: 11, fontWeight: 600, color: Number(margen) > 0 ? '#4ade80' : '#f87171', marginTop: -2 }}>
                       {Number(margen) > 0 ? '+' : ''}{margen}% margen
                     </div>
@@ -870,7 +870,7 @@ export default function AutosPage() {
           initial={editingAuto ?? EMPTY_FORM}
           onSubmit={handleSubmit}
           onCancel={closeModal}
-          isGerente={isGerente}
+          isAdmin={isAdmin}
         />
       </Modal>
 
@@ -900,7 +900,7 @@ export default function AutosPage() {
                 ['Patente',      previewAuto.patente],
                 ['Publicación',  previewAuto.estadoPublicacion],
                 ['Estado',       <AutoEstadoBadge key="e" estado={previewAuto.estado} />],
-                isGerente && previewAuto.precioCompra ? ['Precio compra', formatCurrency(previewAuto.precioCompra)] : null,
+                isAdmin && previewAuto.precioCompra ? ['Precio compra', formatCurrency(previewAuto.precioCompra)] : null,
                 ['Precio',       previewAuto.precio ? formatCurrency(previewAuto.precio) : null],
                 ['Agregado',     formatDate(previewAuto.createdAt)],
               ].filter(row => row && row[1]).map(([k, v]) => (

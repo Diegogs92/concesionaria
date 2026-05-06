@@ -71,7 +71,7 @@ function ClienteForm({ initial = EMPTY_FORM, onSubmit, onCancel }) {
 
 export default function ClientesPage() {
   const { clientes, addCliente, updateCliente, deleteCliente, ventas } = useApp()
-  const { isGerente } = useAuth()
+  const { isAdmin } = useAuth()
 
   const [search, setSearch]     = useState('')
   const [modalOpen, setModal]   = useState(false)
@@ -174,7 +174,7 @@ export default function ClientesPage() {
                         <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(c)} title="Editar">
                           <Pencil size={15} />
                         </button>
-                        {isGerente && (
+                        {isAdmin && (
                           <button
                             className="btn btn-ghost btn-icon btn-sm"
                             onClick={() => setDel(c.id)}

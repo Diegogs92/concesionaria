@@ -105,7 +105,7 @@ export function AuthProvider({ children }) {
   }
 
   const isDeveloper = currentUser?.rol === 'developer' || currentUser?.rol === 'desarrollador'
-  const isGerente   = currentUser?.rol === 'gerente' || isDeveloper
+  const isAdmin     = currentUser?.rol === 'gerente' || currentUser?.rol === 'administrador' || isDeveloper
 
   const todosUsuarios = [DEV_USER, ...usuarios]
 
@@ -113,7 +113,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         currentUser,
-        isGerente,
+        isAdmin,
         isDeveloper,
         login,
         logout,

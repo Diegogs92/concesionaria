@@ -70,7 +70,7 @@ function CustomTooltip({ active, payload, label }) {
 // ─── Página principal ────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const { autos, ventas, egresos, clientes } = useApp()
-  const { isGerente, usuarios } = useAuth()
+  const { isAdmin, usuarios } = useAuth()
 
   const autosDisponibles = autos.filter(a => a.estado === 'disponible').length
   const autosVendidos    = autos.filter(a => a.estado === 'vendido').length
@@ -116,7 +116,7 @@ export default function DashboardPage() {
         <StatCard icon={Car}         label="Autos disponibles"     value={autosDisponibles}              color="green"
           subLabel={`${autosVendidos} vendidos`}
         />
-        {isGerente && (
+        {isAdmin && (
           <>
             <StatCard icon={DollarSign}  label="Beneficio Neto"   value={formatCurrency(beneficioNeto)} color="orange" 
               subLabel={`Bruto: ${formatCurrency(gananciaBruta)} | Egresos: ${formatCurrency(totalComisiones + totalEgresosData)}`}
@@ -127,7 +127,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Gráficos ── */}
-      <div className={isGerente ? 'grid-2' : ''}>
+      <div className={isAdmin ? 'grid-2' : ''}>
 
         {/* Ventas por mes */}
         <div className="card card-padding">
@@ -165,7 +165,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Ganancias por mes - solo gerente */}
-        {isGerente && (
+        {isAdmin && (
           <div className="card card-padding">
             <div style={{ marginBottom: 16 }}>
               <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -250,7 +250,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Comisiones - solo gerente */}
-                {isGerente && (
+                {isAdmin && (
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--success)' }}>
                       {formatCurrency(v.comision)}
@@ -338,7 +338,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Comparador de márgenes (solo gerente) ── */}
-      {isGerente && (
+      {isAdmin && (
         <div className={margenPorMarca.length > 0 ? 'grid-2' : ''}>
           {/* Márgenes por marca */}
           {margenPorMarca.length > 0 && (

@@ -22,10 +22,10 @@ function PrivateRoute({ children }) {
 }
 
 // ─── Ruta para gerentes y developer ──────────────────────────────────────────
-function GerenteRoute({ children }) {
-  const { currentUser, isGerente, isDeveloper } = useAuth()
+function AdminRoute({ children }) {
+  const { currentUser, isAdmin, isDeveloper } = useAuth()
   if (!currentUser)              return <Navigate to="/login" replace />
-  if (!isGerente && !isDeveloper) return <Navigate to="/" replace />
+  if (!isAdmin && !isDeveloper) return <Navigate to="/" replace />
   return <Layout>{children}</Layout>
 }
 
@@ -106,9 +106,9 @@ export default function App() {
               <Route
                 path="/finanzas"
                 element={
-                  <GerenteRoute>
+                  <AdminRoute>
                     <FinanzasPage />
-                  </GerenteRoute>
+                  </AdminRoute>
                 }
               />
 
@@ -127,9 +127,9 @@ export default function App() {
               <Route
                 path="/reportes"
                 element={
-                  <GerenteRoute>
+                  <AdminRoute>
                     <ReportesPage />
-                  </GerenteRoute>
+                  </AdminRoute>
                 }
               />
 
@@ -137,9 +137,9 @@ export default function App() {
               <Route
                 path="/usuarios"
                 element={
-                  <GerenteRoute>
+                  <AdminRoute>
                     <UsuariosPage />
-                  </GerenteRoute>
+                  </AdminRoute>
                 }
               />
 
