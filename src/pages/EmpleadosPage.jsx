@@ -38,8 +38,7 @@ function EmpleadoForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCan
     return Object.keys(e).length === 0
   }
 
-  function handleSubmit(e) {
-    e.preventDefault()
+  function handleSubmit() {
     if (!validate()) return
     const data = { ...form, comision: Number(form.comision) }
     if (isEditing && !form.password.trim()) delete data.password
@@ -47,7 +46,7 @@ function EmpleadoForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCan
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={e => e.preventDefault()}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         <div className="form-group">
@@ -117,7 +116,7 @@ function EmpleadoForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCan
 
       <div className="modal-footer" style={{ paddingInline: 0, paddingBottom: 0, marginTop: 16 }}>
         <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancelar</button>
-        <button type="submit" className="btn btn-primary">
+        <button type="button" className="btn btn-primary" onClick={handleSubmit}>
           {isEditing ? 'Guardar cambios' : 'Crear empleado'}
         </button>
       </div>
@@ -170,7 +169,7 @@ export default function EmpleadosPage() {
     <>
       <div className="page-header">
         <div>
-          <h1 className="page-title">Empleados</h1>
+          <h1 className="page-title">Usuarios</h1>
           <p className="page-subtitle">{usuarios.length} usuarios registrados</p>
         </div>
 

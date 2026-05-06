@@ -16,7 +16,7 @@ const NAV_ITEMS = [
   { to: '/test-drives', label: 'Test Drive', icon: CalendarCheck, roles: ['gerente', 'empleado'] },
   { to: '/finanzas',  label: 'Finanzas',   icon: Wallet,      roles: ['gerente'] },
   { to: '/reportes',  label: 'Reportes',   icon: FileBarChart, roles: ['gerente'] },
-  { to: '/empleados', label: 'Empleados',  icon: UserCheck,   roles: ['gerente'] },
+  { to: '/empleados', label: 'Usuarios',   icon: UserCheck,   roles: ['gerente'] },
   { to: '/usuarios',  label: 'Usuarios',   icon: Shield,      roles: ['developer'] },
 ]
 

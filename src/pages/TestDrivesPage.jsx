@@ -28,14 +28,13 @@ function TestDriveForm({ initial = EMPTY_FORM, autos, clientes, usuarios, onSubm
     return Object.keys(e).length === 0
   }
 
-  function handleSubmit(e) {
-    e.preventDefault()
+  function handleSubmit() {
     if (!validate()) return
     onSubmit(form)
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={e => e.preventDefault()}>
       <div className="form-grid" style={{ gap: 14 }}>
         <div className="form-group form-full">
           <label className="form-label">Vehículo *</label>
@@ -88,7 +87,7 @@ function TestDriveForm({ initial = EMPTY_FORM, autos, clientes, usuarios, onSubm
 
       <div className="modal-footer" style={{ paddingInline: 0, paddingBottom: 0, marginTop: 16 }}>
         <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancelar</button>
-        <button type="submit" className="btn btn-primary">Guardar test drive</button>
+        <button type="button" className="btn btn-primary" onClick={handleSubmit}>Guardar test drive</button>
       </div>
     </form>
   )

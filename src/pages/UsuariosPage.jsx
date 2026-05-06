@@ -36,8 +36,7 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
     return Object.keys(e).length === 0
   }
 
-  function handleSubmit(e) {
-    e.preventDefault()
+  function handleSubmit() {
     if (!validate()) return
     const data = { ...form, comision: Number(form.comision) }
     if (isEditing && !form.password.trim()) delete data.password
@@ -45,7 +44,7 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={e => e.preventDefault()}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         <div className="form-group">
@@ -115,7 +114,7 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
 
       <div className="modal-footer" style={{ paddingInline: 0, paddingBottom: 0, marginTop: 16 }}>
         <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancelar</button>
-        <button type="submit" className="btn btn-primary">
+        <button type="button" className="btn btn-primary" onClick={handleSubmit}>
           {isEditing ? 'Guardar cambios' : 'Crear usuario'}
         </button>
       </div>

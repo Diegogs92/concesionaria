@@ -50,8 +50,7 @@ function EgresoForm({ onSubmit, onCancel }) {
     return Object.keys(e).length === 0
   }
 
-  function handleSubmit(e) {
-    e.preventDefault()
+  function handleSubmit() {
     if (!validate()) return
     onSubmit({
       ...form,
@@ -60,7 +59,7 @@ function EgresoForm({ onSubmit, onCancel }) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={e => e.preventDefault()}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         
         <div className="form-group">
@@ -105,7 +104,7 @@ function EgresoForm({ onSubmit, onCancel }) {
 
       <div className="modal-footer" style={{ paddingInline: 0, paddingBottom: 0, marginTop: 16 }}>
         <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancelar</button>
-        <button type="submit" className="btn btn-primary">Registrar egreso</button>
+        <button type="button" className="btn btn-primary" onClick={handleSubmit}>Registrar egreso</button>
       </div>
     </form>
   )
