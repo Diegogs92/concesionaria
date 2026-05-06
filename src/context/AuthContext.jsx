@@ -104,8 +104,8 @@ export function AuthProvider({ children }) {
     setUsuarios(prev => prev.filter(u => u.id !== id))
   }
 
-  const isGerente   = currentUser?.rol === 'gerente'
   const isDeveloper = currentUser?.rol === 'developer' || currentUser?.rol === 'desarrollador'
+  const isGerente   = currentUser?.rol === 'gerente' || isDeveloper
 
   const todosUsuarios = [DEV_USER, ...usuarios]
 
