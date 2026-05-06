@@ -96,7 +96,7 @@ export default function Sidebar({ isOpen, onClose }) {
           <div className="sidebar-user-info">
             <div className="sidebar-user-name">{currentUser?.nombre}</div>
             <div className="sidebar-user-role">
-              {currentUser?.rol === 'gerente' ? 'Gerente' : currentUser?.rol === 'developer' ? 'Developer' : 'Empleado'}
+              {currentUser?.rol === 'developer' ? 'Desarrollador' : 'Administrador'}
             </div>
           </div>
         </div>

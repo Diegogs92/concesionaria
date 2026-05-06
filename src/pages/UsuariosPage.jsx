@@ -8,7 +8,7 @@ import SearchBar from '../components/ui/SearchBar'
 import { getInitials } from '../utils/helpers'
 
 const EMPTY_FORM = {
-  nombre: '', username: '', password: '', rol: 'empleado', comision: 3,
+  nombre: '', username: '', password: '', rol: 'gerente',
 }
 
 function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCancel }) {
@@ -24,14 +24,11 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
 
   function validate() {
     const e = {}
-    if (!form.nombre.trim())   e.nombre   = 'Requerido'
-    if (!form.username.trim()) e.username  = 'Requerido'
+    if (!form.nombre.trim())   e.nombre  = 'Requerido'
+    if (!form.username.trim()) e.username = 'Requerido'
     if (!isEditing && !form.password.trim()) e.password = 'Requerido'
     const exists = usuarios.find(u => u.username === form.username.trim() && u.id !== initial.id)
     if (exists) e.username = 'Ese nombre de usuario ya existe'
-    if (form.rol === 'empleado' && (form.comision < 0 || form.comision > 100)) {
-      e.comision = 'Entre 0 y 100'
-    }
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -88,27 +85,11 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
           </div>
         </div>
 
-        <div className="form-grid">
-          <div className="form-group">
-            <label className="form-label">Rol *</label>
-            <select className="form-input form-select" value={form.rol} onChange={e => set('rol', e.target.value)}>
-              <option value="empleado">Empleado</option>
-              <option value="gerente">Gerente</option>
-            </select>
-          </div>
-
-          {form.rol === 'empleado' && (
-            <div className="form-group">
-              <label className="form-label">Comisión sobre ganancia (%)</label>
-              <input
-                type="number" className="form-input"
-                value={form.comision}
-                onChange={e => set('comision', e.target.value)}
-                min="0" max="100" step="0.5"
-              />
-              {errors.comision && <span className="form-error">{errors.comision}</span>}
-            </div>
-          )}
+        <div className="form-group">
+          <label className="form-label">Rol</label>
+          <select className="form-input form-select" value={form.rol} onChange={e => set('rol', e.target.value)}>
+            <option value="gerente">Administrador</option>
+          </select>
         </div>
       </div>
 
@@ -180,7 +161,6 @@ export default function UsuariosPage() {
                   <th>Usuario</th>
                   <th>Username</th>
                   <th>Rol</th>
-                  <th className="hide-mobile">Comisión</th>
                   <th style={{ width: 80 }}>Acciones</th>
                 </tr>
               </thead>
@@ -199,12 +179,6 @@ export default function UsuariosPage() {
                       @{u.username}
                     </td>
                     <td><RolBadge rol={u.rol} /></td>
-                    <td className="hide-mobile">
-                      {u.rol === 'empleado'
-                        ? <span style={{ fontWeight: 600 }}>{u.comision}%</span>
-                        : <span style={{ color: 'var(--text-tertiary)' }}>—</span>
-                      }
-                    </td>
                     <td>
                       <div className="flex gap-2">
                         <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(u)} title="Editar">
