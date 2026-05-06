@@ -135,12 +135,6 @@ export default function Login() {
           </button>
         </form>
 
-        {/* Credenciales de demo */}
-        <div className="login-demo">
-          <strong>Accesos de prueba:</strong><br />
-          <strong>Gerente:</strong> gerente / 1234<br />
-          <strong>Empleado:</strong> martina / 1234 &nbsp;|&nbsp; rodrigo / 1234
-        </div>
       </div>
     </div>
   )
