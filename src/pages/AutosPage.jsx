@@ -199,9 +199,7 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
     set('fotos', form.fotos.filter((_, i) => i !== idx))
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault()
-    if (step !== 3) return
+  async function handleSubmit() {
     if (!validateStep(3)) return
     setSubmitting(true)
     await onSubmit({
@@ -224,7 +222,7 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
     : null
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={e => e.preventDefault()}>
       <StepBar step={step} steps={['Identificación', 'Características', 'Precio y fotos']} />
 
       {/* ── Paso 1 ── */}
@@ -425,7 +423,7 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
             Siguiente <ChevronRight size={16} />
           </button>
         ) : (
-          <button type="submit" className="btn btn-primary" disabled={submitting || uploading}>
+          <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={submitting || uploading}>
             {submitting ? 'Guardando...' : 'Guardar vehículo'}
           </button>
         )}
