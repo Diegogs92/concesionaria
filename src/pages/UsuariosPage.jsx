@@ -11,6 +11,8 @@ const EMPTY_FORM = {
   nombre: '', username: '', password: '', rol: 'gerente',
 }
 
+const DEV_ID = '__dev__'
+
 function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCancel }) {
   const [form, setForm] = useState({ ...EMPTY_FORM, ...initial })
   const [errors, setErrors] = useState({})
@@ -89,6 +91,7 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
           <label className="form-label">Rol</label>
           <select className="form-input form-select" value={form.rol} onChange={e => set('rol', e.target.value)}>
             <option value="gerente">Administrador</option>
+            <option value="desarrollador">Desarrollador</option>
           </select>
         </div>
       </div>
@@ -165,7 +168,9 @@ export default function UsuariosPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(u => (
+                {filtered.map(u => {
+                  const isHardcoded = u.id === DEV_ID
+                  return (
                   <tr key={u.id}>
                     <td>
                       <div className="flex items-center gap-3">
@@ -181,7 +186,7 @@ export default function UsuariosPage() {
                     <td><RolBadge rol={u.rol} /></td>
                     <td>
                       <div className="flex gap-2">
-                        <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(u)} title="Editar">
+                        <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(u)} title="Editar" disabled={isHardcoded}>
                           <Pencil size={15} />
                         </button>
                         <button
@@ -189,12 +194,14 @@ export default function UsuariosPage() {
                           onClick={() => setDel(u.id)}
                           style={{ color: 'var(--danger)' }}
                           title="Eliminar"
+                          disabled={isHardcoded}
                         >
                           <Trash2 size={15} />
                         </button>
                       </div>
                     </td>
                   </tr>
+                  )})
                 ))}
               </tbody>
             </table>

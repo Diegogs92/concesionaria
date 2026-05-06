@@ -4,6 +4,8 @@ import { today } from '../utils/helpers'
 
 const AuthContext = createContext(null)
 
+const DEV_USER = { id: '__dev__', username: 'dgarcias', nombre: 'dgarcias', rol: 'desarrollador' }
+
 export function AuthProvider({ children }) {
   const [usuarios, setUsuarios] = useState([])
   const [currentUser, setCurrentUser] = useState(() => {
@@ -60,7 +62,10 @@ export function AuthProvider({ children }) {
   }
 
   const isGerente   = currentUser?.rol === 'gerente'
-  const isDeveloper = currentUser?.rol === 'developer'
+  const isDeveloper = currentUser?.rol === 'developer' || currentUser?.rol === 'desarrollador'
+
+  // Incluir el usuario dev hardcodeado en la lista
+  const todosUsuarios = [DEV_USER, ...usuarios]
 
   return (
     <AuthContext.Provider
@@ -70,7 +75,7 @@ export function AuthProvider({ children }) {
         isDeveloper,
         login,
         logout,
-        usuarios,
+        usuarios: todosUsuarios,
         setUsuarios,
         addUsuario,
         updateUsuario,
