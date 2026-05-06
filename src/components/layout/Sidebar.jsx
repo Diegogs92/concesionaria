@@ -2,7 +2,7 @@ import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   Car, Users, ShoppingBag, UserCheck,
-  BarChart2, LogOut, Wallet, X, CalendarCheck, FileBarChart,
+  BarChart2, LogOut, Wallet, X, CalendarCheck, FileBarChart, Shield,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { getInitials } from '../../utils/helpers'
@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { to: '/finanzas',  label: 'Finanzas',   icon: Wallet,      roles: ['gerente'] },
   { to: '/reportes',  label: 'Reportes',   icon: FileBarChart, roles: ['gerente'] },
   { to: '/empleados', label: 'Empleados',  icon: UserCheck,   roles: ['gerente'] },
+  { to: '/usuarios',  label: 'Usuarios',   icon: Shield,      roles: ['developer'] },
 ]
 
 /**
@@ -96,7 +97,7 @@ export default function Sidebar({ isOpen, onClose }) {
           <div className="sidebar-user-info">
             <div className="sidebar-user-name">{currentUser?.nombre}</div>
             <div className="sidebar-user-role">
-              {currentUser?.rol === 'gerente' ? 'Gerente' : 'Empleado'}
+              {currentUser?.rol === 'gerente' ? 'Gerente' : currentUser?.rol === 'developer' ? 'Developer' : 'Empleado'}
             </div>
           </div>
         </div>

@@ -432,6 +432,45 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
   )
 }
 
+// ─── Carousel automático para cards del mosaico ───────────────────────────────
+function CardCarousel({ fotos }) {
+  const [idx, setIdx] = useState(0)
+
+  useEffect(() => {
+    if (!fotos || fotos.length <= 1) return
+    const t = setInterval(() => setIdx(i => (i + 1) % fotos.length), 3500)
+    return () => clearInterval(t)
+  }, [fotos?.length])
+
+  if (!fotos || fotos.length === 0) return (
+    <div style={{
+      position: 'absolute', inset: 0,
+      background: 'linear-gradient(145deg, var(--bg-card) 0%, var(--bg-input) 100%)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <Car size={72} color="var(--text-tertiary)" strokeWidth={1} />
+    </div>
+  )
+
+  return (
+    <div style={{ position: 'absolute', inset: 0 }}>
+      {fotos.map((url, i) => (
+        <img
+          key={url}
+          src={url}
+          alt=""
+          style={{
+            position: 'absolute', inset: 0,
+            width: '100%', height: '100%', objectFit: 'cover',
+            opacity: i === idx ? 1 : 0,
+            transition: 'opacity 0.9s ease',
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
 // ─── Preview carousel ──────────────────────────────────────────────────────────
 function PhotoCarousel({ fotos, compact = false }) {
   const [idx, setIdx] = useState(0)
@@ -693,7 +732,6 @@ export default function AutosPage() {
           gap: 16,
         }}>
           {filtered.map(auto => {
-            const thumb = thumbUrl(auto)
             const margen = isGerente && auto.precioCompra
               ? ((auto.precio - auto.precioCompra) / auto.precioCompra * 100).toFixed(1)
               : null
@@ -720,21 +758,8 @@ export default function AutosPage() {
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.22)' }}
                 onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.12)' }}
               >
-                {/* Fondo: foto o ícono */}
-                {thumb ? (
-                  <img
-                    src={thumb} alt=""
-                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  <div style={{
-                    position: 'absolute', inset: 0,
-                    background: 'linear-gradient(145deg, var(--bg-card) 0%, var(--bg-input) 100%)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <Car size={72} color="var(--text-tertiary)" strokeWidth={1} />
-                  </div>
-                )}
+                {/* Fondo: carousel automático */}
+                <CardCarousel fotos={auto.fotos} />
 
                 {/* Badge top-left */}
                 <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 2 }}>

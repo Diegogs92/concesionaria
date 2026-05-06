@@ -11,28 +11,39 @@ import ClientesPage from './pages/ClientesPage'
 import VentasPage from './pages/VentasPage'
 import FinanzasPage from './pages/FinanzasPage'
 import EmpleadosPage from './pages/EmpleadosPage'
+import UsuariosPage from './pages/UsuariosPage'
 import TestDrivesPage from './pages/TestDrivesPage'
 import ReportesPage from './pages/ReportesPage'
 
 // ─── Ruta protegida: redirige al login si no hay sesión ──────────────────────
 function PrivateRoute({ children }) {
-  const { currentUser } = useAuth()
+  const { currentUser, isDeveloper } = useAuth()
   if (!currentUser) return <Navigate to="/login" replace />
+  if (isDeveloper)  return <Navigate to="/usuarios" replace />
   return <Layout>{children}</Layout>
 }
 
 // ─── Ruta solo para gerentes ─────────────────────────────────────────────────
 function GerenteRoute({ children }) {
-  const { currentUser, isGerente } = useAuth()
+  const { currentUser, isGerente, isDeveloper } = useAuth()
   if (!currentUser) return <Navigate to="/login" replace />
+  if (isDeveloper)  return <Navigate to="/usuarios" replace />
   if (!isGerente)   return <Navigate to="/" replace />
+  return <Layout>{children}</Layout>
+}
+
+// ─── Ruta solo para developer ─────────────────────────────────────────────────
+function DevRoute({ children }) {
+  const { currentUser, isDeveloper } = useAuth()
+  if (!currentUser)  return <Navigate to="/login" replace />
+  if (!isDeveloper)  return <Navigate to="/" replace />
   return <Layout>{children}</Layout>
 }
 
 // ─── Rutas públicas: redirige al dashboard si ya está logueado ───────────────
 function PublicRoute({ children }) {
-  const { currentUser } = useAuth()
-  if (currentUser) return <Navigate to="/" replace />
+  const { currentUser, isDeveloper } = useAuth()
+  if (currentUser) return <Navigate to={isDeveloper ? '/usuarios' : '/'} replace />
   return children
 }
 
@@ -131,6 +142,16 @@ export default function App() {
                   <GerenteRoute>
                     <ReportesPage />
                   </GerenteRoute>
+                }
+              />
+
+              {/* Usuarios — solo developer */}
+              <Route
+                path="/usuarios"
+                element={
+                  <DevRoute>
+                    <UsuariosPage />
+                  </DevRoute>
                 }
               />
 

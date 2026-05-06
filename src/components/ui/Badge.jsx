@@ -25,9 +25,9 @@ export function AutoEstadoBadge({ estado }) {
 }
 
 export function RolBadge({ rol }) {
-  return rol === 'gerente'
-    ? <Badge variant="accent">Gerente</Badge>
-    : <Badge variant="neutral">Empleado</Badge>
+  if (rol === 'gerente')   return <Badge variant="accent">Gerente</Badge>
+  if (rol === 'developer') return <Badge variant="warning">Developer</Badge>
+  return <Badge variant="neutral">Empleado</Badge>
 }
 
 export function TipoPagoBadge({ tipo }) {
