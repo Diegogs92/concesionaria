@@ -8,15 +8,18 @@ import { useAuth } from '../../context/AuthContext'
 import { getInitials } from '../../utils/helpers'
 import { RolBadge } from '../ui/Badge'
 
+const ALL_ROLES = ['administrador', 'empleado', 'desarrollador']
+const ADMIN_ROLES = ['administrador', 'desarrollador']
+
 const NAV_ITEMS = [
-  { to: '/',            label: 'Dashboard',  icon: BarChart2,     roles: ['gerente', 'empleado', 'developer'] },
-  { to: '/autos',       label: 'Autos',      icon: Car,           roles: ['gerente', 'empleado', 'developer'] },
-  { to: '/clientes',    label: 'Clientes',   icon: Users,         roles: ['gerente', 'empleado', 'developer'] },
-  { to: '/ventas',      label: 'Ventas',     icon: ShoppingBag,   roles: ['gerente', 'empleado', 'developer'] },
-  { to: '/test-drives', label: 'Test Drive', icon: CalendarCheck, roles: ['gerente', 'empleado', 'developer'] },
-  { to: '/finanzas',    label: 'Finanzas',   icon: Wallet,        roles: ['gerente', 'developer'] },
-  { to: '/reportes',    label: 'Reportes',   icon: FileBarChart,  roles: ['gerente', 'developer'] },
-  { to: '/usuarios',    label: 'Usuarios',   icon: UserCheck,     roles: ['gerente', 'developer'] },
+  { to: '/',            label: 'Dashboard',  icon: BarChart2,     roles: ALL_ROLES },
+  { to: '/autos',       label: 'Autos',      icon: Car,           roles: ALL_ROLES },
+  { to: '/clientes',    label: 'Clientes',   icon: Users,         roles: ALL_ROLES },
+  { to: '/ventas',      label: 'Ventas',     icon: ShoppingBag,   roles: ALL_ROLES },
+  { to: '/test-drives', label: 'Test Drive', icon: CalendarCheck, roles: ALL_ROLES },
+  { to: '/finanzas',    label: 'Finanzas',   icon: Wallet,        roles: ADMIN_ROLES },
+  { to: '/reportes',    label: 'Reportes',   icon: FileBarChart,  roles: ADMIN_ROLES },
+  { to: '/usuarios',    label: 'Usuarios',   icon: UserCheck,     roles: ['desarrollador'] },
 ]
 
 /**
@@ -96,7 +99,7 @@ export default function Sidebar({ isOpen, onClose }) {
           <div className="sidebar-user-info">
             <div className="sidebar-user-name">{currentUser?.nombre}</div>
             <div className="sidebar-user-role">
-              {currentUser?.rol === 'developer' ? 'Desarrollador' : 'Administrador'}
+              {currentUser?.rol === 'desarrollador' ? 'Desarrollador' : currentUser?.rol === 'empleado' ? 'Empleado' : 'Administrador'}
             </div>
           </div>
         </div>

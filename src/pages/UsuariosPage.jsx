@@ -7,11 +7,7 @@ import ConfirmDialog from '../components/ui/ConfirmDialog'
 import SearchBar from '../components/ui/SearchBar'
 import { getInitials } from '../utils/helpers'
 
-const EMPTY_FORM = {
-  nombre: '', username: '', password: '', rol: 'gerente',
-}
-
-const DEV_ID = '__dev__'
+const EMPTY_FORM = { nombre: '', username: '', password: '', rol: 'administrador' }
 
 function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCancel }) {
   const [form, setForm] = useState({ ...EMPTY_FORM, ...initial })
@@ -26,8 +22,8 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
 
   function validate() {
     const e = {}
-    if (!form.nombre.trim())   e.nombre  = 'Requerido'
-    if (!form.username.trim()) e.username = 'Requerido'
+    if (!form.nombre.trim())   e.nombre   = 'Requerido'
+    if (!form.username.trim()) e.username  = 'Requerido'
     if (!isEditing && !form.password.trim()) e.password = 'Requerido'
     const exists = usuarios.find(u => u.username === form.username.trim() && u.id !== initial.id)
     if (exists) e.username = 'Ese nombre de usuario ya existe'
@@ -90,8 +86,9 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
         <div className="form-group">
           <label className="form-label">Rol</label>
           <select className="form-input form-select" value={form.rol} onChange={e => set('rol', e.target.value)}>
-            <option value="gerente">Administrador</option>
+            <option value="administrador">Administrador</option>
             <option value="desarrollador">Desarrollador</option>
+            <option value="empleado">Empleado</option>
           </select>
         </div>
       </div>
@@ -168,9 +165,7 @@ export default function UsuariosPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(u => {
-                  const isHardcoded = u.id === DEV_ID
-                  return (
+                {filtered.map(u => (
                   <tr key={u.id}>
                     <td>
                       <div className="flex items-center gap-3">
@@ -186,7 +181,7 @@ export default function UsuariosPage() {
                     <td><RolBadge rol={u.rol} /></td>
                     <td>
                       <div className="flex gap-2">
-                        <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(u)} title="Editar" disabled={isHardcoded}>
+                        <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(u)} title="Editar">
                           <Pencil size={15} />
                         </button>
                         <button
@@ -194,15 +189,13 @@ export default function UsuariosPage() {
                           onClick={() => setDel(u.id)}
                           style={{ color: 'var(--danger)' }}
                           title="Eliminar"
-                          disabled={isHardcoded}
                         >
                           <Trash2 size={15} />
                         </button>
                       </div>
                     </td>
                   </tr>
-                  )
-                })}
+                ))}
               </tbody>
             </table>
           )}
