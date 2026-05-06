@@ -201,6 +201,7 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (step !== 3) return
     if (!validateStep(3)) return
     setSubmitting(true)
     await onSubmit({
@@ -243,17 +244,17 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
           <div className="form-grid">
             <div className="form-group">
               <label className="form-label">Marca *</label>
-              <input className="form-input" value={form.marca} onChange={e => set('marca', e.target.value)} placeholder="Toyota" autoFocus />
+              <input className="form-input" value={form.marca} onChange={e => set('marca', e.target.value)} placeholder="Toyota" autoFocus style={{ textTransform: 'uppercase' }} />
               {errors.marca && <span className="form-error">{errors.marca}</span>}
             </div>
             <div className="form-group">
               <label className="form-label">Modelo *</label>
-              <input className="form-input" value={form.modelo} onChange={e => set('modelo', e.target.value)} placeholder="Corolla" />
+              <input className="form-input" value={form.modelo} onChange={e => set('modelo', e.target.value)} placeholder="Corolla" style={{ textTransform: 'uppercase' }} />
               {errors.modelo && <span className="form-error">{errors.modelo}</span>}
             </div>
             <div className="form-group">
               <label className="form-label">Versión</label>
-              <input className="form-input" value={form.version} onChange={e => set('version', e.target.value)} placeholder="XEI CVT" />
+              <input className="form-input" value={form.version} onChange={e => set('version', e.target.value)} placeholder="XEI CVT" style={{ textTransform: 'uppercase' }} />
             </div>
             <div className="form-group">
               <label className="form-label">Año</label>
@@ -263,7 +264,7 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
             </div>
             <div className="form-group">
               <label className="form-label">Color</label>
-              <input className="form-input" value={form.color} onChange={e => set('color', e.target.value)} placeholder="Blanco" />
+              <input className="form-input" value={form.color} onChange={e => set('color', e.target.value)} placeholder="Blanco" style={{ textTransform: 'uppercase' }} />
             </div>
             <div className="form-group">
               <label className="form-label">Patente</label>
@@ -271,7 +272,7 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
             </div>
             <div className="form-group form-full">
               <label className="form-label">Chasis / VIN</label>
-              <input className="form-input" value={form.chasis} onChange={e => set('chasis', e.target.value)} placeholder="9BWZZZ377VT004251" />
+              <input className="form-input" value={form.chasis} onChange={e => set('chasis', e.target.value)} placeholder="9BWZZZ377VT004251" style={{ textTransform: 'uppercase' }} />
             </div>
           </div>
         </div>
@@ -315,7 +316,7 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isGerente }) {
             </div>
             <div className="form-group">
               <label className="form-label">Motor</label>
-              <input className="form-input" value={form.motor} onChange={e => set('motor', e.target.value)} placeholder="2.0 TSI 190cv" />
+              <input className="form-input" value={form.motor} onChange={e => set('motor', e.target.value)} placeholder="2.0 TSI 190cv" style={{ textTransform: 'uppercase' }} />
             </div>
             <div className="form-group">
               <label className="form-label">Kilometraje</label>
@@ -629,11 +630,11 @@ export default function AutosPage() {
                             <Thumbnail src={thumb} />
                           </div>
                           <div>
-                            <div style={{ fontWeight: 600 }}>
+                            <div style={{ fontWeight: 600, textTransform: 'uppercase' }}>
                               {auto.marca} {auto.modelo}
                               {auto.version && <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}> {auto.version}</span>}
                             </div>
-                            <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                            <div style={{ fontSize: 12, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
                               {[auto.condicion, auto.color, auto.tipo].filter(Boolean).join(' · ')}
                             </div>
                           </div>
@@ -694,85 +695,144 @@ export default function AutosPage() {
           gap: 16,
         }}>
           {filtered.map(auto => {
+            const thumb = thumbUrl(auto)
             const margen = isGerente && auto.precioCompra
               ? ((auto.precio - auto.precioCompra) / auto.precioCompra * 100).toFixed(1)
               : null
+            const stats = [
+              auto.kilometraje ? `${Number(auto.kilometraje).toLocaleString('es-AR')} km` : null,
+              auto.año ? String(auto.año) : null,
+              auto.combustible || null,
+            ].filter(Boolean)
+
             return (
               <div
                 key={auto.id}
                 onClick={() => setPreview(auto)}
                 style={{
-                  background: 'var(--bg-card)', borderRadius: 16,
-                  border: '1px solid var(--divider)', overflow: 'hidden',
-                  cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s',
+                  position: 'relative',
+                  borderRadius: 20,
+                  overflow: 'hidden',
+                  height: 320,
+                  cursor: 'pointer',
+                  background: 'var(--bg-input)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)' }}
-                onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.22)' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.12)' }}
               >
-                {/* Carrusel o ícono */}
-                {auto.fotos && auto.fotos.length > 0
-                  ? <PhotoCarousel fotos={auto.fotos} compact />
-                  : (
-                    <div style={{
-                      height: 180, background: 'var(--bg-input)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <Car size={56} color="var(--text-tertiary)" strokeWidth={1} />
-                    </div>
-                  )
-                }
-
-                {/* Info */}
-                <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.3 }}>
-                        {auto.marca} {auto.modelo}
-                      </div>
-                      {auto.version && (
-                        <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{auto.version}</div>
-                      )}
-                    </div>
-                    <AutoEstadoBadge estado={auto.estado} />
+                {/* Fondo: foto o ícono */}
+                {thumb ? (
+                  <img
+                    src={thumb} alt=""
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    background: 'linear-gradient(145deg, var(--bg-card) 0%, var(--bg-input) 100%)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <Car size={72} color="var(--text-tertiary)" strokeWidth={1} />
                   </div>
+                )}
 
-                  <div style={{ display: 'flex', gap: 10, fontSize: 12, color: 'var(--text-tertiary)', flexWrap: 'wrap' }}>
-                    {auto.año && <span>{auto.año}</span>}
-                    {auto.kilometraje && <span>{Number(auto.kilometraje).toLocaleString('es-AR')} km</span>}
-                    {auto.combustible && <span>{auto.combustible}</span>}
-                    {auto.condicion && <span>{auto.condicion}</span>}
+                {/* Badge top-left */}
+                <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 2 }}>
+                  <div style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    background: 'rgba(255,255,255,0.92)',
+                    backdropFilter: 'blur(8px)',
+                    borderRadius: 20, padding: '5px 11px',
+                    fontSize: 12, fontWeight: 700, color: '#111',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                  }}>
+                    <span style={{ fontSize: 11 }}>{auto.estadoPublicacion === 'Novedad' ? '★' : '●'}</span>
+                    {auto.estadoPublicacion || 'En venta'}
                   </div>
+                </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 16 }}>
-                        {auto.precio ? formatCurrency(auto.precio) : '—'}
-                      </div>
-                      {isGerente && margen && (
-                        <div style={{ fontSize: 11, color: Number(margen) > 0 ? 'var(--success)' : 'var(--danger)' }}>
-                          {Number(margen) > 0 ? '+' : ''}{margen}% margen
-                        </div>
-                      )}
+                {/* Botones acción top-right */}
+                {isGerente && (
+                  <div
+                    onClick={e => e.stopPropagation()}
+                    style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, display: 'flex', gap: 6 }}
+                  >
+                    <button
+                      className="btn btn-ghost btn-icon btn-sm"
+                      onClick={() => openEdit(auto)}
+                      disabled={auto.estado === 'vendido'}
+                      style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)', color: '#fff', borderRadius: 8 }}
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      className="btn btn-ghost btn-icon btn-sm"
+                      onClick={() => setDeleting(auto.id)}
+                      disabled={auto.estado === 'vendido'}
+                      style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)', color: '#ff6b6b', borderRadius: 8 }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Gradiente oscuro */}
+                <div style={{
+                  position: 'absolute', inset: 0, zIndex: 1,
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.93) 0%, rgba(0,0,0,0.55) 45%, transparent 72%)',
+                  pointerEvents: 'none',
+                }} />
+
+                {/* Contenido sobre gradiente */}
+                <div style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 2,
+                  padding: '0 16px 16px',
+                  display: 'flex', flexDirection: 'column', gap: 5,
+                }}>
+                  {/* Precio */}
+                  <div style={{ fontWeight: 800, fontSize: 22, color: '#fff', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+                    {auto.precio ? formatCurrency(auto.precio) : '—'}
+                  </div>
+                  {isGerente && margen && (
+                    <div style={{ fontSize: 11, fontWeight: 600, color: Number(margen) > 0 ? '#4ade80' : '#f87171', marginTop: -2 }}>
+                      {Number(margen) > 0 ? '+' : ''}{margen}% margen
                     </div>
-                    {isGerente && (
-                      <div onClick={e => e.stopPropagation()} className="flex gap-1">
-                        <button
-                          className="btn btn-ghost btn-icon btn-sm"
-                          onClick={() => openEdit(auto)}
-                          disabled={auto.estado === 'vendido'}
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button
-                          className="btn btn-ghost btn-icon btn-sm"
-                          onClick={() => setDeleting(auto.id)}
-                          style={{ color: 'var(--danger)' }}
-                          disabled={auto.estado === 'vendido'}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
+                  )}
+
+                  {/* Nombre vehículo */}
+                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.78)', fontWeight: 500, textTransform: 'uppercase', lineHeight: 1.3 }}>
+                    {auto.marca} {auto.modelo}
+                    {auto.version && (
+                      <span style={{ color: 'rgba(255,255,255,0.45)', fontWeight: 400 }}> · {auto.version}</span>
                     )}
+                  </div>
+
+                  {/* Stats con separadores */}
+                  {stats.length > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>
+                      {stats.map((s, i) => (
+                        <React.Fragment key={i}>
+                          <span>{s}</span>
+                          {i < stats.length - 1 && (
+                            <span style={{ margin: '0 7px', opacity: 0.35 }}>|</span>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Pie: condición + estado */}
+                  <div style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    marginTop: 6, paddingTop: 8,
+                    borderTop: '1px solid rgba(255,255,255,0.12)',
+                  }}>
+                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                      {[auto.condicion, auto.tipo].filter(Boolean).join(' · ')}
+                    </span>
+                    <AutoEstadoBadge estado={auto.estado} />
                   </div>
                 </div>
               </div>
@@ -795,7 +855,7 @@ export default function AutosPage() {
       <Modal
         open={!!previewAuto}
         onClose={() => setPreview(null)}
-        title={previewAuto ? `${previewAuto.marca} ${previewAuto.modelo}${previewAuto.version ? ' ' + previewAuto.version : ''}` : ''}
+        title={previewAuto ? `${(previewAuto.marca || '').toUpperCase()} ${(previewAuto.modelo || '').toUpperCase()}${previewAuto.version ? ' ' + previewAuto.version.toUpperCase() : ''}` : ''}
       >
         {previewAuto && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -823,7 +883,7 @@ export default function AutosPage() {
               ].filter(row => row && row[1]).map(([k, v]) => (
                 <div key={k} style={{ background: 'var(--bg-input)', borderRadius: 8, padding: '10px 14px' }}>
                   <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 3 }}>{k}</div>
-                  <div style={{ fontSize: 14, fontWeight: 600 }}>{v}</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, textTransform: typeof v === 'string' ? 'uppercase' : 'none' }}>{v}</div>
                 </div>
               ))}
             </div>
@@ -831,7 +891,7 @@ export default function AutosPage() {
             {previewAuto.descripcion && (
               <div style={{ background: 'var(--bg-input)', borderRadius: 8, padding: '12px 14px' }}>
                 <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Descripción</div>
-                <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0 }}>{previewAuto.descripcion}</p>
+                <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0, textTransform: 'uppercase' }}>{previewAuto.descripcion}</p>
               </div>
             )}
 

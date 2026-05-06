@@ -3,19 +3,26 @@ import { supabase } from '../lib/supabase'
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function autoToDb(data) {
-  const { año, id, ...rest } = data
+  const { año, id, fotos, ...rest } = data
   const clean = {}
   for (const [k, v] of Object.entries(rest)) {
     if (v !== null && v !== undefined && v !== '') clean[k] = v
   }
   if (año !== undefined && año !== '') clean.anio = Number(año)
+  if (fotos !== undefined) clean.fotos = JSON.stringify(fotos ?? [])
   return clean
 }
 
 function autoFromDb(row) {
   if (!row) return null
-  const { anio, ...rest } = row
-  return anio !== undefined ? { ...rest, año: anio } : rest
+  const { anio, fotos, ...rest } = row
+  const result = anio !== undefined ? { ...rest, año: anio } : rest
+  try {
+    result.fotos = fotos ? JSON.parse(fotos) : []
+  } catch {
+    result.fotos = fotos ? [fotos] : []
+  }
+  return result
 }
 
 function throwIfError(error, context) {
