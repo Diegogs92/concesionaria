@@ -37,7 +37,7 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
 
   function handleSubmit() {
     if (!validate()) return
-    const data = { ...form, comision: Number(form.comision) }
+    const data = { ...form }
     if (isEditing && !form.password.trim()) delete data.password
     onSubmit(data)
   }
