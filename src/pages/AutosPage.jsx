@@ -176,8 +176,8 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizacio
     setErrors({})
   }
   function goToStep(n) {
-    if (n < step) { setStep(n); setErrors({}) }
-    else if (n === step + 1 && validateStep(step)) setStep(n)
+    setStep(n)
+    setErrors({})
   }
 
   async function handleUpload(files) {
