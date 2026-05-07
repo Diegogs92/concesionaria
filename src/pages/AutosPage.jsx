@@ -63,16 +63,20 @@ function ToggleGroup({ options, value, onChange }) {
 }
 
 // ─── StepBar ──────────────────────────────────────────────────────────────────
-function StepBar({ step, steps }) {
+function StepBar({ step, steps, onStepClick }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24, gap: 0 }}>
       {steps.map((label, i) => {
         const n = i + 1
         const done = n < step
         const active = n === step
+        const clickable = onStepClick && n !== step
         return (
           <React.Fragment key={n}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            <div
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: clickable ? 'pointer' : 'default' }}
+              onClick={() => clickable && onStepClick(n)}
+            >
               <div style={{
                 width: 32, height: 32, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -81,6 +85,8 @@ function StepBar({ step, steps }) {
                 color: done || active ? '#ffffff' : 'var(--text-tertiary)',
                 border: active ? '2px solid var(--accent)' : '2px solid transparent',
                 boxShadow: active ? '0 0 0 3px var(--accent-light)' : 'none',
+                opacity: clickable ? 1 : undefined,
+                transition: 'opacity 0.15s',
               }}>
                 {done ? '✓' : n}
               </div>
@@ -169,6 +175,10 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizacio
     setStep(s => s - 1)
     setErrors({})
   }
+  function goToStep(n) {
+    if (n < step) { setStep(n); setErrors({}) }
+    else if (n === step + 1 && validateStep(step)) setStep(n)
+  }
 
   async function handleUpload(files) {
     if (!files.length) return
@@ -218,8 +228,8 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizacio
     : null
 
   return (
-    <form onSubmit={e => e.preventDefault()}>
-      <StepBar step={step} steps={['Identificación', 'Características', 'Precio y fotos']} />
+    <form onSubmit={e => { e.preventDefault(); if (step < 3) next(); else handleSubmit() }}>
+      <StepBar step={step} steps={['Identificación', 'Características', 'Precio y fotos']} onStepClick={goToStep} />
 
       {/* ── Paso 1 ── */}
       {step === 1 && (
