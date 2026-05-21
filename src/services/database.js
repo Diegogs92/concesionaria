@@ -153,6 +153,59 @@ export const egresosService = {
   },
 }
 
+// ─── DEUDAS ──────────────────────────────────────────────────────────────────
+
+export const deudasService = {
+  list: async () => {
+    const { data, error } = await supabase
+      .from('deudas')
+      .select('*')
+      .order('createdAt', { ascending: false })
+    throwIfError(error, 'deudas.list')
+    return data || []
+  },
+
+  create: async (data) => {
+    const { data: row, error } = await supabase
+      .from('deudas').insert(data).select().single()
+    throwIfError(error, 'deudas.create')
+    return row
+  },
+
+  update: async (id, data) => {
+    const { data: row, error } = await supabase
+      .from('deudas').update(data).eq('id', id).select().single()
+    throwIfError(error, 'deudas.update')
+    return row
+  },
+
+  delete: async (id) => {
+    const { error } = await supabase.from('deudas').delete().eq('id', id)
+    throwIfError(error, 'deudas.delete')
+  },
+}
+
+export const deudaConceptosService = {
+  list: async () => {
+    const { data, error } = await supabase
+      .from('deuda_conceptos')
+      .select('*')
+      .order('nombre', { ascending: true })
+    throwIfError(error, 'deudaConceptos.list')
+    return data || []
+  },
+
+  save: async (data) => {
+    const { data: row, error } = await supabase
+      .from('deuda_conceptos')
+      .upsert(data, { onConflict: 'tipo,nombre' })
+      .select()
+      .single()
+    throwIfError(error, 'deudaConceptos.save')
+    return row
+  },
+}
+
 // ─── TEST DRIVES ──────────────────────────────────────────────────────────────
 
 export const testDrivesService = {

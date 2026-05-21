@@ -760,6 +760,157 @@ tbody td {
 .badge-neutral { background: var(--bg-input);      color: var(--text-tertiary); }
 .badge-accent  { background: var(--accent-light);  color: var(--accent);  }
 
+.deuda-status-badge {
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  min-width: 102px;
+  justify-content: center;
+  transition: filter var(--transition), transform var(--transition);
+}
+
+.deuda-status-badge:hover {
+  filter: brightness(0.96);
+}
+
+.deuda-status-badge:active {
+  transform: translateY(1px);
+}
+
+.deuda-status-badge:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.deuda-status-action {
+  display: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.deuda-status-badge:hover .deuda-status-label,
+.deuda-status-badge:focus-visible .deuda-status-label {
+  display: none;
+}
+
+.deuda-status-badge:hover .deuda-status-action,
+.deuda-status-badge:focus-visible .deuda-status-action {
+  display: inline;
+}
+
+.deuda-type-filter {
+  min-width: 170px;
+}
+
+.deuda-concept-filter {
+  min-width: 190px;
+}
+
+.deuda-status-filter {
+  min-width: 180px;
+}
+
+.deuda-concept-picker {
+  position: relative;
+}
+
+.deuda-concept-picker .form-input {
+  padding-right: 42px;
+}
+
+.deuda-concept-trigger {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.deuda-concept-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  max-height: 210px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-modal);
+  box-shadow: var(--shadow-lg);
+}
+
+.deuda-concept-option {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--divider);
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 14px;
+  text-align: left;
+}
+
+.deuda-concept-option:hover,
+.deuda-concept-option:focus-visible {
+  background: var(--bg-tertiary);
+  outline: none;
+}
+
+.deuda-concept-option.is-last {
+  border-bottom: 0;
+}
+
+.deuda-concept-empty {
+  padding: 10px 14px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+.deuda-total-summary {
+  min-height: 40px;
+  padding: 6px 14px;
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-md);
+  background: var(--bg-input);
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.deuda-total-summary span {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.deuda-total-summary strong {
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.deuda-observaciones {
+  max-width: 360px;
+  color: var(--text-secondary);
+  white-space: normal;
+}
+
 /* ===== GRID DE ESTADÍSTICAS ===== */
 .stats-grid {
   display: grid;

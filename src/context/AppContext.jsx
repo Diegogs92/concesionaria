@@ -5,6 +5,8 @@ import {
   clientesService,
   ventasService,
   egresosService,
+  deudasService,
+  deudaConceptosService,
   testDrivesService,
   historialService,
 } from '../services/database'
@@ -16,6 +18,8 @@ export function AppProvider({ children }) {
   const [clientes,        setClientes]        = useState([])
   const [ventas,          setVentas]          = useState([])
   const [egresos,         setEgresos]         = useState([])
+  const [deudas,          setDeudas]          = useState([])
+  const [deudaConceptos,  setDeudaConceptos]  = useState([])
   const [testDrives,      setTestDrives]      = useState([])
   const [historialPrecios, setHistorialPrecios] = useState([])
   const [loading,         setLoading]         = useState(true)
@@ -25,11 +29,13 @@ export function AppProvider({ children }) {
   useEffect(() => {
     async function cargarDatos() {
       try {
-        const [a, c, v, e, td, hp] = await Promise.all([
+        const [a, c, v, e, d, dc, td, hp] = await Promise.all([
           autosService.list(),
           clientesService.list(),
           ventasService.list(),
           egresosService.list(),
+          deudasService.list(),
+          deudaConceptosService.list(),
           testDrivesService.list(),
           historialService.list(),
         ])
@@ -37,6 +43,8 @@ export function AppProvider({ children }) {
         setClientes(c)
         setVentas(v)
         setEgresos(e)
+        setDeudas(d)
+        setDeudaConceptos(dc)
         setTestDrives(td)
         setHistorialPrecios(hp)
       } catch (err) {
@@ -145,6 +153,43 @@ export function AppProvider({ children }) {
     setEgresos(prev => prev.filter(e => e.id !== id))
   }
 
+  // ===================== DEUDAS =====================
+
+  async function saveDeudaConcepto(tipo, concepto) {
+    const nombre = concepto.trim()
+    const existe = deudaConceptos.some(c =>
+      c.tipo === tipo && c.nombre.toLowerCase() === nombre.toLowerCase()
+    )
+    if (existe) return
+
+    const nuevo = await deudaConceptosService.save({
+      tipo,
+      nombre,
+      createdAt: today(),
+    })
+    setDeudaConceptos(prev => [...prev, nuevo].sort((a, b) => a.nombre.localeCompare(b.nombre)))
+  }
+
+  async function addDeuda(data) {
+    await saveDeudaConcepto(data.tipo, data.concepto)
+    const nueva = await deudasService.create({ ...data, createdAt: today() })
+    setDeudas(prev => [nueva, ...prev])
+    return nueva
+  }
+
+  async function updateDeuda(id, data) {
+    if (data.tipo && data.concepto) {
+      await saveDeudaConcepto(data.tipo, data.concepto)
+    }
+    const actualizada = await deudasService.update(id, data)
+    setDeudas(prev => prev.map(d => d.id === id ? { ...d, ...actualizada } : d))
+  }
+
+  async function deleteDeuda(id) {
+    await deudasService.delete(id)
+    setDeudas(prev => prev.filter(d => d.id !== id))
+  }
+
   // ===================== TEST DRIVES =====================
 
   async function addTestDrive(data) {
@@ -169,12 +214,13 @@ export function AppProvider({ children }) {
   return (
     <AppContext.Provider
       value={{
-        autos, clientes, ventas, egresos, testDrives, historialPrecios,
+        autos, clientes, ventas, egresos, deudas, deudaConceptos, testDrives, historialPrecios,
         loading, error,
         addAuto, updateAuto, deleteAuto, marcarVendido,
         addCliente, updateCliente, deleteCliente,
         addVenta, deleteVenta,
         addEgreso, deleteEgreso,
+        addDeuda, updateDeuda, deleteDeuda,
         addTestDrive, updateTestDrive, deleteTestDrive,
         getAutoById, getClienteById,
       }}

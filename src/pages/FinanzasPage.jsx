@@ -1,40 +1,92 @@
-import { useState, useMemo } from 'react'
-import { Plus, Trash2, DollarSign, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { CheckCircle2, ChevronDown, CircleDollarSign, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
-import { formatCurrency, formatDate, today, sumBy } from '../utils/helpers'
+import { formatCurrency } from '../utils/helpers'
 import Modal from '../components/ui/Modal'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
-import SearchBar from '../components/ui/SearchBar'
 
-// ─── Componente para Badge de Tipo de Egreso ─────────────────────────────────
-function EgresoBadge({ tipo }) {
-  const config = {
-    comision:  { bg: 'var(--warning-light)', color: 'var(--warning)', label: 'Comisión' },
-    operativo: { bg: 'var(--info-light)',    color: 'var(--info)',    label: 'Operativo' },
-    varios:    { bg: 'var(--bg-tertiary)',   color: 'var(--text-tertiary)', label: 'Varios' },
-  }
-  const c = config[tipo] || config.varios
+const amountFormatter = new Intl.NumberFormat('es-AR', {
+  style: 'currency',
+  currency: 'ARS',
+  maximumFractionDigits: 0,
+})
+
+const EMPTY_FORM = {
+  tipo: 'personal',
+  concepto: '',
+  observaciones: '',
+  monto: '',
+  estado: 'PENDIENTE',
+}
+
+const DEUDA_TIPOS = {
+  personal: 'Personal',
+  negocio: 'Negocio',
+}
+
+function parseCurrencyInput(value) {
+  const digits = value.replace(/\D/g, '')
+  return digits ? Number(digits) : ''
+}
+
+function formatCurrencyInput(value) {
+  if (value === '' || value == null) return ''
+  return amountFormatter.format(Number(value) || 0)
+}
+
+function TipoBadge({ tipo }) {
   return (
-    <span style={{
-      background: c.bg, color: c.color,
-      padding: '4px 10px', borderRadius: 99, fontSize: 11, fontWeight: 700,
-      textTransform: 'uppercase', letterSpacing: 0.5,
-      display: 'inline-block'
-    }}>
-      {c.label}
+    <span className={`badge ${tipo === 'negocio' ? 'badge-accent' : 'badge-info'}`}>
+      {DEUDA_TIPOS[tipo] || tipo}
     </span>
   )
 }
 
-// ─── Formulario de Egreso ──────────────────────────────────────────────────
-function EgresoForm({ onSubmit, onCancel }) {
-  const [form, setForm] = useState({
-    tipo: 'operativo',
-    descripcion: '',
-    monto: '',
-    fecha: today(),
-  })
+function EstadoBadge({ estado, onToggle }) {
+  const pagada = estado === 'PAGADA'
+  const action = pagada ? 'VOLVER A PENDIENTE' : 'PAGAR DEUDA'
+
+  return (
+    <button
+      type="button"
+      className={`badge deuda-status-badge ${pagada ? 'badge-success' : 'badge-warning'}`}
+      onClick={onToggle}
+      title={action}
+      aria-label={pagada ? 'Marcar deuda como pendiente' : 'Marcar deuda como pagada'}
+    >
+      {pagada ? <CheckCircle2 size={13} /> : <CircleDollarSign size={13} />}
+      <span className="deuda-status-label">{estado}</span>
+      <span className="deuda-status-action" aria-hidden="true">{action}</span>
+    </button>
+  )
+}
+
+function DeudaForm({ initial = EMPTY_FORM, conceptos, onSubmit, onCancel }) {
+  const [form, setForm] = useState({ ...EMPTY_FORM, ...initial })
   const [errors, setErrors] = useState({})
+  const [conceptoOpen, setConceptoOpen] = useState(false)
+  const conceptoRef = useRef(null)
+
+  const conceptosPorTipo = useMemo(
+    () => conceptos.filter(c => c.tipo === form.tipo),
+    [conceptos, form.tipo]
+  )
+  const conceptosFiltrados = useMemo(() => {
+    const q = form.concepto.trim().toLowerCase()
+    if (!q) return conceptosPorTipo
+    return conceptosPorTipo.filter(c => c.nombre.toLowerCase().includes(q))
+  }, [conceptosPorTipo, form.concepto])
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (conceptoRef.current && !conceptoRef.current.contains(event.target)) {
+        setConceptoOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   function set(field, value) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -43,228 +95,284 @@ function EgresoForm({ onSubmit, onCancel }) {
 
   function validate() {
     const e = {}
-    if (!form.descripcion.trim()) e.descripcion = 'Ingresá una descripción'
+    if (!form.concepto.trim()) e.concepto = 'Ingresá un concepto'
     if (!form.monto || Number(form.monto) <= 0) e.monto = 'Ingresá un monto válido'
-    if (!form.fecha) e.fecha = 'Ingresá la fecha'
     setErrors(e)
     return Object.keys(e).length === 0
   }
 
   function handleSubmit() {
     if (!validate()) return
+
     onSubmit({
-      ...form,
+      tipo: form.tipo,
+      concepto: form.concepto.trim(),
+      observaciones: form.observaciones.trim(),
       monto: Number(form.monto),
+      estado: form.estado,
     })
   }
 
   return (
     <form onSubmit={e => e.preventDefault()}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        
+      <div className="form-grid" style={{ gap: 14 }}>
         <div className="form-group">
-          <label className="form-label">Tipo de egreso *</label>
+          <label className="form-label">Tipo *</label>
           <select className="form-input form-select" value={form.tipo} onChange={e => set('tipo', e.target.value)}>
-            <option value="operativo">Operativo (Alquiler, Luz, Sueldos, etc)</option>
-            <option value="varios">Varios (Insumos, Mantenimiento, etc)</option>
+            <option value="personal">Personal</option>
+            <option value="negocio">Negocio</option>
           </select>
         </div>
 
         <div className="form-group">
-          <label className="form-label">Descripción *</label>
-          <input
-            type="text" className="form-input" value={form.descripcion}
-            onChange={e => set('descripcion', e.target.value)}
-            placeholder="Ej. Alquiler del local"
-          />
-          {errors.descripcion && <span className="form-error">{errors.descripcion}</span>}
+          <label className="form-label">Estado *</label>
+          <select className="form-input form-select" value={form.estado} onChange={e => set('estado', e.target.value)}>
+            <option value="PENDIENTE">PENDIENTE</option>
+            <option value="PAGADA">PAGADA</option>
+          </select>
         </div>
 
-        <div className="form-grid">
-          <div className="form-group">
-            <label className="form-label">Monto ($) *</label>
+        <div className="form-group form-full">
+          <label className="form-label">Concepto *</label>
+          <div ref={conceptoRef} className="deuda-concept-picker">
             <input
-              type="number" className="form-input" value={form.monto}
-              onChange={e => set('monto', e.target.value)}
-              placeholder="50000" min="0" step="0.01"
+              className="form-input"
+              value={form.concepto}
+              onChange={e => {
+                set('concepto', e.target.value)
+                setConceptoOpen(true)
+              }}
+              onFocus={() => setConceptoOpen(true)}
+              placeholder={form.tipo === 'personal' ? 'Ej. Préstamo familiar' : 'Ej. Repuesto pendiente'}
+              aria-autocomplete="list"
+              aria-expanded={conceptoOpen}
             />
-            {errors.monto && <span className="form-error">{errors.monto}</span>}
-          </div>
+            <button
+              type="button"
+              className="deuda-concept-trigger"
+              onClick={() => setConceptoOpen(prev => !prev)}
+              aria-label="Mostrar conceptos guardados"
+            >
+              <ChevronDown size={16} />
+            </button>
 
-          <div className="form-group">
-            <label className="form-label">Fecha *</label>
-            <input
-              type="date" className="form-input" value={form.fecha}
-              onChange={e => set('fecha', e.target.value)}
-            />
-            {errors.fecha && <span className="form-error">{errors.fecha}</span>}
+            {conceptoOpen && conceptosPorTipo.length > 0 && (
+              <div className="deuda-concept-dropdown" role="listbox">
+                {conceptosFiltrados.length === 0 ? (
+                  <div className="deuda-concept-empty">Sin conceptos guardados que coincidan.</div>
+                ) : (
+                  conceptosFiltrados.map((concepto, index) => (
+                    <button
+                      key={concepto.id}
+                      type="button"
+                      className={`deuda-concept-option${index === conceptosFiltrados.length - 1 ? ' is-last' : ''}`}
+                      onClick={() => {
+                        set('concepto', concepto.nombre)
+                        setConceptoOpen(false)
+                      }}
+                    >
+                      {concepto.nombre}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
+          {errors.concepto && <span className="form-error">{errors.concepto}</span>}
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">Monto (ARS) *</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            className="form-input"
+            value={formatCurrencyInput(form.monto)}
+            onChange={e => set('monto', parseCurrencyInput(e.target.value))}
+            placeholder="$ 150.000"
+          />
+          {errors.monto && <span className="form-error">{errors.monto}</span>}
+        </div>
+
+        <div className="form-group form-full">
+          <label className="form-label">Observaciones</label>
+          <textarea
+            className="form-input"
+            value={form.observaciones || ''}
+            onChange={e => set('observaciones', e.target.value)}
+            placeholder="Detalle libre de la deuda"
+          />
         </div>
       </div>
 
       <div className="modal-footer" style={{ paddingInline: 0, paddingBottom: 0, marginTop: 16 }}>
         <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancelar</button>
-        <button type="button" className="btn btn-primary" onClick={handleSubmit}>Registrar egreso</button>
+        <button type="button" className="btn btn-primary" onClick={handleSubmit}>
+          Guardar deuda
+        </button>
       </div>
     </form>
   )
 }
 
-// ─── Página de Finanzas ──────────────────────────────────────────────────────
 export default function FinanzasPage() {
-  const { egresos, ventas, addEgreso, deleteEgreso, getAutoById } = useApp()
-  
-  const [search, setSearch] = useState('')
+  const { deudas, deudaConceptos, addDeuda, updateDeuda, deleteDeuda } = useApp()
+  const [tipoFiltro, setTipoFiltro] = useState('todas')
+  const [conceptoFiltro, setConceptoFiltro] = useState('todos')
+  const [estadoFiltro, setEstadoFiltro] = useState('todos')
   const [modalOpen, setModal] = useState(false)
-  const [deletingEgreso, setDel] = useState(null)
+  const [editing, setEditing] = useState(null)
+  const [deleting, setDeleting] = useState(null)
 
-  // 1. Calcular estadísticas
-  const gananciaBruta = sumBy(ventas, 'ganancia')
-  
-  const totalComisiones = sumBy(ventas, 'comisionVendedor')
-  const totalOperativos = sumBy(egresos.filter(e => e.tipo === 'operativo'), 'monto')
-  const totalVarios = sumBy(egresos.filter(e => e.tipo === 'varios'), 'monto')
-  const totalEgresos = totalComisiones + totalOperativos + totalVarios
-  
-  const beneficioNeto = gananciaBruta - totalEgresos
-
-  // 2. Unificar Egresos (manuales + virtuales por comisiones automáticas)
-  const unifiedEgresos = useMemo(() => {
-    // Convertir ventas en egresos virtuales de comisión
-    const comisionesVirtuales = ventas.filter(v => v.comisionVendedor > 0).map(v => {
-      const auto = getAutoById(v.autoId)
-      const nombreAuto = auto ? `${auto.marca} ${auto.modelo}` : 'Auto eliminado'
-      return {
-        id: `com-${v.id}`, // Id virtual
-        isVirtual: true,   // Bandera para no permitir borrarlo manualmente desde acá
-        tipo: 'comision',
-        descripcion: `Comisión por venta de ${nombreAuto}`,
-        monto: v.comisionVendedor,
-        fecha: v.fecha,
-        createdAt: v.createdAt
+  const conceptosDisponibles = useMemo(() => {
+    const nombres = new Set()
+    deudas.forEach(deuda => {
+      if (tipoFiltro === 'todas' || deuda.tipo === tipoFiltro) {
+        nombres.add(deuda.concepto)
       }
     })
+    return [...nombres].sort((a, b) => a.localeCompare(b))
+  }, [deudas, tipoFiltro])
 
-    const all = [...egresos, ...comisionesVirtuales]
-    
-    // Filtrar por búsqueda
-    const q = search.toLowerCase()
-    if (!q) return all
-    
-    return all.filter(e => e.descripcion.toLowerCase().includes(q) || e.tipo.toLowerCase().includes(q))
-  }, [egresos, ventas, search, getAutoById])
+  const deudasFiltradas = useMemo(() => (
+    deudas.filter(deuda =>
+      (tipoFiltro === 'todas' || deuda.tipo === tipoFiltro)
+      && (conceptoFiltro === 'todos' || deuda.concepto === conceptoFiltro)
+      && (estadoFiltro === 'todos' || deuda.estado === estadoFiltro)
+    )
+  ), [conceptoFiltro, deudas, estadoFiltro, tipoFiltro])
+  const totalDeudasFiltradas = useMemo(
+    () => deudasFiltradas.reduce((total, deuda) => total + (Number(deuda.monto) || 0), 0),
+    [deudasFiltradas]
+  )
 
-  // Ordenar de más reciente a más antiguo
-  const sortedEgresos = [...unifiedEgresos].sort((a, b) => b.fecha.localeCompare(a.fecha))
+  function openAdd() {
+    setEditing(null)
+    setModal(true)
+  }
+
+  function openEdit(deuda) {
+    setEditing(deuda)
+    setModal(true)
+  }
+
+  function closeModal() {
+    setModal(false)
+    setEditing(null)
+  }
+
+  async function handleSubmit(data) {
+    if (editing) await updateDeuda(editing.id, data)
+    else await addDeuda(data)
+    closeModal()
+  }
+
+  function toggleEstado(deuda) {
+    updateDeuda(deuda.id, {
+      estado: deuda.estado === 'PAGADA' ? 'PENDIENTE' : 'PAGADA',
+    })
+  }
 
   return (
     <>
       <div className="page-header">
         <div>
-          <h1 className="page-title">Finanzas y Egresos</h1>
-          <p className="page-subtitle">Gestión de gastos operativos, comisiones y utilidades</p>
+          <h1 className="page-title">Deudas</h1>
+          <p className="page-subtitle">Seguimiento de deudas personales y del negocio</p>
         </div>
 
         <div className="flex items-center gap-2">
-          <SearchBar value={search} onChange={setSearch} placeholder="Buscar egreso..." />
-          <button className="btn btn-primary" onClick={() => setModal(true)}>
-            <Plus size={16} /> Registrar Egreso
+          <div className="deuda-total-summary" aria-live="polite">
+            <span>Total</span>
+            <strong>{formatCurrency(totalDeudasFiltradas)}</strong>
+          </div>
+          <select
+            className="form-input form-select deuda-type-filter"
+            value={tipoFiltro}
+            onChange={e => {
+              setTipoFiltro(e.target.value)
+              setConceptoFiltro('todos')
+            }}
+            aria-label="Filtrar deudas por tipo"
+          >
+            <option value="todas">Todas</option>
+            <option value="personal">Personales</option>
+            <option value="negocio">Del negocio</option>
+          </select>
+          <select
+            className="form-input form-select deuda-concept-filter"
+            value={conceptoFiltro}
+            onChange={e => setConceptoFiltro(e.target.value)}
+            aria-label="Filtrar deudas por concepto"
+          >
+            <option value="todos">Todos los conceptos</option>
+            {conceptosDisponibles.map(concepto => (
+              <option key={concepto} value={concepto}>{concepto}</option>
+            ))}
+          </select>
+          <select
+            className="form-input form-select deuda-status-filter"
+            value={estadoFiltro}
+            onChange={e => setEstadoFiltro(e.target.value)}
+            aria-label="Filtrar deudas por estado"
+          >
+            <option value="todos">Todos los estados</option>
+            <option value="PENDIENTE">Pendientes</option>
+            <option value="PAGADA">Pagadas</option>
+          </select>
+          <button className="btn btn-primary" onClick={openAdd}>
+            <Plus size={16} /> Agregar deuda
           </button>
         </div>
       </div>
 
-      {/* Tarjetas de Resumen */}
-      <div className="stats-grid" style={{ marginBottom: 24 }}>
-        <div className="card stat-card">
-          <div className="stat-card-header">
-            <div>
-              <div className="stat-card-label">Ganancia Bruta (Ventas)</div>
-              <div className="stat-card-value" style={{ marginTop: 6, color: 'var(--success)' }}>
-                {formatCurrency(gananciaBruta)}
-              </div>
-            </div>
-            <div className="stat-card-icon" style={{ background: 'var(--success-light)', color: 'var(--success)' }}>
-              <TrendingUp size={20} />
-            </div>
-          </div>
-        </div>
-
-        <div className="card stat-card">
-          <div className="stat-card-header">
-            <div>
-              <div className="stat-card-label">Egresos Totales</div>
-              <div className="stat-card-value" style={{ marginTop: 6, color: 'var(--danger)' }}>
-                {formatCurrency(totalEgresos)}
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>
-                Comisiones: {formatCurrency(totalComisiones)}
-              </div>
-            </div>
-            <div className="stat-card-icon" style={{ background: 'var(--danger-light)', color: 'var(--danger)' }}>
-              <TrendingDown size={20} />
-            </div>
-          </div>
-        </div>
-
-        <div className="card stat-card" style={{ border: '2px solid var(--accent)' }}>
-          <div className="stat-card-header">
-            <div>
-              <div className="stat-card-label" style={{ fontWeight: 700, color: 'var(--accent)' }}>Beneficio Neto</div>
-              <div className="stat-card-value" style={{ marginTop: 6 }}>
-                {formatCurrency(beneficioNeto)}
-              </div>
-            </div>
-            <div className="stat-card-icon" style={{ background: 'var(--accent)', color: '#fff' }}>
-              <Wallet size={20} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabla de Egresos */}
       <div className="card">
         <div className="table-wrapper">
-          {sortedEgresos.length === 0 ? (
+          {deudasFiltradas.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-state-icon"><DollarSign size={24} /></div>
-              <strong>Sin egresos registrados</strong>
-              <p>No se encontraron egresos ni comisiones pagadas.</p>
+              <div className="empty-state-icon"><CircleDollarSign size={24} /></div>
+              <strong>Sin deudas registradas</strong>
+              <p>Agregá la primera deuda para seguir su pago desde esta tabla.</p>
+              <button className="btn btn-primary btn-sm" onClick={openAdd}>
+                <Plus size={14} /> Agregar deuda
+              </button>
             </div>
           ) : (
             <table>
               <thead>
                 <tr>
-                  <th>Fecha</th>
                   <th>Tipo</th>
-                  <th>Descripción</th>
+                  <th>Concepto</th>
+                  <th>Observaciones</th>
                   <th>Monto</th>
-                  <th style={{ width: 60 }}>Acc.</th>
+                  <th>Estado</th>
+                  <th style={{ width: 100 }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {sortedEgresos.map(e => (
-                  <tr key={e.id}>
-                    <td style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>{formatDate(e.fecha)}</td>
+                {deudasFiltradas.map(deuda => (
+                  <tr key={deuda.id}>
+                    <td><TipoBadge tipo={deuda.tipo} /></td>
+                    <td style={{ fontWeight: 600 }}>{deuda.concepto}</td>
+                    <td className="deuda-observaciones">{deuda.observaciones || '—'}</td>
+                    <td style={{ fontWeight: 700 }}>{formatCurrency(deuda.monto)}</td>
                     <td>
-                      <EgresoBadge tipo={e.tipo} />
-                    </td>
-                    <td style={{ fontWeight: 500 }}>{e.descripcion}</td>
-                    <td style={{ fontWeight: 700, color: 'var(--danger)' }}>
-                      - {formatCurrency(e.monto)}
+                      <EstadoBadge estado={deuda.estado} onToggle={() => toggleEstado(deuda)} />
                     </td>
                     <td>
-                      {!e.isVirtual ? (
+                      <div className="flex gap-2">
+                        <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(deuda)} title="Editar deuda">
+                          <Pencil size={15} />
+                        </button>
                         <button
                           className="btn btn-ghost btn-icon btn-sm"
-                          onClick={() => setDel(e)}
+                          onClick={() => setDeleting(deuda)}
                           style={{ color: 'var(--danger)' }}
-                          title="Eliminar egreso"
+                          title="Eliminar deuda"
                         >
                           <Trash2 size={15} />
                         </button>
-                      ) : (
-                        <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }} title="Generado automáticamente">Auto</span>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -274,25 +382,21 @@ export default function FinanzasPage() {
         </div>
       </div>
 
-      <Modal open={modalOpen} onClose={() => setModal(false)} title="Registrar Egreso" size="sm">
-        <EgresoForm
-          onSubmit={(data) => {
-            addEgreso(data)
-            setModal(false)
-          }}
-          onCancel={() => setModal(false)}
+      <Modal open={modalOpen} onClose={closeModal} title={editing ? 'Editar deuda' : 'Agregar deuda'}>
+        <DeudaForm
+          initial={editing ?? EMPTY_FORM}
+          conceptos={deudaConceptos}
+          onSubmit={handleSubmit}
+          onCancel={closeModal}
         />
       </Modal>
 
       <ConfirmDialog
-        open={!!deletingEgreso}
-        onClose={() => setDel(null)}
-        onConfirm={() => {
-          deleteEgreso(deletingEgreso.id)
-          setDel(null)
-        }}
-        title="Eliminar Egreso"
-        message={`¿Estás seguro de que deseas eliminar este egreso por ${deletingEgreso ? formatCurrency(deletingEgreso.monto) : ''}?`}
+        open={!!deleting}
+        onClose={() => setDeleting(null)}
+        onConfirm={() => deleteDeuda(deleting.id)}
+        title="Eliminar deuda"
+        message="¿Eliminar esta deuda? Los datos se perderán permanentemente."
       />
     </>
   )
