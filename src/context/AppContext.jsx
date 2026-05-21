@@ -186,8 +186,23 @@ export function AppProvider({ children }) {
   }
 
   async function deleteDeuda(id) {
+    const deudaEliminada = deudas.find(d => d.id === id)
     await deudasService.delete(id)
     setDeudas(prev => prev.filter(d => d.id !== id))
+
+    if (!deudaEliminada) return
+
+    const quedanDeudasDelConcepto = deudas.some(d =>
+      d.id !== id
+      && d.tipo === deudaEliminada.tipo
+      && d.concepto === deudaEliminada.concepto
+    )
+
+    if (!quedanDeudasDelConcepto) {
+      setDeudaConceptos(prev => prev.filter(c =>
+        c.tipo !== deudaEliminada.tipo || c.nombre !== deudaEliminada.concepto
+      ))
+    }
   }
 
   // ===================== TEST DRIVES =====================
