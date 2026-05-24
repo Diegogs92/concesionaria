@@ -1,23 +1,34 @@
-import React, { useState, useMemo } from 'react'
-import { Plus, Pencil, Trash2, Shield, Eye, EyeOff } from 'lucide-react'
+import React, { useState, useMemo, useRef } from 'react'
+import { Plus, Pencil, Trash2, Shield, Eye, EyeOff, Camera, UserRound } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { usuariosService } from '../services/database'
 import { RolBadge } from '../components/ui/Badge'
 import Modal from '../components/ui/Modal'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import SearchBar from '../components/ui/SearchBar'
 import { getInitials } from '../utils/helpers'
 
-const EMPTY_FORM = { nombre: '', username: '', password: '', rol: 'administrador' }
+const EMPTY_FORM = { nombre: '', username: '', password: '', rol: 'administrador', foto_url: '' }
 
 function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCancel }) {
-  const [form, setForm] = useState({ ...EMPTY_FORM, ...initial })
-  const [errors, setErrors] = useState({})
+  const [form, setForm]         = useState({ ...EMPTY_FORM, ...initial })
+  const [errors, setErrors]     = useState({})
   const [showPass, setShowPass] = useState(false)
-  const { usuarios } = useAuth()
+  const [fotoFile, setFotoFile] = useState(null)
+  const [preview, setPreview]   = useState(initial.foto_url || '')
+  const fileRef                 = useRef(null)
+  const { usuarios }            = useAuth()
 
   function set(field, value) {
     setForm(prev => ({ ...prev, [field]: value }))
     setErrors(prev => ({ ...prev, [field]: '' }))
+  }
+
+  function handleFotoChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setFotoFile(file)
+    setPreview(URL.createObjectURL(file))
   }
 
   function validate() {
@@ -35,12 +46,31 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
     if (!validate()) return
     const data = { ...form }
     if (isEditing && !form.password.trim()) delete data.password
-    onSubmit(data)
+    onSubmit(data, fotoFile)
   }
 
   return (
     <form onSubmit={e => e.preventDefault()}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
+          <div style={{ position: 'relative', width: 80, height: 80, cursor: 'pointer' }} onClick={() => fileRef.current?.click()}>
+            {preview
+              ? <img src={preview} alt="avatar" style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--border)' }} />
+              : form.nombre.trim()
+                ? <div className="avatar" style={{ width: 80, height: 80, fontSize: 22 }}>{getInitials(form.nombre)}</div>
+                : <div className="avatar" style={{ width: 80, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><UserRound size={32} style={{ opacity: 0.6 }} /></div>
+            }
+            <div style={{
+              position: 'absolute', bottom: 0, right: 0,
+              background: 'var(--accent)', borderRadius: '50%',
+              width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Camera size={13} color="white" />
+            </div>
+          </div>
+          <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFotoChange} />
+        </div>
 
         <div className="form-group">
           <label className="form-label">Nombre completo *</label>
@@ -88,7 +118,7 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
           <select className="form-input form-select" value={form.rol} onChange={e => set('rol', e.target.value)}>
             <option value="administrador">Administrador</option>
             <option value="desarrollador">Desarrollador</option>
-            <option value="empleado">Empleado</option>
+            <option value="vendedor">Vendedor</option>
           </select>
         </div>
       </div>
@@ -122,9 +152,18 @@ export default function UsuariosPage() {
   function openEdit(u)  { setEditing(u); setModal(true) }
   function closeModal() { setModal(false); setEditing(null) }
 
-  async function handleSubmit(data) {
-    if (editing) await updateUsuario(editing.id, data)
-    else         await addUsuario(data)
+  async function handleSubmit(data, fotoFile) {
+    if (editing) {
+      let foto_url = editing.foto_url ?? ''
+      if (fotoFile) foto_url = await usuariosService.uploadFoto(editing.id, fotoFile)
+      await updateUsuario(editing.id, { ...data, foto_url })
+    } else {
+      const nuevo = await addUsuario({ ...data, foto_url: '' })
+      if (fotoFile) {
+        const foto_url = await usuariosService.uploadFoto(nuevo.id, fotoFile)
+        await updateUsuario(nuevo.id, { foto_url })
+      }
+    }
     closeModal()
   }
 
@@ -169,9 +208,10 @@ export default function UsuariosPage() {
                   <tr key={u.id}>
                     <td>
                       <div className="flex items-center gap-3">
-                        <div className="avatar" style={{ fontSize: 13 }}>
-                          {getInitials(u.nombre)}
-                        </div>
+                        {u.foto_url
+                          ? <img src={u.foto_url} alt={u.nombre} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                          : <div className="avatar" style={{ fontSize: 13 }}>{getInitials(u.nombre)}</div>
+                        }
                         <div style={{ fontWeight: 600 }}>{u.nombre}</div>
                       </div>
                     </td>

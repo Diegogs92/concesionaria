@@ -2,14 +2,14 @@ import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   Car, Users, ShoppingBag, UserCheck,
-  BarChart2, LogOut, Wallet, X, CalendarCheck, FileBarChart,
+  BarChart2, LogOut, Wallet, X, FileBarChart,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { getInitials } from '../../utils/helpers'
 import { RolBadge } from '../ui/Badge'
 
-const ALL_ROLES = ['administrador', 'empleado', 'desarrollador']
+const ALL_ROLES = ['administrador', 'vendedor', 'desarrollador']
 const ADMIN_ROLES = ['administrador', 'desarrollador']
 
 const NAV_ITEMS = [
@@ -17,7 +17,6 @@ const NAV_ITEMS = [
   { to: '/autos',       label: 'Autos',      icon: Car,           roles: ALL_ROLES },
   { to: '/clientes',    label: 'Clientes',   icon: Users,         roles: ALL_ROLES },
   { to: '/ventas',      label: 'Ventas',     icon: ShoppingBag,   roles: ALL_ROLES },
-  { to: '/test-drives', label: 'Test Drive', icon: CalendarCheck, roles: ALL_ROLES },
   { to: '/finanzas',    label: 'Finanzas',   icon: Wallet,        roles: ADMIN_ROLES },
   { to: '/reportes',    label: 'Reportes',   icon: FileBarChart,  roles: ADMIN_ROLES },
   { to: '/usuarios',    label: 'Usuarios',   icon: UserCheck,     roles: ['desarrollador'] },
@@ -97,13 +96,14 @@ export default function Sidebar({ isOpen, onClose }) {
       {/* Footer del sidebar */}
       <div className="sidebar-footer">
         <div className="sidebar-user">
-          <div className="sidebar-avatar">
-            {getInitials(currentUser?.nombre)}
-          </div>
+          {currentUser?.foto_url
+            ? <img src={currentUser.foto_url} alt={currentUser.nombre} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+            : <div className="sidebar-avatar">{getInitials(currentUser?.nombre)}</div>
+          }
           <div className="sidebar-user-info">
             <div className="sidebar-user-name">{currentUser?.nombre}</div>
             <div className="sidebar-user-role">
-              {currentUser?.rol === 'desarrollador' ? 'Desarrollador' : currentUser?.rol === 'empleado' ? 'Empleado' : 'Administrador'}
+              {currentUser?.rol === 'desarrollador' ? 'Desarrollador' : currentUser?.rol === 'vendedor' ? 'Vendedor' : 'Administrador'}
             </div>
           </div>
         </div>

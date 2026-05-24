@@ -25,16 +25,24 @@ export default function Login() {
       setError('Completá usuario y contraseña.')
       return
     }
-    setLoading(true)
-    // Simular latencia de red
-    await new Promise(r => setTimeout(r, 400))
-    const result = login(form.username, form.password)
-    setLoading(false)
 
-    if (result.ok) {
-      navigate('/')
-    } else {
+    setLoading(true)
+
+    try {
+      // Simular latencia de red
+      await new Promise(r => setTimeout(r, 400))
+      const result = await login(form.username, form.password)
+
+      if (result.ok) {
+        navigate('/')
+        return
+      }
+
       setError(result.error)
+    } catch (err) {
+      setError(err.message || 'No se pudo iniciar sesión.')
+    } finally {
+      setLoading(false)
     }
   }
 

@@ -11,7 +11,6 @@ import ClientesPage from './pages/ClientesPage'
 import VentasPage from './pages/VentasPage'
 import FinanzasPage from './pages/FinanzasPage'
 import UsuariosPage from './pages/UsuariosPage'
-import TestDrivesPage from './pages/TestDrivesPage'
 import ReportesPage from './pages/ReportesPage'
 
 // ─── Ruta protegida: redirige al login si no hay sesión ──────────────────────
@@ -113,17 +112,7 @@ export default function App() {
               />
 
 
-              {/* Test Drives — ambos roles */}
-              <Route
-                path="/test-drives"
-                element={
-                  <PrivateRoute>
-                    <TestDrivesPage />
-                  </PrivateRoute>
-                }
-              />
-
-              {/* Reportes — solo gerente */}
+{/* Reportes — solo gerente */}
               <Route
                 path="/reportes"
                 element={

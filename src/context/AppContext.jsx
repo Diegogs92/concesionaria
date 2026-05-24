@@ -7,7 +7,7 @@ import {
   egresosService,
   deudasService,
   deudaConceptosService,
-  testDrivesService,
+  deudaPagosService,
   historialService,
 } from '../services/database'
 
@@ -20,7 +20,7 @@ export function AppProvider({ children }) {
   const [egresos,         setEgresos]         = useState([])
   const [deudas,          setDeudas]          = useState([])
   const [deudaConceptos,  setDeudaConceptos]  = useState([])
-  const [testDrives,      setTestDrives]      = useState([])
+  const [deudaPagos,      setDeudaPagos]      = useState([])
   const [historialPrecios, setHistorialPrecios] = useState([])
   const [loading,         setLoading]         = useState(true)
   const [error,           setError]           = useState(null)
@@ -29,14 +29,14 @@ export function AppProvider({ children }) {
   useEffect(() => {
     async function cargarDatos() {
       try {
-        const [a, c, v, e, d, dc, td, hp] = await Promise.all([
+        const [a, c, v, e, d, dc, dp, hp] = await Promise.all([
           autosService.list(),
           clientesService.list(),
           ventasService.list(),
           egresosService.list(),
           deudasService.list(),
           deudaConceptosService.list(),
-          testDrivesService.list(),
+          deudaPagosService.list(),
           historialService.list(),
         ])
         setAutos(a)
@@ -45,7 +45,7 @@ export function AppProvider({ children }) {
         setEgresos(e)
         setDeudas(d)
         setDeudaConceptos(dc)
-        setTestDrives(td)
+        setDeudaPagos(dp)
         setHistorialPrecios(hp)
       } catch (err) {
         setError('Error al conectar con la base de datos.')
@@ -119,13 +119,15 @@ export function AppProvider({ children }) {
 
   // ===================== VENTAS =====================
 
-  async function addVenta(data, autoInfo, vendedorComision) {
+  async function addVenta(data, autoInfo) {
     const ganancia = data.precioFinal - autoInfo.precioCompra
-    const comisionVendedor = Math.round((ganancia * vendedorComision) / 100)
+    const { comisionVendedorMonto, pagosTerceros: pagosArray, utilidad: utilData, ...rest } = data
     const nueva = await ventasService.create({
-      ...data,
+      ...rest,
       ganancia,
-      comisionVendedor,
+      comisionVendedor: comisionVendedorMonto ?? 0,
+      pagosTerceros: JSON.stringify(pagosArray || []),
+      utilidad: utilData ?? ganancia,
       fecha: data.fecha || today(),
       createdAt: today(),
     })
@@ -189,6 +191,7 @@ export function AppProvider({ children }) {
     const deudaEliminada = deudas.find(d => d.id === id)
     await deudasService.delete(id)
     setDeudas(prev => prev.filter(d => d.id !== id))
+    setDeudaPagos(prev => prev.filter(p => p.deuda_id !== id))
 
     if (!deudaEliminada) return
 
@@ -205,38 +208,37 @@ export function AppProvider({ children }) {
     }
   }
 
-  // ===================== TEST DRIVES =====================
-
-  async function addTestDrive(data) {
-    const nuevo = await testDrivesService.create({ ...data, createdAt: today() })
-    setTestDrives(prev => [nuevo, ...prev])
-    return nuevo
+  async function addDeudaPago(deudaId, monto, fecha) {
+    const deuda = deudas.find(d => d.id === deudaId)
+    const nuevo = await deudaPagosService.create({ deuda_id: deudaId, monto, fecha: fecha || today(), createdAt: today() })
+    const pagosActualizados = [...deudaPagos.filter(p => p.deuda_id === deudaId), nuevo]
+    const totalPagado = pagosActualizados.reduce((sum, p) => sum + Number(p.monto), 0)
+    const nuevoEstado = totalPagado >= Number(deuda.monto) ? 'PAGADA' : 'PAGO_PARCIAL'
+    await deudasService.update(deudaId, { estado: nuevoEstado })
+    setDeudaPagos(prev => [...prev, nuevo])
+    setDeudas(prev => prev.map(d => d.id === deudaId ? { ...d, estado: nuevoEstado } : d))
   }
 
-  async function updateTestDrive(id, data) {
-    const actualizado = await testDrivesService.update(id, data)
-    setTestDrives(prev => prev.map(td => td.id === id ? { ...td, ...actualizado } : td))
+  async function revertirDeuda(id) {
+    await deudaPagosService.deleteByDeuda(id)
+    await deudasService.update(id, { estado: 'PENDIENTE' })
+    setDeudaPagos(prev => prev.filter(p => p.deuda_id !== id))
+    setDeudas(prev => prev.map(d => d.id === id ? { ...d, estado: 'PENDIENTE' } : d))
   }
 
-  async function deleteTestDrive(id) {
-    await testDrivesService.delete(id)
-    setTestDrives(prev => prev.filter(td => td.id !== id))
-  }
-
-  function getAutoById(id)    { return autos.find(a => a.id === id) }
+function getAutoById(id)    { return autos.find(a => a.id === id) }
   function getClienteById(id) { return clientes.find(c => c.id === id) }
 
   return (
     <AppContext.Provider
       value={{
-        autos, clientes, ventas, egresos, deudas, deudaConceptos, testDrives, historialPrecios,
+        autos, clientes, ventas, egresos, deudas, deudaConceptos, deudaPagos, historialPrecios,
         loading, error,
         addAuto, updateAuto, deleteAuto, marcarVendido,
         addCliente, updateCliente, deleteCliente,
         addVenta, deleteVenta,
         addEgreso, deleteEgreso,
-        addDeuda, updateDeuda, deleteDeuda,
-        addTestDrive, updateTestDrive, deleteTestDrive,
+        addDeuda, updateDeuda, deleteDeuda, addDeudaPago, revertirDeuda,
         getAutoById, getClienteById,
       }}
     >

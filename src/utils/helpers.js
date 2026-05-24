@@ -36,7 +36,7 @@ export function formatDate(dateStr) {
  * Devuelve la fecha de hoy en formato YYYY-MM-DD.
  */
 export function today() {
-  return new Date().toISOString().split('T')[0]
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' })
 }
 
 /**
@@ -113,7 +113,7 @@ export function getVentasPorMes(ventas, meses = 6) {
  * Calcula el ranking de vendedores por cantidad de ventas y comisiones.
  */
 export function getRankingVendedores(ventas, usuarios) {
-  const empleados = usuarios.filter(u => u.rol === 'empleado')
+  const empleados = usuarios.filter(u => u.rol === 'vendedor')
   return empleados
     .map(emp => {
       const ventasEmp = ventas.filter(v => v.vendedorId === emp.id)

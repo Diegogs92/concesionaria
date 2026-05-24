@@ -905,10 +905,251 @@ tbody td {
   font-size: 14px;
 }
 
+.deuda-total-usd {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
 .deuda-observaciones {
   max-width: 360px;
   color: var(--text-secondary);
   white-space: normal;
+}
+
+.deuda-monto-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.deuda-moneda-toggle {
+  display: flex;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.deuda-moneda-btn {
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 500;
+  background: transparent;
+  border: 0;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.deuda-moneda-btn + .deuda-moneda-btn {
+  border-left: 1px solid var(--border-color);
+}
+
+.deuda-moneda-btn.is-active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.deuda-conversion-preview {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.deuda-conversion-rate {
+  opacity: 0.65;
+}
+
+.deuda-monto-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.deuda-monto-primary {
+  font-weight: 700;
+}
+
+.deuda-monto-secondary {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.deuda-col-nativa {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.deuda-col-equiv {
+  font-weight: 400;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+.deuda-equiv-prefix {
+  font-size: 11px;
+  margin-right: 1px;
+  opacity: 0.7;
+}
+
+.deuda-expand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  color: var(--text-tertiary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, transform 0.2s;
+}
+
+.deuda-expand-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.deuda-expand-btn.is-open {
+  transform: rotate(180deg);
+  color: var(--accent);
+}
+
+.deuda-pagos-row td {
+  padding-top: 0 !important;
+  border-top: 0 !important;
+}
+
+.deuda-pagos-list {
+  margin: 0 0 10px 0;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.deuda-pago-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding: 3px 0;
+}
+
+.deuda-pago-monto {
+  font-weight: 600;
+}
+
+.deuda-pago-fecha {
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.deuda-pago-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border-color);
+  margin-top: 4px;
+  padding-top: 6px;
+}
+
+/* ── Pago modal ── */
+.pago-deuda-info {
+  padding: 14px 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pago-deuda-concepto {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.pago-deuda-montos {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.pago-restante strong {
+  color: var(--accent);
+}
+
+.pago-progreso-bar {
+  position: relative;
+  height: 6px;
+  background: var(--border-color);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.pago-progreso-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 0.15s ease;
+}
+
+.pago-progreso-proyectado {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.pago-progreso-fill.is-completo {
+  background: var(--success, #22c55e);
+}
+
+.pago-progreso-proyectado.is-completo {
+  background: color-mix(in srgb, var(--success, #22c55e) 40%, transparent);
+}
+
+.pago-progreso-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.pago-historial {
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pago-historial-titulo {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  margin-bottom: 2px;
+}
+
+.pago-historial-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.pago-historial-fecha {
+  color: var(--text-tertiary);
 }
 
 /* ===== GRID DE ESTADÍSTICAS ===== */

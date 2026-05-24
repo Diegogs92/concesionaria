@@ -7,7 +7,7 @@ import { generateVentasReportPDF } from '../utils/pdfGenerator'
 import * as XLSX from 'xlsx'
 
 export default function ReportesPage() {
-  const { autos, clientes, ventas, egresos, testDrives } = useApp()
+  const { autos, clientes, ventas, egresos } = useApp()
   const { usuarios } = useAuth()
 
   const [tipoReporte, setTipoReporte] = useState('ventas')
@@ -39,7 +39,7 @@ export default function ReportesPage() {
     } else if (tipoReporte === 'comisiones') {
       const ventasFiltraadas = filterByDateRange(ventas, 'fecha', fechaDesde, fechaHasta)
       data = usuarios
-        .filter(u => u.rol === 'empleado')
+        .filter(u => u.rol === 'vendedor')
         .map(u => {
           const ventasEmp = ventasFiltraadas.filter(v => v.vendedorId === u.id)
           return {
@@ -52,19 +52,10 @@ export default function ReportesPage() {
           }
         })
         .filter(d => d['Cantidad Ventas'] > 0)
-    } else if (tipoReporte === 'testdrives') {
-      data = filterByDateRange(testDrives, 'fecha', fechaDesde, fechaHasta).map(td => ({
-        'ID': td.id,
-        'Fecha/Hora': `${td.fecha} ${td.hora}`,
-        'Auto': `${autos.find(a => a.id === td.autoId)?.marca || '?'} ${autos.find(a => a.id === td.autoId)?.modelo || '?'}`,
-        'Cliente': clientes.find(c => c.id === td.clienteId)?.nombre || '?',
-        'Estado': td.estado,
-        'Notas': td.notas || '—',
-      }))
     }
 
     return data
-  }, [tipoReporte, fechaDesde, fechaHasta, ventas, egresos, testDrives, autos, clientes, usuarios])
+  }, [tipoReporte, fechaDesde, fechaHasta, ventas, egresos, autos, clientes, usuarios])
 
   function exportarPDF() {
     if (tipoReporte === 'ventas') {
@@ -94,7 +85,6 @@ export default function ReportesPage() {
     ventas: 'Reporte de Ventas',
     egresos: 'Reporte de Egresos',
     comisiones: 'Reporte de Comisiones',
-    testdrives: 'Reporte de Test Drives',
   }
 
   return (
@@ -117,7 +107,6 @@ export default function ReportesPage() {
                 <option value="ventas">Ventas</option>
                 <option value="egresos">Egresos</option>
                 <option value="comisiones">Comisiones</option>
-                <option value="testdrives">Test Drives</option>
               </select>
             </div>
 

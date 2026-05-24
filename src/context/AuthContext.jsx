@@ -18,13 +18,24 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function login(username, password) {
-    const user = await usuariosService.findByUsername(username.trim())
-    if (!user || user.password !== password) {
-      return { ok: false, error: 'Usuario o contraseña incorrectos.' }
+    try {
+      const user = await usuariosService.findByUsername(username.trim())
+
+      if (!user || user.password !== password) {
+        return { ok: false, error: 'Usuario o contraseña incorrectos.' }
+      }
+
+      setCurrentUser(user)
+      sessionStorage.setItem('currentUser', JSON.stringify(user))
+
+      return { ok: true }
+    } catch (error) {
+      console.error('Error al iniciar sesión:', error)
+      return {
+        ok: false,
+        error: error.message || 'No se pudo iniciar sesión.',
+      }
     }
-    setCurrentUser(user)
-    sessionStorage.setItem('currentUser', JSON.stringify(user))
-    return { ok: true }
   }
 
   function logout() {

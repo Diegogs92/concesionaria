@@ -206,35 +206,29 @@ export const deudaConceptosService = {
   },
 }
 
-// ─── TEST DRIVES ──────────────────────────────────────────────────────────────
+// ─── DEUDA PAGOS ─────────────────────────────────────────────────────────────
 
-export const testDrivesService = {
+export const deudaPagosService = {
   list: async () => {
     const { data, error } = await supabase
-      .from('test_drives')
+      .from('deuda_pagos')
       .select('*')
-      .order('createdAt', { ascending: false })
-    throwIfError(error, 'testDrives.list')
+      .order('createdAt', { ascending: true })
+    throwIfError(error, 'deudaPagos.list')
     return data || []
   },
 
   create: async (data) => {
     const { data: row, error } = await supabase
-      .from('test_drives').insert(data).select().single()
-    throwIfError(error, 'testDrives.create')
+      .from('deuda_pagos').insert(data).select().single()
+    throwIfError(error, 'deudaPagos.create')
     return row
   },
 
-  update: async (id, data) => {
-    const { data: row, error } = await supabase
-      .from('test_drives').update(data).eq('id', id).select().single()
-    throwIfError(error, 'testDrives.update')
-    return row
-  },
-
-  delete: async (id) => {
-    const { error } = await supabase.from('test_drives').delete().eq('id', id)
-    throwIfError(error, 'testDrives.delete')
+  deleteByDeuda: async (deudaId) => {
+    const { error } = await supabase
+      .from('deuda_pagos').delete().eq('deuda_id', deudaId)
+    throwIfError(error, 'deudaPagos.deleteByDeuda')
   },
 }
 
@@ -291,6 +285,17 @@ export const usuariosService = {
     const { data, error } = await supabase
       .from('usuarios').select('*').eq('username', username).maybeSingle()
     throwIfError(error, 'usuarios.findByUsername')
-    return data // null si no existe
+    return data
+  },
+
+  uploadFoto: async (userId, file) => {
+    const path = `${userId}`
+    const { error } = await supabase.storage.from('avatars').upload(path, file, {
+      upsert: true,
+      contentType: file.type,
+    })
+    throwIfError(error, 'usuarios.uploadFoto')
+    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+    return publicUrl
   },
 }
