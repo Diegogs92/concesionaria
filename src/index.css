@@ -59,6 +59,8 @@
   /* Transiciones */
   --transition: 0.2s ease;
   --transition-slow: 0.35s ease;
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ===== MODO OSCURO ===== */
@@ -1738,6 +1740,190 @@ tbody td {
 }
 
 .rotate-180 { transform: rotate(180deg); }
+
+/* ===== HOVER SYSTEM — solo dispositivos con puntero fino ===== */
+@media (hover: hover) {
+
+  /* ── Botones ── */
+  .btn {
+    transition: background 0.18s var(--ease-smooth),
+                color 0.18s var(--ease-smooth),
+                box-shadow 0.18s var(--ease-smooth),
+                transform 0.18s var(--ease-smooth),
+                border-color 0.18s var(--ease-smooth);
+  }
+
+  .btn:not(:disabled):hover {
+    transform: translateY(-1px);
+  }
+
+  .btn:not(:disabled):active {
+    transform: translateY(0px) scale(0.98);
+    transition-duration: 0.08s;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    box-shadow: 0 6px 20px rgba(229, 21, 21, 0.35);
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-danger:hover:not(:disabled) {
+    box-shadow: 0 4px 14px rgba(255, 59, 48, 0.3);
+  }
+
+  /* ── Cards ── */
+  .card-hover {
+    transition: box-shadow 0.22s var(--ease-smooth),
+                transform 0.22s var(--ease-smooth),
+                background 0.22s var(--ease-smooth);
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* ── Sidebar links ── */
+  .sidebar-link {
+    transition: background 0.18s var(--ease-smooth),
+                color 0.18s var(--ease-smooth),
+                transform 0.18s var(--ease-smooth);
+  }
+
+  .sidebar-link:hover {
+    transform: translateX(3px);
+  }
+
+  .sidebar-link svg {
+    transition: transform 0.22s var(--ease-bounce), opacity 0.18s ease;
+  }
+
+  .sidebar-link:hover svg {
+    transform: scale(1.15);
+  }
+
+  .sidebar-link.active svg {
+    transform: scale(1.05);
+  }
+
+  /* ── Filas de tabla ── */
+  tbody tr {
+    transition: background 0.15s var(--ease-smooth),
+                box-shadow 0.15s var(--ease-smooth);
+  }
+
+  tbody tr:hover {
+    background: var(--bg-input);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+
+  /* ── Inputs ── */
+  .form-input:not(:disabled):not(:focus):hover {
+    background: var(--bg-secondary);
+    border-color: var(--border-strong);
+  }
+
+  .form-input {
+    transition: border-color 0.18s var(--ease-smooth),
+                background 0.18s var(--ease-smooth),
+                box-shadow 0.18s var(--ease-smooth);
+  }
+
+  .form-input:focus {
+    box-shadow: 0 0 0 3px var(--accent-light);
+  }
+
+  /* ── Botón ghost / icono ── */
+  .btn-ghost:hover:not(:disabled) {
+    box-shadow: none;
+  }
+
+  /* ── Sidebar logo ── */
+  .sidebar-logo-icon {
+    transition: transform 0.22s var(--ease-bounce), box-shadow 0.22s var(--ease-smooth);
+  }
+
+  .sidebar-logo:hover .sidebar-logo-icon {
+    transform: scale(1.08) rotate(-3deg);
+    box-shadow: 0 4px 14px rgba(229, 21, 21, 0.3);
+  }
+}
+
+/* ===== MODAL INTERNALS ===== */
+
+/* Vendedor picker — paso 1 de nueva venta */
+.venta-vendedor-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.18s var(--ease-smooth),
+              background 0.18s var(--ease-smooth),
+              transform 0.18s var(--ease-smooth),
+              box-shadow 0.18s var(--ease-smooth);
+  font-family: inherit;
+}
+
+.venta-vendedor-btn.is-locked {
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .venta-vendedor-btn:not(.is-locked):not(.is-selected):hover {
+    border-color: var(--accent) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .venta-vendedor-btn.is-selected {
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+}
+
+/* Auto dropdown option */
+.venta-auto-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: inherit;
+  transition: background 0.15s var(--ease-smooth);
+}
+
+@media (hover: hover) {
+  .venta-auto-option:hover {
+    background: var(--bg-tertiary) !important;
+  }
+}
+
+/* Foto picker en modal de usuario */
+.usuario-foto-picker {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  cursor: pointer;
+  transition: transform 0.22s var(--ease-bounce), filter 0.18s ease;
+}
+
+@media (hover: hover) {
+  .usuario-foto-picker:hover {
+    transform: scale(1.06);
+    filter: brightness(0.92);
+  }
+}
 
 /* ===== RECHARTS CUSTOM ===== */
 .recharts-tooltip-wrapper .recharts-default-tooltip {

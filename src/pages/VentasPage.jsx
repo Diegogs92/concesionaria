@@ -269,13 +269,10 @@ function VentaForm({ onSubmit, onCancel }) {
               return (
                 <button key={u.id} type="button"
                   onClick={() => !locked && set('vendedorId', u.id)}
+                  className={`venta-vendedor-btn${selected ? ' is-selected' : ''}${locked ? ' is-locked' : ''}`}
                   style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-                    padding: '14px 10px', borderRadius: 12,
                     border: `2px solid ${selected ? 'var(--accent)' : 'var(--border-color)'}`,
                     background: selected ? 'color-mix(in srgb, var(--accent) 8%, transparent)' : 'var(--bg-tertiary)',
-                    cursor: locked ? 'default' : 'pointer',
-                    transition: 'all 0.15s',
                   }}>
                   <UserAvatar user={u} size={48} />
                   <div style={{ textAlign: 'center' }}>
@@ -325,9 +322,8 @@ function VentaForm({ onSubmit, onCancel }) {
                     <div style={{ padding: '10px 14px', color: 'var(--text-tertiary)', fontSize: 13 }}>Sin resultados para "{autoSearch}"</div>
                   ) : autosFiltrados.map((a, i) => (
                     <button key={a.id} type="button" onClick={() => handleAutoSelect(a)}
-                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '8px 14px', background: 'none', border: 'none', borderBottom: i < autosFiltrados.length - 1 ? '1px solid var(--divider)' : 'none', cursor: 'pointer', textAlign: 'left', color: 'var(--text-primary)', fontSize: 14 }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+                      className="venta-auto-option"
+                      style={{ borderBottom: i < autosFiltrados.length - 1 ? '1px solid var(--divider)' : 'none' }}>
                       {a.fotos?.[0] && <img src={a.fotos[0]} alt="" style={{ width: 44, height: 32, objectFit: 'cover', borderRadius: 5, marginRight: 10, flexShrink: 0 }} />}
                       <div style={{ flex: 1 }}>
                         <span style={{ fontWeight: 600 }}>{a.marca} {a.modelo}</span>

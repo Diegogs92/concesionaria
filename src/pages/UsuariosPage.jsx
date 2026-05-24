@@ -54,7 +54,7 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
-          <div style={{ position: 'relative', width: 80, height: 80, cursor: 'pointer' }} onClick={() => fileRef.current?.click()}>
+          <div className="usuario-foto-picker" onClick={() => fileRef.current?.click()}>
             {preview
               ? <img src={preview} alt="avatar" style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--border)' }} />
               : form.nombre.trim()
