@@ -338,12 +338,7 @@ function PagoModal({ deuda, pagos, onPagar, onClose }) {
   const progresoProyectado = Math.min(100, ((totalPagado + montoNum) / Number(deuda.monto)) * 100)
   const completo = progresoProyectado >= 99.999
 
-  function handleChange(e) {
-    setMonto(e.target.value)
-    setError('')
-  }
-
-  async function handleSubmit() {
+async function handleSubmit() {
     const n = esUSD ? parseFloat(monto.replace(',', '.')) : Number(parseCurrencyInput(monto))
     if (!n || n <= 0) { setError('Ingresá un monto válido'); return }
     if (n > restante + 0.001) { setError(`El máximo es ${formatMontoPago(restante, deuda)}`); return }
@@ -391,8 +386,11 @@ function PagoModal({ deuda, pagos, onPagar, onClose }) {
             type="text"
             inputMode="numeric"
             className="form-input"
-            value={monto}
-            onChange={handleChange}
+            value={esUSD ? monto : formatCurrencyInput(monto)}
+            onChange={e => {
+              setMonto(esUSD ? e.target.value : e.target.value.replace(/\D/g, ''))
+              setError('')
+            }}
             placeholder={esUSD ? `U$D ${usdFormatter.format(restante)}` : arsConversionFormatter.format(restante)}
             autoFocus
           />
@@ -608,6 +606,7 @@ export default function FinanzasPage() {
                   <th>Observaciones</th>
                   <th>Pesos</th>
                   <th>Dólares</th>
+                  <th className="hide-mobile" style={{ minWidth: 130 }}>Progreso</th>
                   <th>Estado</th>
                   <th style={{ width: 100 }}>Acciones</th>
                 </tr>
@@ -648,6 +647,30 @@ export default function FinanzasPage() {
                           {restanteUSD != null
                             ? <>{deuda.moneda !== 'USD' && <span className="deuda-equiv-prefix">≈ </span>}{`U$D ${usdExactFormatter.format(restanteUSD)}`}</>
                             : '—'}
+                        </td>
+                        <td className="hide-mobile">
+                          {(() => {
+                            const pct = Number(deuda.monto) > 0
+                              ? Math.min(100, Math.round((totalPagado / Number(deuda.monto)) * 100))
+                              : 0
+                            const isComplete = pct >= 100
+                            return (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                <div style={{ height: 6, borderRadius: 99, background: 'var(--bg-tertiary)', overflow: 'hidden' }}>
+                                  <div style={{
+                                    height: '100%',
+                                    width: `${pct}%`,
+                                    borderRadius: 99,
+                                    background: isComplete ? 'var(--success)' : 'var(--accent)',
+                                    transition: 'width 0.4s var(--ease-smooth)',
+                                  }} />
+                                </div>
+                                <span style={{ fontSize: 11, color: isComplete ? 'var(--success)' : 'var(--text-tertiary)', fontWeight: 600 }}>
+                                  {pct}%
+                                </span>
+                              </div>
+                            )
+                          })()}
                         </td>
                         <td>
                           <EstadoBadge estado={deuda.estado} onToggle={() => handleEstadoBadge(deuda)} />
