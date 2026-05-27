@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf'
-import 'jspdf-autotable'
+import autoTable from 'jspdf-autotable'
 import { formatCurrency, formatDate } from './helpers'
 
 /**
@@ -67,7 +67,7 @@ export function generateFacturaPDF(venta, auto, cliente, vendedor) {
 
   // ─── Tabla de precios ───
   yPos += 8
-  doc.autoTable({
+  autoTable(doc, {
     startY: yPos,
     margin: { left: margin, right: margin },
     head: [['Concepto', 'Importe']],
@@ -121,7 +121,7 @@ export function generateVentasReportPDF(ventas, autos, clientes, usuarios) {
     ]
   })
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: margin + 28,
     margin: margin,
     head: [['ID', 'Vehículo', 'Cliente', 'Vendedor', 'Precio Final', 'Ganancia', 'Fecha']],
