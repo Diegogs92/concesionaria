@@ -38,8 +38,6 @@ export function generateFacturaPDF(venta, auto, cliente, vendedor) {
   doc.text(`DNI: ${cliente.dni}`, margin, yPos)
   yPos += 6
   doc.text(`Teléfono: ${cliente.telefono}`, margin, yPos)
-  yPos += 6
-  doc.text(`Email: ${cliente.email || '—'}`, margin, yPos)
 
   // ─── Datos del vendedor ───
   yPos += 12

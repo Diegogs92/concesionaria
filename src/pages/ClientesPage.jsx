@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { Plus, Pencil, Trash2, Users, Mail } from 'lucide-react'
+import { Plus, Pencil, Trash2, Users } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import { formatDate } from '../utils/helpers'
@@ -7,7 +7,7 @@ import Modal from '../components/ui/Modal'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import SearchBar from '../components/ui/SearchBar'
 
-const EMPTY_FORM = { nombre: '', apellido: '', telefono: '', email: '', dni: '' }
+const EMPTY_FORM = { nombre: '', apellido: '', telefono: '', dni: '' }
 
 function WaIcon() {
   return (
@@ -38,7 +38,6 @@ function ClienteForm({ initial = EMPTY_FORM, onSubmit, onCancel }) {
     if (!form.apellido.trim())  e.apellido  = 'Requerido'
     if (!form.telefono.trim())  e.telefono  = 'Requerido'
     if (!form.dni.trim())       e.dni       = 'Requerido'
-    if (form.email && !/\S+@\S+\.\S+/.test(form.email)) e.email = 'Email inválido'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -81,11 +80,6 @@ function ClienteForm({ initial = EMPTY_FORM, onSubmit, onCancel }) {
           {errors.telefono && <span className="form-error">{errors.telefono}</span>}
         </div>
 
-        <div className="form-group form-full">
-          <label className="form-label">Email</label>
-          <input type="email" className="form-input" value={form.email} onChange={e => set('email', e.target.value)} placeholder="ana@email.com" />
-          {errors.email && <span className="form-error">{errors.email}</span>}
-        </div>
       </div>
 
       <div className="modal-footer" style={{ paddingInline: 0, paddingBottom: 0, marginTop: 16 }}>
@@ -112,7 +106,6 @@ export default function ClientesPage() {
       || (c.nombre || '').toLowerCase().includes(q)
       || (c.apellido || '').toLowerCase().includes(q)
       || c.dni.toLowerCase().includes(q)
-      || (c.email || '').toLowerCase().includes(q)
       || c.telefono.includes(q)
     )
   }, [clientes, search])
@@ -165,7 +158,6 @@ export default function ClientesPage() {
                   <th>Cliente</th>
                   <th className="hide-mobile">DNI</th>
                   <th>Teléfono</th>
-                  <th className="hide-mobile">Email</th>
                   <th>Compras</th>
                   <th className="hide-mobile">Desde</th>
                   <th style={{ width: 100 }}>Acciones</th>
@@ -179,7 +171,6 @@ export default function ClientesPage() {
                     </td>
                     <td className="hide-mobile">{c.dni}</td>
                     <td>{c.telefono}</td>
-                    <td className="hide-mobile" style={{ color: 'var(--text-secondary)' }}>{c.email || '—'}</td>
                     <td>
                       <span style={{
                         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -204,16 +195,6 @@ export default function ClientesPage() {
                         >
                           <WaIcon />
                         </a>
-                        {c.email && (
-                          <a
-                            href={`mailto:${c.email}`}
-                            className="btn btn-ghost btn-icon btn-sm"
-                            style={{ color: '#007aff' }}
-                            title="Enviar email"
-                          >
-                            <Mail size={15} />
-                          </a>
-                        )}
                         <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(c)} title="Editar">
                           <Pencil size={15} />
                         </button>

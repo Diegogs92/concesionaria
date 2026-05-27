@@ -225,6 +225,19 @@ export const deudaPagosService = {
     return row
   },
 
+  update: async (id, data) => {
+    const { data: row, error } = await supabase
+      .from('deuda_pagos').update(data).eq('id', id).select().single()
+    throwIfError(error, 'deudaPagos.update')
+    return row
+  },
+
+  deleteOne: async (id) => {
+    const { error } = await supabase
+      .from('deuda_pagos').delete().eq('id', id)
+    throwIfError(error, 'deudaPagos.deleteOne')
+  },
+
   deleteByDeuda: async (deudaId) => {
     const { error } = await supabase
       .from('deuda_pagos').delete().eq('deuda_id', deudaId)

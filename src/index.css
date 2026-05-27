@@ -881,16 +881,15 @@ tbody td {
 }
 
 .deuda-total-summary {
-  min-height: 40px;
-  padding: 6px 14px;
+  height: 40px;
+  padding: 0 14px;
   border: 1px solid var(--divider);
   border-radius: var(--radius-md);
   background: var(--bg-input);
   display: inline-flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 1px;
-  line-height: 1.15;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
   white-space: nowrap;
 }
 
@@ -905,12 +904,15 @@ tbody td {
 .deuda-total-summary strong {
   color: var(--text-primary);
   font-size: 14px;
+  font-weight: 700;
 }
 
 .deuda-total-usd {
   font-size: 12px;
   color: var(--text-tertiary);
   font-weight: 500;
+  padding-left: 4px;
+  border-left: 1px solid var(--divider);
 }
 
 .deuda-observaciones {
@@ -1001,24 +1003,27 @@ tbody td {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: 0;
-  background: transparent;
-  color: var(--text-tertiary);
-  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: color 0.15s, background 0.15s, transform 0.2s;
+  transition: color 0.15s, background 0.15s, border-color 0.15s, transform 0.22s var(--ease-bounce);
 }
 
 .deuda-expand-btn:hover {
   background: var(--bg-tertiary);
+  border-color: var(--border-strong);
   color: var(--text-primary);
 }
 
 .deuda-expand-btn.is-open {
   transform: rotate(180deg);
   color: var(--accent);
+  border-color: var(--accent-medium);
+  background: var(--accent-light);
 }
 
 .deuda-pagos-row td {
@@ -1038,14 +1043,15 @@ tbody td {
 
 .deuda-pago-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 20px;
   font-size: 13px;
   padding: 3px 0;
 }
 
 .deuda-pago-monto {
   font-weight: 600;
+  min-width: 120px;
 }
 
 .deuda-pago-fecha {

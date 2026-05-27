@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom'
 
 const ROUTE_TITLES = {
   '/':          'Dashboard',
-  '/autos':     'Autos',
+  '/autos':     'Vehículos',
   '/clientes':  'Clientes',
   '/ventas':    'Ventas',
   '/finanzas':  'Finanzas',

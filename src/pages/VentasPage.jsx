@@ -49,7 +49,7 @@ function VentaForm({ onSubmit, onCancel }) {
   // Nuevo cliente inline
   const [showNC,   setShowNC]   = useState(false)
   const [savingNC, setSavingNC] = useState(false)
-  const [nc, setNC] = useState({ nombre: '', apellido: '', dni: '', telefono: '', email: '' })
+  const [nc, setNC] = useState({ nombre: '', apellido: '', dni: '', telefono: '' })
 
   // Autos disponibles ordenados por marca
   const autosDisponibles = useMemo(() =>
@@ -91,6 +91,7 @@ function VentaForm({ onSubmit, onCancel }) {
   const [comisionPct,   setComisionPct]     = useState('')
   const [comisionMonto, setComisionMonto]   = useState('')
   const [pagosATerceros, setPagosATerceros] = useState([])
+  const [autoUsado, setAutoUsado] = useState({ activo: false, marca: '', modelo: '', año: '', km: '', valor: '' })
 
   // Cerrar auto-dropdown al click fuera
   useEffect(() => {
@@ -127,12 +128,11 @@ function VentaForm({ onSubmit, onCancel }) {
       apellido: nc.apellido.trim().toUpperCase(),
       dni:      nc.dni.trim().toUpperCase(),
       telefono: nc.telefono.trim(),
-      email:    nc.email.trim(),
     })
     setSavingNC(false)
     if (nuevo?.id) set('clienteId', nuevo.id)
     setShowNC(false)
-    setNC({ nombre: '', apellido: '', dni: '', telefono: '', email: '' })
+    setNC({ nombre: '', apellido: '', dni: '', telefono: '' })
   }
 
   function addPagoTercero() {
@@ -164,16 +164,16 @@ function VentaForm({ onSubmit, onCancel }) {
   function nextStep() {
     const e = {}
     if (step === 1 && !form.vendedorId)  e.vendedorId  = 'Seleccioná un vendedor'
-    if (step === 2) {
-      if (!form.autoId)    e.autoId    = 'Seleccioná un vehículo'
-      if (!form.clienteId) e.clienteId = 'Seleccioná un cliente'
-      if (!form.fecha)     e.fecha     = 'Ingresá la fecha'
+    if (step === 2 && !form.clienteId)   e.clienteId   = 'Seleccioná un cliente'
+    if (step === 3) {
+      if (!form.autoId) e.autoId = 'Seleccioná un vehículo'
+      if (!form.fecha)  e.fecha  = 'Ingresá la fecha'
     }
-    if (step === 3 && !form.precioFinal) e.precioFinal = 'Ingresá el precio de venta'
+    if (step === 4 && !form.precioFinal) e.precioFinal = 'Ingresá el precio de venta'
     if (Object.keys(e).length > 0) { setErrors(e); return }
     setErrors({})
-    // Pre-fill comisión al entrar al paso 4
-    if (step === 3 && comisionMonto === '') {
+    // Pre-fill comisión al entrar al paso 5
+    if (step === 4 && comisionMonto === '') {
       const pct = vendedorSeleccionado?.comision ?? 0
       setComisionPct(String(pct))
       setComisionMonto(String(comisionCalculada))
@@ -197,11 +197,12 @@ function VentaForm({ onSubmit, onCancel }) {
       comisionVendedorMonto: Number(comisionMonto) || 0,
       pagosTerceros: pagosLimpios,
       utilidad,
+      autoUsado: autoUsado.activo ? { ...autoUsado, valor: Number(autoUsado.valor) || 0 } : null,
     }, autoSeleccionado)
   }
 
   // Labels de pasos
-  const STEPS = ['Vendedor', 'Vehículo', 'Precio', 'Comisión', 'Terceros', 'Utilidad']
+  const STEPS = ['Vendedor', 'Cliente', 'Vehículo', 'Precio', 'Comisión', 'Terceros', 'Utilidad']
 
   // ── Indicador de pasos ────────────────────────────────────────────────────────
   const stepIndicator = (
@@ -214,21 +215,21 @@ function VentaForm({ onSubmit, onCancel }) {
           <React.Fragment key={n}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flex: 1 }}>
               <div style={{
-                width: 28, height: 28, borderRadius: '50%',
+                width: 32, height: 32, borderRadius: '50%',
                 background: done ? 'var(--success)' : active ? 'var(--accent)' : 'var(--bg-tertiary)',
                 color: done || active ? '#fff' : 'var(--text-tertiary)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 11, fontWeight: 700, transition: 'all 0.2s',
+                fontSize: 12, fontWeight: 700, transition: 'all 0.2s',
                 boxShadow: active ? '0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent)' : 'none',
               }}>
                 {done ? '✓' : n}
               </div>
-              <span style={{ fontSize: 10, color: active ? 'var(--accent)' : 'var(--text-tertiary)', fontWeight: active ? 600 : 400, whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 11, color: active ? 'var(--accent)' : 'var(--text-tertiary)', fontWeight: active ? 600 : 400, whiteSpace: 'nowrap' }}>
                 {label}
               </span>
             </div>
             {i < STEPS.length - 1 && (
-              <div style={{ flex: 1, height: 2, background: done ? 'var(--success)' : 'var(--divider)', marginTop: 13, transition: 'background 0.3s', maxWidth: 32 }} />
+              <div style={{ flex: 1, height: 2, background: done ? 'var(--success)' : 'var(--divider)', marginTop: 15, transition: 'background 0.3s', maxWidth: 32 }} />
             )}
           </React.Fragment>
         )
@@ -243,7 +244,7 @@ function VentaForm({ onSubmit, onCancel }) {
         ? <button type="button" className="btn btn-secondary" onClick={prevStep}>← Atrás</button>
         : <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancelar</button>
       }
-      {step < 6
+      {step < 7
         ? <button type="button" className="btn btn-primary" onClick={nextStep}>Continuar →</button>
         : <button type="button" className="btn btn-primary" onClick={handleSubmit}>Registrar venta</button>
       }
@@ -289,9 +290,53 @@ function VentaForm({ onSubmit, onCancel }) {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          PASO 2 — Vehículo + Cliente + Fecha
+          PASO 2 — Cliente
       ════════════════════════════════════════════════════════════════════════ */}
       {step === 2 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 14, margin: 0 }}>
+            ¿A quién le vendemos este vehículo?
+          </p>
+          {!showNC ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <select className={`form-input form-select${errors.clienteId ? ' input-error' : ''}`} value={form.clienteId} onChange={e => set('clienteId', e.target.value)}>
+                <option value="">Seleccionar cliente existente...</option>
+                {clientesOrdenados.map(c => <option key={c.id} value={c.id}>{c.apellido}, {c.nombre} — {c.dni}</option>)}
+              </select>
+              <button type="button" className="btn btn-secondary" onClick={() => setShowNC(true)}
+                style={{ alignSelf: 'stretch', gap: 8, justifyContent: 'center', border: '2px dashed var(--accent)', color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 6%, transparent)' }}>
+                <UserPlus size={16} /> Nuevo cliente
+              </button>
+            </div>
+          ) : (
+            <div style={{ background: 'var(--bg-tertiary)', borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', gap: 8, border: '1px solid var(--accent)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>Nuevo cliente</span>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setShowNC(false)} style={{ padding: '2px 8px', gap: 4, fontSize: 12 }}>
+                  <X size={12} /> Cancelar
+                </button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <input className="form-input" placeholder="Nombre *" style={{ fontSize: 13, textTransform: 'uppercase' }} value={nc.nombre} onChange={e => setNC(p => ({ ...p, nombre: e.target.value }))} />
+                <input className="form-input" placeholder="Apellido *" style={{ fontSize: 13, textTransform: 'uppercase' }} value={nc.apellido} onChange={e => setNC(p => ({ ...p, apellido: e.target.value }))} />
+                <input className="form-input" placeholder="DNI *" style={{ fontSize: 13 }} value={nc.dni} onChange={e => setNC(p => ({ ...p, dni: e.target.value }))} />
+                <input className="form-input" type="tel" placeholder="Teléfono *" style={{ fontSize: 13 }} value={nc.telefono} onChange={e => setNC(p => ({ ...p, telefono: e.target.value }))} />
+              </div>
+              <button type="button" className="btn btn-primary btn-sm" onClick={handleGuardarCliente}
+                disabled={savingNC || !nc.nombre || !nc.apellido || !nc.dni || !nc.telefono}
+                style={{ alignSelf: 'flex-end' }}>
+                {savingNC ? 'Guardando...' : 'Guardar cliente'}
+              </button>
+            </div>
+          )}
+          {errors.clienteId && <span className="form-error">{errors.clienteId}</span>}
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          PASO 3 — Vehículo + Fecha
+      ════════════════════════════════════════════════════════════════════════ */}
+      {step === 3 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
           {/* Buscador de autos */}
@@ -317,7 +362,7 @@ function VentaForm({ onSubmit, onCancel }) {
                 )}
               </div>
               {autoOpen && (autosFiltrados.length > 0 || autoSearch.trim()) && (
-                <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 60, background: 'var(--bg-modal)', border: '1px solid var(--border-color)', borderRadius: 10, maxHeight: 200, overflowY: 'auto', boxShadow: 'var(--shadow-lg)' }}>
+                <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 60, background: 'var(--bg-modal)', border: '1px solid var(--border-color)', borderRadius: 10, maxHeight: 180, overflowY: 'auto', boxShadow: 'var(--shadow-lg)' }}>
                   {autosFiltrados.length === 0 ? (
                     <div style={{ padding: '10px 14px', color: 'var(--text-tertiary)', fontSize: 13 }}>Sin resultados para "{autoSearch}"</div>
                   ) : autosFiltrados.map((a, i) => (
@@ -343,8 +388,8 @@ function VentaForm({ onSubmit, onCancel }) {
           {autoSeleccionado && (
             <div style={{ display: 'flex', gap: 12, padding: 12, background: 'var(--bg-tertiary)', borderRadius: 10, border: '1px solid var(--border-color)' }}>
               {autoSeleccionado.fotos?.[0]
-                ? <img src={autoSeleccionado.fotos[0]} alt="" style={{ width: 88, height: 64, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} />
-                : <div style={{ width: 88, height: 64, background: 'var(--bg-secondary)', borderRadius: 8, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)', fontSize: 11 }}>Sin foto</div>
+                ? <img src={autoSeleccionado.fotos[0]} alt="" style={{ width: 80, height: 56, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} />
+                : <div style={{ width: 80, height: 56, background: 'var(--bg-secondary)', borderRadius: 8, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)', fontSize: 11 }}>Sin foto</div>
               }
               <div style={{ display: 'flex', flexDirection: 'column', gap: 3, justifyContent: 'center' }}>
                 <span style={{ fontWeight: 700, fontSize: 14 }}>{autoSeleccionado.marca} {autoSeleccionado.modelo}</span>
@@ -356,38 +401,6 @@ function VentaForm({ onSubmit, onCancel }) {
             </div>
           )}
 
-          {/* Cliente */}
-          <div className="form-group">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-              <label className="form-label" style={{ margin: 0 }}>Cliente *</label>
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setShowNC(v => !v)} style={{ fontSize: 11, padding: '2px 8px', gap: 4 }}>
-                {showNC ? <><X size={11} /> Cancelar</> : <><UserPlus size={11} /> Nuevo</>}
-              </button>
-            </div>
-            {!showNC ? (
-              <select className={`form-input form-select${errors.clienteId ? ' input-error' : ''}`} value={form.clienteId} onChange={e => set('clienteId', e.target.value)}>
-                <option value="">Seleccionar cliente...</option>
-                {clientesOrdenados.map(c => <option key={c.id} value={c.id}>{c.apellido}, {c.nombre} — {c.dni}</option>)}
-              </select>
-            ) : (
-              <div style={{ background: 'var(--bg-tertiary)', borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  <input className="form-input" placeholder="Nombre *" style={{ fontSize: 13, textTransform: 'uppercase' }} value={nc.nombre} onChange={e => setNC(p => ({ ...p, nombre: e.target.value }))} />
-                  <input className="form-input" placeholder="Apellido *" style={{ fontSize: 13, textTransform: 'uppercase' }} value={nc.apellido} onChange={e => setNC(p => ({ ...p, apellido: e.target.value }))} />
-                  <input className="form-input" placeholder="DNI *" style={{ fontSize: 13 }} value={nc.dni} onChange={e => setNC(p => ({ ...p, dni: e.target.value }))} />
-                  <input className="form-input" type="tel" placeholder="Teléfono *" style={{ fontSize: 13 }} value={nc.telefono} onChange={e => setNC(p => ({ ...p, telefono: e.target.value }))} />
-                </div>
-                <input className="form-input" type="email" placeholder="Email (opcional)" style={{ fontSize: 13 }} value={nc.email} onChange={e => setNC(p => ({ ...p, email: e.target.value }))} />
-                <button type="button" className="btn btn-primary btn-sm" onClick={handleGuardarCliente}
-                  disabled={savingNC || !nc.nombre || !nc.apellido || !nc.dni || !nc.telefono}
-                  style={{ alignSelf: 'flex-end' }}>
-                  {savingNC ? 'Guardando...' : 'Guardar cliente'}
-                </button>
-              </div>
-            )}
-            {errors.clienteId && <span className="form-error">{errors.clienteId}</span>}
-          </div>
-
           {/* Fecha */}
           <div className="form-group">
             <label className="form-label">Fecha *</label>
@@ -398,10 +411,10 @@ function VentaForm({ onSubmit, onCancel }) {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          PASO 3 — Precio de venta + tipo de pago
+          PASO 4 — Precio + forma de pago
       ════════════════════════════════════════════════════════════════════════ */}
-      {step === 3 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {step === 4 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div className="form-grid">
             <div className="form-group">
               <label className="form-label">Precio de venta *</label>
@@ -413,7 +426,7 @@ function VentaForm({ onSubmit, onCancel }) {
               {errors.precioFinal && <span className="form-error">{errors.precioFinal}</span>}
             </div>
             <div className="form-group">
-              <label className="form-label">Tipo de pago *</label>
+              <label className="form-label">Forma de pago *</label>
               <select className="form-input form-select" value={form.tipoPago} onChange={e => set('tipoPago', e.target.value)}>
                 <option value="contado">Contado</option>
                 <option value="financiado">Financiado</option>
@@ -422,49 +435,78 @@ function VentaForm({ onSubmit, onCancel }) {
           </div>
 
           {form.tipoPago === 'financiado' && (
-            <>
-              <div className="form-group">
-                <label className="form-label">Cantidad de cuotas</label>
-                <select className="form-input form-select" value={form.cuotas} onChange={e => set('cuotas', e.target.value)}>
-                  {[6, 12, 18, 24, 36, 48, 60].map(n => <option key={n} value={n}>{n} cuotas</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Interés total (%)</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <input type="range" min="0" max="200" step="5" value={form.interes} onChange={e => set('interes', e.target.value)} style={{ flex: 1, accentColor: 'var(--accent)' }} />
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <input type="number" className="form-input" min="0" max="999" step="1" value={form.interes} onChange={e => set('interes', e.target.value)} style={{ width: 70, textAlign: 'right' }} />
-                    <span style={{ color: 'var(--text-secondary)', fontSize: 14, fontWeight: 500 }}>%</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">Cuotas</label>
+                  <select className="form-input form-select" value={form.cuotas} onChange={e => set('cuotas', e.target.value)}>
+                    {[6, 12, 18, 24, 36, 48, 60].map(n => <option key={n} value={n}>{n} cuotas</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Interés total (%)</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <input type="range" min="0" max="200" step="5" value={form.interes} onChange={e => set('interes', e.target.value)} style={{ flex: 1, accentColor: 'var(--accent)' }} />
+                    <input type="number" className="form-input" min="0" max="999" step="1" value={form.interes} onChange={e => set('interes', e.target.value)} style={{ width: 62, textAlign: 'right', flexShrink: 0 }} />
+                    <span style={{ color: 'var(--text-secondary)', fontSize: 13, flexShrink: 0 }}>%</span>
                   </div>
                 </div>
               </div>
-            </>
-          )}
-
-          {form.tipoPago === 'financiado' && precioBase > 0 && interesPct > 0 && (
-            <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12,
-              padding: '12px 16px', borderRadius: 10,
-              background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)',
-            }}>
-              <div>
-                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 2 }}>Total financiado</div>
-                <div style={{ fontSize: 14, fontWeight: 700 }}>{formatCurrency(totalConInteres)}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 2 }}>Cuota ({form.cuotas}m)</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--info)' }}>{formatCurrency(valorCuota)}</div>
-              </div>
+              {precioBase > 0 && interesPct > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '10px 14px', borderRadius: 10, background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)' }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 2 }}>Total financiado</div>
+                    <div style={{ fontSize: 14, fontWeight: 700 }}>{formatCurrency(totalConInteres)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 2 }}>Cuota ({form.cuotas}m)</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--info)' }}>{formatCurrency(valorCuota)}</div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
+
+          {/* Auto usado como parte de pago */}
+          <div style={{ borderTop: '1px solid var(--divider)', paddingTop: 12 }}>
+            <div
+              onClick={() => setAutoUsado(p => ({ ...p, activo: !p.activo }))}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
+              <div style={{
+                width: 40, height: 22, borderRadius: 11, flexShrink: 0,
+                background: autoUsado.activo ? 'var(--accent)' : 'var(--bg-input)',
+                border: '1px solid var(--border-color)', position: 'relative', transition: 'background 0.2s',
+              }}>
+                <div style={{
+                  position: 'absolute', top: 2, left: autoUsado.activo ? 18 : 2,
+                  width: 16, height: 16, borderRadius: '50%', background: '#fff',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.25)', transition: 'left 0.2s',
+                }} />
+              </div>
+              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>El cliente entrega un vehículo como parte de pago</span>
+            </div>
+            {autoUsado.activo && (
+              <div style={{ marginTop: 10, background: 'var(--bg-tertiary)', borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', gap: 8, border: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <input className="form-input" placeholder="Marca" style={{ fontSize: 13 }} value={autoUsado.marca} onChange={e => setAutoUsado(p => ({ ...p, marca: e.target.value }))} />
+                  <input className="form-input" placeholder="Modelo" style={{ fontSize: 13 }} value={autoUsado.modelo} onChange={e => setAutoUsado(p => ({ ...p, modelo: e.target.value }))} />
+                  <input className="form-input" placeholder="Año" style={{ fontSize: 13 }} value={autoUsado.año} onChange={e => setAutoUsado(p => ({ ...p, año: e.target.value }))} />
+                  <input className="form-input" placeholder="Kilometraje" style={{ fontSize: 13 }} value={autoUsado.km} onChange={e => setAutoUsado(p => ({ ...p, km: e.target.value }))} />
+                </div>
+                <input type="text" inputMode="numeric" className="form-input" placeholder="Valor acordado $ 0"
+                  style={{ fontSize: 13 }}
+                  value={autoUsado.valor !== '' ? formatCurrency(Number(autoUsado.valor)) : ''}
+                  onChange={e => setAutoUsado(p => ({ ...p, valor: e.target.value.replace(/\D/g, '') }))} />
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          PASO 4 — Comisión del vendedor
+          PASO 5 — Comisión del vendedor
       ════════════════════════════════════════════════════════════════════════ */}
-      {step === 4 && (
+      {step === 5 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {vendedorSeleccionado && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'var(--bg-tertiary)', borderRadius: 10 }}>
@@ -525,9 +567,9 @@ function VentaForm({ onSubmit, onCancel }) {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          PASO 5 — Pagos a terceros
+          PASO 6 — Pagos a terceros
       ════════════════════════════════════════════════════════════════════════ */}
-      {step === 5 && (
+      {step === 6 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <p style={{ color: 'var(--text-secondary)', fontSize: 14, margin: 0 }}>
             Agregá los pagos a terceros involucrados en esta venta (opcional).
@@ -571,9 +613,9 @@ function VentaForm({ onSubmit, onCancel }) {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          PASO 6 — Utilidad ICY (resumen final)
+          PASO 7 — Utilidad ICY (resumen final)
       ════════════════════════════════════════════════════════════════════════ */}
-      {step === 6 && (
+      {step === 7 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* Recap vehículo + vendedor */}
@@ -598,9 +640,27 @@ function VentaForm({ onSubmit, onCancel }) {
             </div>
           </div>
 
+          {/* Auto usado entregado */}
+          {autoUsado.activo && (
+            <div style={{ padding: '10px 14px', background: 'var(--bg-tertiary)', borderRadius: 10, border: '1px solid var(--border-color)' }}>
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Auto entregado como parte de pago</div>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>{[autoUsado.marca, autoUsado.modelo, autoUsado.año].filter(Boolean).join(' ')}</div>
+              {autoUsado.km && <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{Number(autoUsado.km).toLocaleString('es-AR')} km</div>}
+              {autoUsado.valor > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Valor acordado</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--info)' }}>{formatCurrency(Number(autoUsado.valor))}</span>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Desglose financiero */}
           <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border-color)' }}>
             <SummaryRow label="Precio de venta" value={formatCurrency(precioBase)} />
+            {autoUsado.activo && autoUsado.valor > 0 && (
+              <SummaryRow label={`Auto usado (${[autoUsado.marca, autoUsado.modelo].filter(Boolean).join(' ')})`} value={`− ${formatCurrency(Number(autoUsado.valor))}`} valueColor="var(--info)" />
+            )}
             <SummaryRow
               label={`Comisión ${vendedorSeleccionado?.nombre ?? ''}`}
               value={`− ${formatCurrency(Number(comisionMonto) || 0)}`}
@@ -769,9 +829,18 @@ export default function VentasPage() {
 
       <Modal open={modalOpen} onClose={() => setModal(false)} title="Registrar venta" size="lg">
         <VentaForm
-          onSubmit={(data, auto) => {
-            addVenta(data, auto)
+          onSubmit={async (data, auto) => {
+            await addVenta(data, auto)
             setModal(false)
+            const cliente = getClienteById(data.clienteId)
+            if (cliente?.telefono) {
+              const nombre = `${cliente.nombre} ${cliente.apellido}`.trim()
+              const vehiculo = `${auto.marca} ${auto.modelo}`
+              const msg = `Gracias ${nombre} por haber elegido ICY Automotores, para la compra de su ${vehiculo}. Que lo disfrutes! Cualquier consulta estamos a tu disposición`
+              const clean = cliente.telefono.replace(/[\s\-().+]/g, '')
+              const num = clean.startsWith('54') ? clean : `54${clean}`
+              window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, '_blank')
+            }
           }}
           onCancel={() => setModal(false)}
         />

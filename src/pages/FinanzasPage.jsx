@@ -444,7 +444,8 @@ async function handleSubmit() {
 }
 
 export default function FinanzasPage() {
-  const { deudas, deudaConceptos, deudaPagos, addDeuda, updateDeuda, deleteDeuda, addDeudaPago, revertirDeuda } = useApp()
+  const { deudas, deudaConceptos, deudaPagos, addDeuda, updateDeuda, deleteDeuda, addDeudaPago, updateDeudaPago, deleteDeudaPago, revertirDeuda } = useApp()
+  const [dolarBlue, setDolarBlue] = useState(null)
   const [tipoFiltro, setTipoFiltro] = useState('todas')
   const [conceptoFiltro, setConceptoFiltro] = useState('todos')
   const [estadoFiltro, setEstadoFiltro] = useState('todos')
@@ -453,6 +454,13 @@ export default function FinanzasPage() {
   const [deleting, setDeleting] = useState(null)
   const [pagoDeuda, setPagoDeuda] = useState(null)
   const [expandedRows, setExpandedRows] = useState(new Set())
+  const [editingPago, setEditingPago] = useState(null) // { id, deudaId, monto, fecha }
+
+  useEffect(() => {
+    fetchDolarBlue().then(setDolarBlue)
+    const interval = setInterval(() => fetchDolarBlue().then(setDolarBlue), 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   function toggleExpand(id) {
     setExpandedRows(prev => {
@@ -582,6 +590,23 @@ export default function FinanzasPage() {
           <button className="btn btn-primary" onClick={openAdd}>
             <Plus size={16} /> Agregar deuda
           </button>
+          {dolarBlue && (
+            <div style={{
+              height: 40, padding: '0 14px',
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: 'var(--success-light)',
+              border: '1px solid rgba(52, 199, 89, 0.25)',
+              borderRadius: 'var(--radius-md)',
+              whiteSpace: 'nowrap',
+            }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--success)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Dólar Blue
+              </span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--success)', paddingLeft: 4, borderLeft: '1px solid rgba(52,199,89,0.3)' }}>
+                {amountFormatter.format(dolarBlue)}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -604,8 +629,7 @@ export default function FinanzasPage() {
                   <th>Tipo</th>
                   <th>Concepto</th>
                   <th>Observaciones</th>
-                  <th>Pesos</th>
-                  <th>Dólares</th>
+                  <th>Monto</th>
                   <th className="hide-mobile" style={{ minWidth: 130 }}>Progreso</th>
                   <th>Estado</th>
                   <th style={{ width: 100 }}>Acciones</th>
@@ -617,8 +641,6 @@ export default function FinanzasPage() {
                   const expanded = expandedRows.has(deuda.id)
                   const totalPagado = pagosDeuda.reduce((s, p) => s + Number(p.monto), 0)
                   const restante = Math.max(0, Number(deuda.monto) - totalPagado)
-                  const restanteARS = deuda.moneda === 'ARS' ? restante : (deuda.cotizacion_blue ? restante * deuda.cotizacion_blue : null)
-                  const restanteUSD = deuda.moneda === 'USD' ? restante : (deuda.cotizacion_blue ? restante / deuda.cotizacion_blue : null)
 
                   return (
                     <>
@@ -631,22 +653,17 @@ export default function FinanzasPage() {
                               title={expanded ? 'Ocultar pagos' : 'Ver pagos'}
                               aria-expanded={expanded}
                             >
-                              <ChevronDown size={14} />
+                              <ChevronDown size={18} />
                             </button>
                           )}
                         </td>
                         <td><TipoBadge tipo={deuda.tipo} /></td>
                         <td style={{ fontWeight: 600 }}>{deuda.concepto}</td>
                         <td className="deuda-observaciones">{deuda.observaciones || '—'}</td>
-                        <td className={deuda.moneda === 'ARS' ? 'deuda-col-nativa' : 'deuda-col-equiv'}>
-                          {restanteARS != null
-                            ? <>{deuda.moneda !== 'ARS' && <span className="deuda-equiv-prefix">≈ </span>}{arsConversionFormatter.format(restanteARS)}</>
-                            : '—'}
-                        </td>
-                        <td className={deuda.moneda === 'USD' ? 'deuda-col-nativa' : 'deuda-col-equiv'}>
-                          {restanteUSD != null
-                            ? <>{deuda.moneda !== 'USD' && <span className="deuda-equiv-prefix">≈ </span>}{`U$D ${usdExactFormatter.format(restanteUSD)}`}</>
-                            : '—'}
+                        <td className="deuda-col-nativa">
+                          {deuda.moneda === 'USD'
+                            ? `U$D ${usdFormatter.format(restante)}`
+                            : arsConversionFormatter.format(restante)}
                         </td>
                         <td className="hide-mobile">
                           {(() => {
@@ -696,18 +713,61 @@ export default function FinanzasPage() {
                           <td />
                           <td colSpan={7}>
                             <div className="deuda-pagos-list">
-                              {pagosDeuda.map(p => (
-                                <div key={p.id} className="deuda-pago-item">
-                                  <span className="deuda-pago-monto">
-                                    {deuda.moneda === 'USD'
-                                      ? `U$D ${usdFormatter.format(p.monto)}`
-                                      : arsConversionFormatter.format(p.monto)}
-                                  </span>
-                                  <span className="deuda-pago-fecha">
-                                    {new Date((p.fecha || p.createdAt) + 'T12:00:00').toLocaleDateString('es-AR')}
-                                  </span>
-                                </div>
-                              ))}
+                              {pagosDeuda.map(p => {
+                                const isEditing = editingPago?.id === p.id
+                                return isEditing ? (
+                                  <div key={p.id} className="deuda-pago-item" style={{ gap: 8, flexWrap: 'wrap' }}>
+                                    <input
+                                      type="text" inputMode="numeric"
+                                      className="form-input"
+                                      style={{ width: 140, padding: '4px 10px', fontSize: 13 }}
+                                      value={deuda.moneda === 'ARS' ? formatCurrencyInput(editingPago.monto) : editingPago.monto}
+                                      onChange={e => setEditingPago(prev => ({
+                                        ...prev,
+                                        monto: deuda.moneda === 'ARS' ? e.target.value.replace(/\D/g, '') : e.target.value,
+                                      }))}
+                                    />
+                                    <input
+                                      type="date"
+                                      className="form-input"
+                                      style={{ width: 150, padding: '4px 10px', fontSize: 13 }}
+                                      value={editingPago.fecha}
+                                      onChange={e => setEditingPago(prev => ({ ...prev, fecha: e.target.value }))}
+                                    />
+                                    <div className="flex gap-2" style={{ marginLeft: 'auto' }}>
+                                      <button className="btn btn-primary btn-sm" onClick={async () => {
+                                        const monto = deuda.moneda === 'ARS' ? Number(editingPago.monto) : parseFloat(editingPago.monto.replace(',', '.'))
+                                        if (!monto || monto <= 0) return
+                                        await updateDeudaPago(p.id, deuda.id, monto, editingPago.fecha)
+                                        setEditingPago(null)
+                                      }}>Guardar</button>
+                                      <button className="btn btn-secondary btn-sm" onClick={() => setEditingPago(null)}>Cancelar</button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div key={p.id} className="deuda-pago-item">
+                                    <span className="deuda-pago-fecha">
+                                      {new Date((p.fecha || p.createdAt) + 'T12:00:00').toLocaleDateString('es-AR')}
+                                    </span>
+                                    <span className="deuda-pago-monto">
+                                      {deuda.moneda === 'USD'
+                                        ? `U$D ${usdFormatter.format(p.monto)}`
+                                        : arsConversionFormatter.format(p.monto)}
+                                    </span>
+                                    <div className="flex gap-2" style={{ marginLeft: 'auto' }}>
+                                      <button className="btn btn-ghost btn-icon btn-sm" title="Editar pago"
+                                        onClick={() => setEditingPago({ id: p.id, deudaId: deuda.id, monto: String(p.monto), fecha: p.fecha || p.createdAt?.slice(0,10) })}>
+                                        <Pencil size={13} />
+                                      </button>
+                                      <button className="btn btn-ghost btn-icon btn-sm" title="Eliminar pago"
+                                        style={{ color: 'var(--danger)' }}
+                                        onClick={() => deleteDeudaPago(p.id, deuda.id)}>
+                                        <Trash2 size={13} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                )
+                              })}
                               <div className="deuda-pago-total">
                                 <span>Total pagado</span>
                                 <span>

@@ -113,7 +113,7 @@ export default function DashboardPage() {
       {/* ── KPIs ── */}
       <div className="stats-grid">
         <StatCard icon={ShoppingBag} label="Total de ventas"       value={totalVentas}                  color="blue" />
-        <StatCard icon={Car}         label="Autos disponibles"     value={autosDisponibles}              color="green"
+        <StatCard icon={Car}         label="Vehículos disponibles" value={autosDisponibles}              color="green"
           subLabel={`${autosVendidos} vendidos`}
         />
         {isAdmin && (

@@ -14,7 +14,7 @@ const ADMIN_ROLES = ['administrador', 'desarrollador']
 
 const NAV_ITEMS = [
   { to: '/',            label: 'Dashboard',  icon: BarChart2,     roles: ALL_ROLES },
-  { to: '/autos',       label: 'Autos',      icon: Car,           roles: ALL_ROLES },
+  { to: '/autos',       label: 'Vehículos',  icon: Car,           roles: ALL_ROLES },
   { to: '/clientes',    label: 'Clientes',   icon: Users,         roles: ALL_ROLES },
   { to: '/ventas',      label: 'Ventas',     icon: ShoppingBag,   roles: ALL_ROLES },
   { to: '/finanzas',    label: 'Finanzas',   icon: Wallet,        roles: ADMIN_ROLES },

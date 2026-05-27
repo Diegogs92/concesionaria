@@ -219,6 +219,28 @@ export function AppProvider({ children }) {
     setDeudas(prev => prev.map(d => d.id === deudaId ? { ...d, estado: nuevoEstado } : d))
   }
 
+  async function updateDeudaPago(pagoId, deudaId, monto, fecha) {
+    const actualizado = await deudaPagosService.update(pagoId, { monto, fecha })
+    const pagosActualizados = deudaPagos.map(p => p.id === pagoId ? { ...p, ...actualizado } : p)
+    const totalPagado = pagosActualizados.filter(p => p.deuda_id === deudaId).reduce((s, p) => s + Number(p.monto), 0)
+    const deuda = deudas.find(d => d.id === deudaId)
+    const nuevoEstado = totalPagado >= Number(deuda.monto) ? 'PAGADA' : totalPagado > 0 ? 'PAGO_PARCIAL' : 'PENDIENTE'
+    await deudasService.update(deudaId, { estado: nuevoEstado })
+    setDeudaPagos(pagosActualizados)
+    setDeudas(prev => prev.map(d => d.id === deudaId ? { ...d, estado: nuevoEstado } : d))
+  }
+
+  async function deleteDeudaPago(pagoId, deudaId) {
+    await deudaPagosService.deleteOne(pagoId)
+    const pagosRestantes = deudaPagos.filter(p => p.id !== pagoId && p.deuda_id === deudaId)
+    const totalPagado = pagosRestantes.reduce((s, p) => s + Number(p.monto), 0)
+    const deuda = deudas.find(d => d.id === deudaId)
+    const nuevoEstado = totalPagado >= Number(deuda.monto) ? 'PAGADA' : totalPagado > 0 ? 'PAGO_PARCIAL' : 'PENDIENTE'
+    await deudasService.update(deudaId, { estado: nuevoEstado })
+    setDeudaPagos(prev => prev.filter(p => p.id !== pagoId))
+    setDeudas(prev => prev.map(d => d.id === deudaId ? { ...d, estado: nuevoEstado } : d))
+  }
+
   async function revertirDeuda(id) {
     await deudaPagosService.deleteByDeuda(id)
     await deudasService.update(id, { estado: 'PENDIENTE' })
@@ -238,7 +260,7 @@ function getAutoById(id)    { return autos.find(a => a.id === id) }
         addCliente, updateCliente, deleteCliente,
         addVenta, deleteVenta,
         addEgreso, deleteEgreso,
-        addDeuda, updateDeuda, deleteDeuda, addDeudaPago, revertirDeuda,
+        addDeuda, updateDeuda, deleteDeuda, addDeudaPago, updateDeudaPago, deleteDeudaPago, revertirDeuda,
         getAutoById, getClienteById,
       }}
     >
