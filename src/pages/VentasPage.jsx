@@ -693,9 +693,10 @@ export default function VentasPage() {
   const { ventas, addVenta, deleteVenta, getAutoById, getClienteById, getVehiculoEntregadoByVentaId } = useApp()
   const { isAdmin, usuarios } = useAuth()
 
-  const [search, setSearch]    = useState('')
-  const [modalOpen, setModal]  = useState(false)
-  const [deletingVenta, setDel]= useState(null)
+  const [search, setSearch]      = useState('')
+  const [modalOpen, setModal]    = useState(false)
+  const [deletingVenta, setDel]  = useState(null)
+  const [ventaExitosa, setVentaExitosa] = useState(false)
 
   function getVendedorNombre(id) {
     return usuarios.find(u => u.id === id)?.nombre ?? '—'
@@ -807,7 +808,7 @@ export default function VentasPage() {
                       <td>
                         <div className="flex gap-2">
                           <button className="btn btn-ghost btn-icon btn-sm"
-                            onClick={() => generateFacturaPDF(v, auto, cliente, getVendedorObj(v.vendedorId), getVehiculoEntregadoByVentaId(v.id))}
+                            onClick={() => generateFacturaPDF(v, auto, cliente, getVendedorObj(v.vendedorId), getVehiculoEntregadoByVentaId(v.id)).catch(console.error)}
                             title="Descargar boleto de compraventa">
                             <FileText size={15} />
                           </button>
@@ -835,6 +836,8 @@ export default function VentasPage() {
           onSubmit={async (data, auto) => {
             await addVenta(data, auto)
             setModal(false)
+            setVentaExitosa(true)
+            setTimeout(() => setVentaExitosa(false), 3500)
             const cliente = getClienteById(data.clienteId)
             if (cliente?.telefono) {
               const nombre = `${cliente.nombre} ${cliente.apellido}`.trim()
@@ -842,7 +845,7 @@ export default function VentasPage() {
               const msg = `Gracias ${nombre} por haber elegido ICY Automotores, para la compra de su ${vehiculo}. Que lo disfrutes! Cualquier consulta estamos a tu disposición`
               const clean = cliente.telefono.replace(/[\s\-().+]/g, '')
               const num = clean.startsWith('54') ? clean : `54${clean}`
-              window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, '_blank')
+              setTimeout(() => window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, '_blank'), 400)
             }
           }}
           onCancel={() => setModal(false)}
@@ -859,6 +862,21 @@ export default function VentasPage() {
         title="Anular venta"
         message="¿Anular esta venta? El auto volverá a estar disponible en el stock."
       />
+
+      {ventaExitosa && (
+        <div style={{
+          position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+          background: '#16a34a', color: '#fff',
+          padding: '16px 32px', borderRadius: 12,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+          display: 'flex', alignItems: 'center', gap: 12,
+          fontSize: 16, fontWeight: 600, zIndex: 9999,
+          animation: 'fadeInUp 0.3s ease',
+        }}>
+          <span style={{ fontSize: 22 }}>✓</span>
+          Venta realizada con éxito
+        </div>
+      )}
     </>
   )
 }

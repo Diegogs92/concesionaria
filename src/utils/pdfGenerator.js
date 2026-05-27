@@ -28,10 +28,20 @@ function campo(doc, label, valor, x, y, labelWidth = 40) {
   doc.text(String(valor || '—'), x + labelWidth, y)
 }
 
+async function loadBase64(url) {
+  const res = await fetch(url)
+  const blob = await res.blob()
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onloadend = () => resolve(reader.result)
+    reader.readAsDataURL(blob)
+  })
+}
+
 /**
  * Genera un boleto de compraventa PDF para una venta y lo descarga.
  */
-export function generateFacturaPDF(venta, auto, cliente, vendedor, vehiculoEntregado = null) {
+export async function generateFacturaPDF(venta, auto, cliente, vendedor, vehiculoEntregado = null) {
   const doc = new jsPDF()
   const pageWidth  = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
@@ -44,14 +54,20 @@ export function generateFacturaPDF(venta, auto, cliente, vendedor, vehiculoEntre
   doc.setFillColor(...ROJO)
   doc.rect(0, 0, pageWidth, 28, 'F')
 
-  doc.setFontSize(18)
-  doc.setFont(undefined, 'bold')
-  doc.setTextColor(255, 255, 255)
-  doc.text('ICY AUTOMOTORES', margin, 12)
+  try {
+    const logoData = await loadBase64('/logo.png')
+    doc.addImage(logoData, 'PNG', margin, 4, 42, 20)
+  } catch {
+    doc.setFontSize(18)
+    doc.setFont(undefined, 'bold')
+    doc.setTextColor(255, 255, 255)
+    doc.text('ICY AUTOMOTORES', margin, 16)
+  }
 
   doc.setFontSize(9)
   doc.setFont(undefined, 'normal')
-  doc.text('Boleto de Compraventa', margin, 20)
+  doc.setTextColor(255, 255, 255)
+  doc.text('Boleto de Compraventa', margin, 25)
 
   doc.setFont(undefined, 'bold')
   doc.text(`N° ${venta.id.slice(0, 8).toUpperCase()}`, pageWidth - margin - 50, 12)
@@ -133,7 +149,7 @@ export function generateFacturaPDF(venta, auto, cliente, vendedor, vehiculoEntre
       : []),
     ...(vehiculoEntregado?.valor
       ? [
-          [`Auto entregado (${[vehiculoEntregado.marca, vehiculoEntregado.modelo].filter(Boolean).join(' ')})`, `− ${formatCurrency(vehiculoEntregado.valor)}`],
+          [`Auto entregado (${[vehiculoEntregado.marca, vehiculoEntregado.modelo].filter(Boolean).join(' ')})`, `(${formatCurrency(vehiculoEntregado.valor)})`],
           [`Saldo en efectivo`, formatCurrency(saldoCash)],
         ]
       : []),
