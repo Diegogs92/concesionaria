@@ -808,7 +808,7 @@ export default function VentasPage() {
                         <div className="flex gap-2">
                           <button className="btn btn-ghost btn-icon btn-sm"
                             onClick={() => generateFacturaPDF(v, auto, cliente, getVendedorObj(v.vendedorId))}
-                            title="Descargar factura">
+                            title="Descargar boleto de compraventa">
                             <FileText size={15} />
                           </button>
                           {isAdmin && (

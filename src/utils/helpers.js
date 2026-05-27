@@ -113,7 +113,7 @@ export function getVentasPorMes(ventas, meses = 6) {
  * Calcula el ranking de vendedores por cantidad de ventas y comisiones.
  */
 export function getRankingVendedores(ventas, usuarios) {
-  const empleados = usuarios.filter(u => u.rol === 'vendedor')
+  const empleados = usuarios.filter(u => ['vendedor', 'administrador'].includes(u.rol))
   return empleados
     .map(emp => {
       const ventasEmp = ventas.filter(v => v.vendedorId === emp.id)

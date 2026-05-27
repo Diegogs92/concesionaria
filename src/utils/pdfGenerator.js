@@ -3,7 +3,7 @@ import 'jspdf-autotable'
 import { formatCurrency, formatDate } from './helpers'
 
 /**
- * Genera una factura PDF para una venta y la descarga.
+ * Genera un boleto de compraventa PDF para una venta y lo descarga.
  */
 export function generateFacturaPDF(venta, auto, cliente, vendedor) {
   const doc = new jsPDF()
@@ -14,12 +14,12 @@ export function generateFacturaPDF(venta, auto, cliente, vendedor) {
   // ─── Header ───
   doc.setFontSize(20)
   doc.setFont(undefined, 'bold')
-  doc.text('FACTURA', margin, margin + 10)
+  doc.text('BOLETO DE COMPRAVENTA', margin, margin + 10)
 
   doc.setFontSize(10)
   doc.setFont(undefined, 'normal')
-  doc.text('AutoGestión — Concesionaria', margin, margin + 20)
-  doc.text(`Factura #${venta.id.toUpperCase()}`, pageWidth - margin - 50, margin + 10)
+  doc.text('ICY Automotores', margin, margin + 20)
+  doc.text(`N° ${venta.id.toUpperCase()}`, pageWidth - margin - 50, margin + 10)
   doc.text(`Fecha: ${formatDate(venta.fecha)}`, pageWidth - margin - 50, margin + 20)
 
   // ─── Línea divisora ───
@@ -29,11 +29,11 @@ export function generateFacturaPDF(venta, auto, cliente, vendedor) {
   // ─── Datos del cliente ───
   let yPos = margin + 35
   doc.setFont(undefined, 'bold')
-  doc.text('DATOS DEL CLIENTE:', margin, yPos)
+  doc.text('DATOS DEL COMPRADOR:', margin, yPos)
   yPos += 8
 
   doc.setFont(undefined, 'normal')
-  doc.text(`Nombre: ${cliente.nombre}`, margin, yPos)
+  doc.text(`Nombre: ${cliente.apellido} ${cliente.nombre}`, margin, yPos)
   yPos += 6
   doc.text(`DNI: ${cliente.dni}`, margin, yPos)
   yPos += 6
@@ -56,56 +56,38 @@ export function generateFacturaPDF(venta, auto, cliente, vendedor) {
   doc.setFont(undefined, 'normal')
   doc.text(`Marca/Modelo: ${auto.marca} ${auto.modelo}`, margin, yPos)
   yPos += 6
-  doc.text(`Año: ${auto.año}`, margin, yPos)
+  doc.text(`Año: ${auto.año || '—'}`, margin, yPos)
   yPos += 6
-  doc.text(`Kilometraje: ${auto.kilometraje.toLocaleString('es-AR')} km`, margin, yPos)
+  doc.text(`Kilometraje: ${auto.kilometraje ? Number(auto.kilometraje).toLocaleString('es-AR') + ' km' : '—'}`, margin, yPos)
   yPos += 6
-  doc.text(`Descripción: ${auto.descripcion || '—'}`, margin, yPos)
+  if (auto.descripcion) {
+    doc.text(`Descripción: ${auto.descripcion}`, margin, yPos)
+    yPos += 6
+  }
 
   // ─── Tabla de precios ───
-  yPos += 14
+  yPos += 8
   doc.autoTable({
     startY: yPos,
-    margin: margin,
-    head: [['Concepto', 'Monto ARS']],
+    margin: { left: margin, right: margin },
+    head: [['Concepto', 'Importe']],
     body: [
       ['Precio de venta', formatCurrency(venta.precioFinal)],
-      ['Tipo de pago', venta.tipoPago === 'contado' ? 'Contado' : `Financiado (${venta.cuotas || '—'} cuotas)`],
-      venta.tipoPago === 'financiado' ? [
-        'Valor por cuota',
-        formatCurrency(venta.precioFinal / (venta.cuotas || 1))
-      ] : null,
-    ].filter(Boolean),
-    headStyles: {
-      fillColor: [0, 122, 255],
-      textColor: 255,
-      fontStyle: 'bold',
-      fontSize: 11,
-    },
-    bodyStyles: {
-      fontSize: 10,
-    },
-    columnStyles: {
-      1: { halign: 'right' },
-    },
+      ['Forma de pago', venta.tipoPago === 'contado' ? 'Contado' : `Financiado (${venta.cuotas || '—'} cuotas)`],
+      ...(venta.tipoPago === 'financiado' && venta.cuotas ? [['Valor por cuota', formatCurrency(venta.precioFinal / venta.cuotas)]] : []),
+    ],
+    headStyles: { fillColor: [180, 30, 30], textColor: 255, fontStyle: 'bold', fontSize: 11 },
+    bodyStyles: { fontSize: 10 },
+    columnStyles: { 1: { halign: 'right' } },
   })
-
-  // ─── Beneficio (solo info, no se muestra al cliente normalmente)
-  yPos = doc.lastAutoTable.finalY + 10
-  doc.setFont(undefined, 'italic')
-  doc.setFontSize(9)
-  doc.setTextColor(100)
-  doc.text(`Ganancia: ${formatCurrency(venta.ganancia)} | Comisión vendedor: ${formatCurrency(venta.comisionVendedor)}`, margin, yPos)
 
   // ─── Footer ───
   doc.setFont(undefined, 'normal')
   doc.setFontSize(8)
   doc.setTextColor(150)
-  const footerText = 'Documento generado por AutoGestión. Este documento no es válido como comprobante fiscal.'
-  doc.text(footerText, margin, pageHeight - 10)
+  doc.text('ICY Automotores — Documento interno de compraventa.', margin, pageHeight - 10)
 
-  // ─── Descargar ───
-  doc.save(`factura-${venta.id}.pdf`)
+  doc.save(`boleto-compraventa-${venta.id}.pdf`)
 }
 
 /**
