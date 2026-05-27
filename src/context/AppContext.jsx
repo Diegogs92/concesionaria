@@ -4,6 +4,7 @@ import {
   autosService,
   clientesService,
   ventasService,
+  vehiculosEntregadosService,
   egresosService,
   deudasService,
   deudaConceptosService,
@@ -14,14 +15,15 @@ import {
 const AppContext = createContext(null)
 
 export function AppProvider({ children }) {
-  const [autos,           setAutos]           = useState([])
-  const [clientes,        setClientes]        = useState([])
-  const [ventas,          setVentas]          = useState([])
-  const [egresos,         setEgresos]         = useState([])
-  const [deudas,          setDeudas]          = useState([])
-  const [deudaConceptos,  setDeudaConceptos]  = useState([])
-  const [deudaPagos,      setDeudaPagos]      = useState([])
-  const [historialPrecios, setHistorialPrecios] = useState([])
+  const [autos,                setAutos]                = useState([])
+  const [clientes,             setClientes]             = useState([])
+  const [ventas,               setVentas]               = useState([])
+  const [vehiculosEntregados,  setVehiculosEntregados]  = useState([])
+  const [egresos,              setEgresos]              = useState([])
+  const [deudas,               setDeudas]               = useState([])
+  const [deudaConceptos,       setDeudaConceptos]       = useState([])
+  const [deudaPagos,           setDeudaPagos]           = useState([])
+  const [historialPrecios,     setHistorialPrecios]     = useState([])
   const [loading,         setLoading]         = useState(true)
   const [error,           setError]           = useState(null)
 
@@ -29,10 +31,11 @@ export function AppProvider({ children }) {
   useEffect(() => {
     async function cargarDatos() {
       try {
-        const [a, c, v, e, d, dc, dp, hp] = await Promise.all([
+        const [a, c, v, ve, e, d, dc, dp, hp] = await Promise.all([
           autosService.list(),
           clientesService.list(),
           ventasService.list(),
+          vehiculosEntregadosService.list(),
           egresosService.list(),
           deudasService.list(),
           deudaConceptosService.list(),
@@ -42,6 +45,7 @@ export function AppProvider({ children }) {
         setAutos(a)
         setClientes(c)
         setVentas(v)
+        setVehiculosEntregados(ve)
         setEgresos(e)
         setDeudas(d)
         setDeudaConceptos(dc)
@@ -133,6 +137,18 @@ export function AppProvider({ children }) {
     })
     setVentas(prev => [nueva, ...prev])
     await marcarVendido(data.autoId)
+    if (autoUsadoData?.activo) {
+      const ve = await vehiculosEntregadosService.create({
+        ventaId: nueva.id,
+        marca:   autoUsadoData.marca   || null,
+        modelo:  autoUsadoData.modelo  || null,
+        año:     autoUsadoData.año     || null,
+        km:      autoUsadoData.km      ? Number(autoUsadoData.km)    : null,
+        valor:   autoUsadoData.valor   ? Number(autoUsadoData.valor) : null,
+        createdAt: today(),
+      })
+      setVehiculosEntregados(prev => [ve, ...prev])
+    }
     return nueva
   }
 
@@ -248,20 +264,21 @@ export function AppProvider({ children }) {
     setDeudas(prev => prev.map(d => d.id === id ? { ...d, estado: 'PENDIENTE' } : d))
   }
 
-function getAutoById(id)    { return autos.find(a => a.id === id) }
-  function getClienteById(id) { return clientes.find(c => c.id === id) }
+  function getAutoById(id)                    { return autos.find(a => a.id === id) }
+  function getClienteById(id)                 { return clientes.find(c => c.id === id) }
+  function getVehiculoEntregadoByVentaId(id)  { return vehiculosEntregados.find(v => v.ventaId === id) }
 
   return (
     <AppContext.Provider
       value={{
-        autos, clientes, ventas, egresos, deudas, deudaConceptos, deudaPagos, historialPrecios,
+        autos, clientes, ventas, vehiculosEntregados, egresos, deudas, deudaConceptos, deudaPagos, historialPrecios,
         loading, error,
         addAuto, updateAuto, deleteAuto, marcarVendido,
         addCliente, updateCliente, deleteCliente,
         addVenta, deleteVenta,
         addEgreso, deleteEgreso,
         addDeuda, updateDeuda, deleteDeuda, addDeudaPago, updateDeudaPago, deleteDeudaPago, revertirDeuda,
-        getAutoById, getClienteById,
+        getAutoById, getClienteById, getVehiculoEntregadoByVentaId,
       }}
     >
       {children}

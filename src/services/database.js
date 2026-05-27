@@ -245,6 +245,35 @@ export const deudaPagosService = {
   },
 }
 
+// ─── VEHÍCULOS ENTREGADOS ─────────────────────────────────────────────────────
+
+export const vehiculosEntregadosService = {
+  list: async () => {
+    const { data, error } = await supabase
+      .from('vehiculos_entregados')
+      .select('*')
+      .order('createdAt', { ascending: false })
+    throwIfError(error, 'vehiculosEntregados.list')
+    return (data || []).map(r => ({ ...r, año: r.anio }))
+  },
+
+  create: async ({ año, ...data }) => {
+    const { data: row, error } = await supabase
+      .from('vehiculos_entregados')
+      .insert({ ...data, anio: año ? Number(año) : null })
+      .select()
+      .single()
+    throwIfError(error, 'vehiculosEntregados.create')
+    return { ...row, año: row.anio }
+  },
+
+  deleteByVenta: async (ventaId) => {
+    const { error } = await supabase
+      .from('vehiculos_entregados').delete().eq('ventaId', ventaId)
+    throwIfError(error, 'vehiculosEntregados.deleteByVenta')
+  },
+}
+
 // ─── HISTORIAL DE PRECIOS ─────────────────────────────────────────────────────
 
 export const historialService = {

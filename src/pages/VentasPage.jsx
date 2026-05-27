@@ -690,7 +690,7 @@ function VentaForm({ onSubmit, onCancel }) {
 
 // ─── Página principal ─────────────────────────────────────────────────────────
 export default function VentasPage() {
-  const { ventas, addVenta, deleteVenta, getAutoById, getClienteById } = useApp()
+  const { ventas, addVenta, deleteVenta, getAutoById, getClienteById, getVehiculoEntregadoByVentaId } = useApp()
   const { isAdmin, usuarios } = useAuth()
 
   const [search, setSearch]    = useState('')
@@ -807,7 +807,7 @@ export default function VentasPage() {
                       <td>
                         <div className="flex gap-2">
                           <button className="btn btn-ghost btn-icon btn-sm"
-                            onClick={() => generateFacturaPDF(v, auto, cliente, getVendedorObj(v.vendedorId))}
+                            onClick={() => generateFacturaPDF(v, auto, cliente, getVendedorObj(v.vendedorId), getVehiculoEntregadoByVentaId(v.id))}
                             title="Descargar boleto de compraventa">
                             <FileText size={15} />
                           </button>
