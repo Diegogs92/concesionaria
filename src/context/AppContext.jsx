@@ -121,7 +121,7 @@ export function AppProvider({ children }) {
 
   async function addVenta(data, autoInfo) {
     const ganancia = data.precioFinal - autoInfo.precioCompra
-    const { comisionVendedorMonto, pagosTerceros: pagosArray, utilidad: utilData, ...rest } = data
+    const { comisionVendedorMonto, pagosTerceros: pagosArray, utilidad: utilData, autoUsado: autoUsadoData, ...rest } = data
     const nueva = await ventasService.create({
       ...rest,
       ganancia,

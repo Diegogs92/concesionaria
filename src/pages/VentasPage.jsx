@@ -317,10 +317,10 @@ function VentaForm({ onSubmit, onCancel }) {
                 </button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <input className="form-input" placeholder="Nombre *" style={{ fontSize: 13, textTransform: 'uppercase' }} value={nc.nombre} onChange={e => setNC(p => ({ ...p, nombre: e.target.value }))} />
-                <input className="form-input" placeholder="Apellido *" style={{ fontSize: 13, textTransform: 'uppercase' }} value={nc.apellido} onChange={e => setNC(p => ({ ...p, apellido: e.target.value }))} />
-                <input className="form-input" placeholder="DNI *" style={{ fontSize: 13 }} value={nc.dni} onChange={e => setNC(p => ({ ...p, dni: e.target.value }))} />
-                <input className="form-input" type="tel" placeholder="Teléfono *" style={{ fontSize: 13 }} value={nc.telefono} onChange={e => setNC(p => ({ ...p, telefono: e.target.value }))} />
+                <input className="form-input" placeholder="Nombre *" style={{ fontSize: 13, textTransform: 'uppercase', background: 'var(--bg-modal)' }} value={nc.nombre} onChange={e => setNC(p => ({ ...p, nombre: e.target.value }))} />
+                <input className="form-input" placeholder="Apellido *" style={{ fontSize: 13, textTransform: 'uppercase', background: 'var(--bg-modal)' }} value={nc.apellido} onChange={e => setNC(p => ({ ...p, apellido: e.target.value }))} />
+                <input className="form-input" placeholder="DNI *" style={{ fontSize: 13, background: 'var(--bg-modal)' }} value={nc.dni} onChange={e => setNC(p => ({ ...p, dni: e.target.value }))} />
+                <input className="form-input" type="tel" placeholder="Teléfono *" style={{ fontSize: 13, background: 'var(--bg-modal)' }} value={nc.telefono} onChange={e => setNC(p => ({ ...p, telefono: e.target.value }))} />
               </div>
               <button type="button" className="btn btn-primary btn-sm" onClick={handleGuardarCliente}
                 disabled={savingNC || !nc.nombre || !nc.apellido || !nc.dni || !nc.telefono}
@@ -486,12 +486,15 @@ function VentaForm({ onSubmit, onCancel }) {
               <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>El cliente entrega un vehículo como parte de pago</span>
             </div>
             {autoUsado.activo && (
-              <div style={{ marginTop: 10, background: 'var(--bg-tertiary)', borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', gap: 8, border: '1px solid var(--border-color)' }}>
+              <div style={{ marginTop: 10, borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', gap: 8, border: '1px solid var(--border-color)' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   <input className="form-input" placeholder="Marca" style={{ fontSize: 13 }} value={autoUsado.marca} onChange={e => setAutoUsado(p => ({ ...p, marca: e.target.value }))} />
                   <input className="form-input" placeholder="Modelo" style={{ fontSize: 13 }} value={autoUsado.modelo} onChange={e => setAutoUsado(p => ({ ...p, modelo: e.target.value }))} />
                   <input className="form-input" placeholder="Año" style={{ fontSize: 13 }} value={autoUsado.año} onChange={e => setAutoUsado(p => ({ ...p, año: e.target.value }))} />
-                  <input className="form-input" placeholder="Kilometraje" style={{ fontSize: 13 }} value={autoUsado.km} onChange={e => setAutoUsado(p => ({ ...p, km: e.target.value }))} />
+                  <input type="text" inputMode="numeric" className="form-input" placeholder="Kilometraje"
+                    style={{ fontSize: 13 }}
+                    value={autoUsado.km !== '' ? Number(autoUsado.km).toLocaleString('es-AR') : ''}
+                    onChange={e => setAutoUsado(p => ({ ...p, km: e.target.value.replace(/\D/g, '') }))} />
                 </div>
                 <input type="text" inputMode="numeric" className="form-input" placeholder="Valor acordado $ 0"
                   style={{ fontSize: 13 }}
