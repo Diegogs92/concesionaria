@@ -235,9 +235,23 @@ export default function DashboardPage() {
                 </span>
 
                 {/* Avatar */}
-                <div className="avatar" style={{ width: 36, height: 36, fontSize: 14 }}>
-                  {getInitials(v.nombre)}
-                </div>
+                {v.foto_url ? (
+                  <img
+                    src={v.foto_url}
+                    alt={v.nombre}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      flexShrink: 0,
+                    }}
+                  />
+                ) : (
+                  <div className="avatar" style={{ width: 36, height: 36, fontSize: 14 }}>
+                    {getInitials(v.nombre)}
+                  </div>
+                )}
 
                 {/* Info */}
                 <div style={{ flex: 1 }}>

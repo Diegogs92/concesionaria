@@ -120,6 +120,7 @@ export function getRankingVendedores(ventas, usuarios) {
       return {
         id: emp.id,
         nombre: emp.nombre,
+        foto_url: emp.foto_url,
         ventas: ventasEmp.length,
         comision: sumBy(ventasEmp, 'comisionVendedor'),
         total: sumBy(ventasEmp, 'precioFinal'),
