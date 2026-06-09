@@ -10,6 +10,7 @@ import {
   deudaConceptosService,
   deudaPagosService,
   historialService,
+  propietariosService,
 } from '../services/database'
 
 const AppContext = createContext(null)
@@ -24,6 +25,7 @@ export function AppProvider({ children }) {
   const [deudaConceptos,       setDeudaConceptos]       = useState([])
   const [deudaPagos,           setDeudaPagos]           = useState([])
   const [historialPrecios,     setHistorialPrecios]     = useState([])
+  const [propietarios,         setPropietarios]         = useState([])
   const [loading,         setLoading]         = useState(true)
   const [error,           setError]           = useState(null)
 
@@ -31,7 +33,7 @@ export function AppProvider({ children }) {
   useEffect(() => {
     async function cargarDatos() {
       try {
-        const [a, c, v, ve, e, d, dc, dp, hp] = await Promise.all([
+        const [a, c, v, ve, e, d, dc, dp, hp, pr] = await Promise.all([
           autosService.list(),
           clientesService.list(),
           ventasService.list(),
@@ -41,6 +43,7 @@ export function AppProvider({ children }) {
           deudaConceptosService.list(),
           deudaPagosService.list(),
           historialService.list(),
+          propietariosService.list(),
         ])
         setAutos(a)
         setClientes(c)
@@ -51,6 +54,7 @@ export function AppProvider({ children }) {
         setDeudaConceptos(dc)
         setDeudaPagos(dp)
         setHistorialPrecios(hp)
+        setPropietarios(pr)
       } catch (err) {
         setError('Error al conectar con la base de datos.')
         console.error(err)
@@ -71,23 +75,13 @@ export function AppProvider({ children }) {
 
   async function updateAuto(id, data) {
     const autoActual = autos.find(a => a.id === id)
-    if (autoActual) {
-      if (data.precio && data.precio !== autoActual.precio) {
-        const hp = await historialService.create({
-          autoId: id, campo: 'precio',
-          valorAnterior: autoActual.precio, valorNuevo: data.precio,
-          fecha: today(), createdAt: today(),
-        })
-        setHistorialPrecios(prev => [hp, ...prev])
-      }
-      if (data.precioCompra && data.precioCompra !== autoActual.precioCompra) {
-        const hp = await historialService.create({
-          autoId: id, campo: 'precioCompra',
-          valorAnterior: autoActual.precioCompra, valorNuevo: data.precioCompra,
-          fecha: today(), createdAt: today(),
-        })
-        setHistorialPrecios(prev => [hp, ...prev])
-      }
+    if (autoActual && data.precio && data.precio !== autoActual.precio) {
+      const hp = await historialService.create({
+        autoId: id, campo: 'precio',
+        valorAnterior: autoActual.precio, valorNuevo: data.precio,
+        fecha: today(), createdAt: today(),
+      })
+      setHistorialPrecios(prev => [hp, ...prev])
     }
     const actualizado = await autosService.update(id, data)
     setAutos(prev => prev.map(a => a.id === id ? { ...a, ...actualizado } : a))
@@ -124,7 +118,7 @@ export function AppProvider({ children }) {
   // ===================== VENTAS =====================
 
   async function addVenta(data, autoInfo) {
-    const ganancia = data.precioFinal - autoInfo.precioCompra
+    const ganancia = data.precioFinal - (autoInfo?.gananciaPretendida || 0)
     const { comisionVendedorMonto, pagosTerceros: pagosArray, utilidad: utilData, autoUsado: autoUsadoData, interes, ...rest } = data
     const nueva = await ventasService.create({
       ...rest,
@@ -264,21 +258,41 @@ export function AppProvider({ children }) {
     setDeudas(prev => prev.map(d => d.id === id ? { ...d, estado: 'PENDIENTE' } : d))
   }
 
+  // ===================== PROPIETARIOS =====================
+
+  async function addPropietario(data) {
+    const nuevo = await propietariosService.create({ ...data, createdAt: today() })
+    setPropietarios(prev => [nuevo, ...prev])
+    return nuevo
+  }
+
+  async function updatePropietario(id, data) {
+    const actualizado = await propietariosService.update(id, data)
+    setPropietarios(prev => prev.map(p => p.id === id ? { ...p, ...actualizado } : p))
+  }
+
+  async function deletePropietario(id) {
+    await propietariosService.delete(id)
+    setPropietarios(prev => prev.filter(p => p.id !== id))
+  }
+
   function getAutoById(id)                    { return autos.find(a => a.id === id) }
   function getClienteById(id)                 { return clientes.find(c => c.id === id) }
+  function getPropietarioById(id)             { return propietarios.find(p => p.id === id) }
   function getVehiculoEntregadoByVentaId(id)  { return vehiculosEntregados.find(v => v.ventaId === id) }
 
   return (
     <AppContext.Provider
       value={{
-        autos, clientes, ventas, vehiculosEntregados, egresos, deudas, deudaConceptos, deudaPagos, historialPrecios,
+        autos, clientes, ventas, vehiculosEntregados, egresos, deudas, deudaConceptos, deudaPagos, historialPrecios, propietarios,
         loading, error,
         addAuto, updateAuto, deleteAuto, marcarVendido,
         addCliente, updateCliente, deleteCliente,
         addVenta, deleteVenta,
         addEgreso, deleteEgreso,
         addDeuda, updateDeuda, deleteDeuda, addDeudaPago, updateDeudaPago, deleteDeudaPago, revertirDeuda,
-        getAutoById, getClienteById, getVehiculoEntregadoByVentaId,
+        addPropietario, updatePropietario, deletePropietario,
+        getAutoById, getClienteById, getPropietarioById, getVehiculoEntregadoByVentaId,
       }}
     >
       {children}

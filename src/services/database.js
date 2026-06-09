@@ -274,6 +274,38 @@ export const vehiculosEntregadosService = {
   },
 }
 
+// ─── PROPIETARIOS ────────────────────────────────────────────────────────────
+
+export const propietariosService = {
+  list: async () => {
+    const { data, error } = await supabase
+      .from('propietarios')
+      .select('*')
+      .order('createdAt', { ascending: false })
+    throwIfError(error, 'propietarios.list')
+    return data || []
+  },
+
+  create: async (data) => {
+    const { data: row, error } = await supabase
+      .from('propietarios').insert(data).select().single()
+    throwIfError(error, 'propietarios.create')
+    return row
+  },
+
+  update: async (id, data) => {
+    const { data: row, error } = await supabase
+      .from('propietarios').update(data).eq('id', id).select().single()
+    throwIfError(error, 'propietarios.update')
+    return row
+  },
+
+  delete: async (id) => {
+    const { error } = await supabase.from('propietarios').delete().eq('id', id)
+    throwIfError(error, 'propietarios.delete')
+  },
+}
+
 // ─── HISTORIAL DE PRECIOS ─────────────────────────────────────────────────────
 
 export const historialService = {

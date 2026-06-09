@@ -91,6 +91,7 @@ function VentaForm({ onSubmit, onCancel }) {
   const [comisionPct,   setComisionPct]     = useState('')
   const [comisionMonto, setComisionMonto]   = useState('')
   const [pagosATerceros, setPagosATerceros] = useState([])
+  const [transferencia, setTransferencia] = useState({ cargo: 'icy', monto: '' })
   const [autoUsado, setAutoUsado] = useState({ activo: false, marca: '', modelo: '', año: '', km: '', valor: '' })
 
   // Cerrar auto-dropdown al click fuera
@@ -153,12 +154,14 @@ function VentaForm({ onSubmit, onCancel }) {
   const totalConInteres      = precioBase * (1 + interesPct / 100)
   const valorCuota           = form.tipoPago === 'financiado' && form.cuotas
                                ? totalConInteres / Number(form.cuotas) : null
+  const gananciaPretendidaAuto = autoSeleccionado?.gananciaPretendida || 0
   const ganancia             = autoSeleccionado && precioBase
-                               ? precioBase - autoSeleccionado.precioCompra : null
+                               ? precioBase - gananciaPretendidaAuto : null
   const comisionCalculada    = ganancia != null && vendedorSeleccionado
                                ? Math.round((ganancia * (vendedorSeleccionado.comision || 0)) / 100) : 0
   const totalTerceros        = pagosATerceros.reduce((s, p) => s + (Number(p.monto) || 0), 0)
-  const utilidad             = precioBase - (Number(comisionMonto) || 0) - totalTerceros
+  const transferenciaNum     = transferencia.cargo === 'icy' ? Number(transferencia.monto) || 0 : 0
+  const utilidad             = precioBase - gananciaPretendidaAuto - (Number(comisionMonto) || 0) - totalTerceros - transferenciaNum
 
   // Navegación entre pasos
   function nextStep() {
@@ -172,11 +175,13 @@ function VentaForm({ onSubmit, onCancel }) {
     if (step === 4 && !form.precioFinal) e.precioFinal = 'Ingresá el precio de venta'
     if (Object.keys(e).length > 0) { setErrors(e); return }
     setErrors({})
-    // Pre-fill comisión al entrar al paso 5
+    // Pre-fill comisión al entrar al paso 5 solo si tiene comisión configurada
     if (step === 4 && comisionMonto === '') {
       const pct = vendedorSeleccionado?.comision ?? 0
-      setComisionPct(String(pct))
-      setComisionMonto(String(comisionCalculada))
+      if (pct > 0) {
+        setComisionPct(String(pct))
+        setComisionMonto(String(comisionCalculada))
+      }
     }
     setStep(s => s + 1)
   }
@@ -196,6 +201,7 @@ function VentaForm({ onSubmit, onCancel }) {
       cuotas: form.tipoPago === 'financiado' ? Number(form.cuotas) : null,
       comisionVendedorMonto: Number(comisionMonto) || 0,
       pagosTerceros: pagosLimpios,
+      transferencia: transferenciaNum > 0 ? transferenciaNum : null,
       utilidad,
       autoUsado: autoUsado.activo ? { ...autoUsado, valor: Number(autoUsado.valor) || 0 } : null,
     }, autoSeleccionado)
@@ -531,14 +537,14 @@ function VentaForm({ onSubmit, onCancel }) {
             <div className="form-group">
               <label className="form-label">Porcentaje (%)</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <input type="number" className="form-input" value={comisionPct}
+                <input type="text" inputMode="decimal" className="form-input" value={comisionPct}
                   onChange={e => {
-                    const pct = e.target.value
+                    const pct = e.target.value.replace(/[^0-9.]/g, '')
                     setComisionPct(pct)
                     const calc = ganancia != null ? Math.round(ganancia * (Number(pct) || 0) / 100) : 0
                     setComisionMonto(String(calc))
                   }}
-                  placeholder="0" min="0" max="100" step="0.5" autoFocus />
+                  placeholder="0" />
                 <span style={{ color: 'var(--text-secondary)', fontSize: 14, fontWeight: 500, flexShrink: 0 }}>%</span>
               </div>
             </div>
@@ -612,6 +618,39 @@ function VentaForm({ onSubmit, onCancel }) {
               Total terceros: <strong style={{ color: 'var(--text-primary)' }}>{formatCurrency(totalTerceros)}</strong>
             </div>
           )}
+
+          {/* Transferencia */}
+          <div style={{ borderTop: '1px solid var(--divider)', paddingTop: 14 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Transferencia</div>
+            <div style={{ display: 'flex', gap: 0, borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border-strong)', marginBottom: 10 }}>
+              {[['icy', 'A cargo de ICY'], ['comprador', 'A cargo del comprador']].map(([val, label], i) => {
+                const active = transferencia.cargo === val
+                return (
+                  <button key={val} type="button"
+                    onClick={() => setTransferencia(t => ({ ...t, cargo: val }))}
+                    style={{
+                      flex: 1, padding: '10px 8px', fontSize: 13,
+                      fontWeight: active ? 700 : 400,
+                      background: active ? 'var(--accent)' : 'var(--bg-input)',
+                      color: active ? '#fff' : 'var(--text-secondary)',
+                      border: 'none',
+                      borderRight: i === 0 ? '1px solid var(--border-strong)' : 'none',
+                      cursor: 'pointer', transition: 'all 0.15s',
+                    }}>
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+            {transferencia.cargo === 'icy' && (
+              <input
+                type="text" inputMode="numeric" className="form-input"
+                placeholder="Monto transferencia $ 0"
+                value={transferencia.monto !== '' ? formatCurrency(Number(transferencia.monto)) : ''}
+                onChange={e => setTransferencia(t => ({ ...t, monto: e.target.value.replace(/\D/g, '') }))}
+              />
+            )}
+          </div>
         </div>
       )}
 
@@ -664,6 +703,12 @@ function VentaForm({ onSubmit, onCancel }) {
             {autoUsado.activo && autoUsado.valor > 0 && (
               <SummaryRow label={`Auto usado (${[autoUsado.marca, autoUsado.modelo].filter(Boolean).join(' ')})`} value={`− ${formatCurrency(Number(autoUsado.valor))}`} valueColor="var(--info)" />
             )}
+            {gananciaPretendidaAuto > 0 && (
+              <SummaryRow
+                label={`Ganancia propietario`}
+                value={`− ${formatCurrency(gananciaPretendidaAuto)}`}
+                valueColor="var(--info)" />
+            )}
             <SummaryRow
               label={`Comisión ${vendedorSeleccionado?.nombre ?? ''}`}
               value={`− ${formatCurrency(Number(comisionMonto) || 0)}`}
@@ -674,6 +719,12 @@ function VentaForm({ onSubmit, onCancel }) {
                 value={`− ${formatCurrency(Number(p.monto))}`}
                 valueColor="var(--text-secondary)" />
             ))}
+            {transferenciaNum > 0 && (
+              <SummaryRow
+                label="Transferencia (ICY)"
+                value={`− ${formatCurrency(transferenciaNum)}`}
+                valueColor="var(--text-secondary)" />
+            )}
             <SummaryRow
               label="Utilidad ICY"
               value={formatCurrency(utilidad)}

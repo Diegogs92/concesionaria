@@ -25,7 +25,9 @@ const EMPTY_FORM = {
   condicion: 'Usado',
   combustible: '', transmision: '', traccion: '',
   puertas: '', carroceria: '', motor: '', kilometraje: '',
-  precioCompra: '', precio: '',
+  precio: '',
+  gananciaPretendida: '',
+  propietarioId: '',
   descripcion: '',
   fotos: [],
 }
@@ -143,12 +145,14 @@ function NumInput({ value, onChange, placeholder, className = 'form-input' }) {
 }
 
 // ─── Formulario multi-paso ────────────────────────────────────────────────────
-function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizaciones }) {
+function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizaciones, propietarios = [] }) {
   const [step, setStep] = useState(1)
   const [form, setForm] = useState({ ...EMPTY_FORM, ...initial })
   const [errors, setErrors] = useState({})
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [propModo, setPropModo] = useState(initial.propietarioId ? 'existente' : 'ninguno')
+  const [propNuevo, setPropNuevo] = useState({ nombre: '', apellido: '', telefono: '' })
 
   function set(field, value) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -207,10 +211,12 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizacio
     await onSubmit({
       ...form,
       año: Number(form.año),
-      precioCompra: form.precioCompra ? Number(form.precioCompra) : null,
       precio: Number(form.precio),
       kilometraje: form.kilometraje ? Number(form.kilometraje) : null,
       puertas: form.puertas ? Number(form.puertas) : null,
+      gananciaPretendida: form.gananciaPretendida ? Number(form.gananciaPretendida) : null,
+      propietarioId: propModo === 'existente' ? form.propietarioId || null : null,
+      _nuevoPropietario: propModo === 'nuevo' && propNuevo.nombre ? propNuevo : null,
     })
     setSubmitting(false)
   }
@@ -222,10 +228,6 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizacio
   const usdOficial = cotizaciones ? toUSD(cotizaciones.oficial) : null
   const usdMep     = cotizaciones ? toUSD(cotizaciones.mep)     : null
   const usdBlue    = cotizaciones ? toUSD(cotizaciones.blue)    : null
-
-  const margen = form.precio && form.precioCompra
-    ? ((Number(form.precio) - Number(form.precioCompra)) / Number(form.precioCompra) * 100).toFixed(1)
-    : null
 
   return (
     <form onSubmit={e => { e.preventDefault(); if (step < 3) next(); else handleSubmit() }}>
@@ -278,6 +280,48 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizacio
               <label className="form-label">Chasis / VIN</label>
               <input className="form-input" value={form.chasis} onChange={e => set('chasis', e.target.value)} placeholder="9BWZZZ377VT004251" style={{ textTransform: 'uppercase' }} />
             </div>
+          </div>
+
+          {/* ── Propietario ── */}
+          <div style={{ borderTop: '1px solid var(--divider)', paddingTop: 16 }}>
+            <label className="form-label" style={{ marginBottom: 10, display: 'block' }}>Propietario del vehículo</label>
+            <ToggleGroup
+              options={['Sin propietario', 'Propietario existente', 'Nuevo propietario']}
+              value={propModo === 'ninguno' ? 'Sin propietario' : propModo === 'existente' ? 'Propietario existente' : 'Nuevo propietario'}
+              onChange={v => setPropModo(v === 'Sin propietario' ? 'ninguno' : v === 'Propietario existente' ? 'existente' : 'nuevo')}
+            />
+
+            {propModo === 'existente' && (
+              <div style={{ marginTop: 12 }}>
+                <select
+                  className="form-input form-select"
+                  value={form.propietarioId}
+                  onChange={e => set('propietarioId', e.target.value)}
+                >
+                  <option value="">— Seleccionar propietario —</option>
+                  {propietarios.map(p => (
+                    <option key={p.id} value={p.id}>{p.apellido}, {p.nombre} · {p.telefono}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {propModo === 'nuevo' && (
+              <div className="form-grid" style={{ marginTop: 12 }}>
+                <div className="form-group">
+                  <label className="form-label">Nombre</label>
+                  <input className="form-input" value={propNuevo.nombre} onChange={e => setPropNuevo(p => ({ ...p, nombre: e.target.value }))} placeholder="Juan" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Apellido</label>
+                  <input className="form-input" value={propNuevo.apellido} onChange={e => setPropNuevo(p => ({ ...p, apellido: e.target.value }))} placeholder="García" />
+                </div>
+                <div className="form-group form-full">
+                  <label className="form-label">Teléfono</label>
+                  <input className="form-input" value={propNuevo.telefono} onChange={e => setPropNuevo(p => ({ ...p, telefono: e.target.value }))} placeholder="11 1234-5678" />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -335,13 +379,8 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizacio
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {isAdmin && (
             <div className="form-group">
-              <label className="form-label">Precio de compra ($ ARS)</label>
-              <NumInput value={form.precioCompra} onChange={v => set('precioCompra', v)} placeholder="18.000.000" />
-              {margen && (
-                <span style={{ fontSize: 12, color: Number(margen) > 0 ? 'var(--success)' : 'var(--danger)', marginTop: 4, display: 'block' }}>
-                  Margen: {Number(margen) > 0 ? '+' : ''}{margen}%
-                </span>
-              )}
+              <label className="form-label">Ganancia pretendida del propietario ($ ARS)</label>
+              <NumInput value={form.gananciaPretendida} onChange={v => set('gananciaPretendida', v)} placeholder="500.000" />
             </div>
           )}
 
@@ -591,7 +630,7 @@ function PhotoCarousel({ fotos, compact = false, fillHeight = false, expandable 
 
 // ─── Página principal ─────────────────────────────────────────────────────────
 export default function AutosPage() {
-  const { autos, addAuto, updateAuto, deleteAuto, historialPrecios } = useApp()
+  const { autos, addAuto, updateAuto, deleteAuto, historialPrecios, propietarios, addPropietario, getPropietarioById } = useApp()
   const { isAdmin } = useAuth()
 
   const [search, setSearch]       = useState('')
@@ -639,8 +678,14 @@ export default function AutosPage() {
   function closeModal()   { setModalOpen(false); setEditing(null) }
 
   async function handleSubmit(data) {
-    if (editingAuto) await updateAuto(editingAuto.id, data)
-    else             await addAuto(data)
+    const { _nuevoPropietario, ...autoData } = data
+    let finalData = autoData
+    if (_nuevoPropietario) {
+      const p = await addPropietario(_nuevoPropietario)
+      finalData = { ...autoData, propietarioId: p.id }
+    }
+    if (editingAuto) await updateAuto(editingAuto.id, finalData)
+    else             await addAuto(finalData)
     closeModal()
   }
 
@@ -709,18 +754,13 @@ export default function AutosPage() {
                   <th className="hide-mobile">Año</th>
                   <th className="hide-mobile">Km</th>
                   <th className="hide-mobile">Combustible</th>
-                  {isAdmin && <th className="hide-mobile">Compra</th>}
                   <th>Precio</th>
-                  {isAdmin && <th className="hide-mobile">Margen</th>}
                   <th>Estado</th>
                   <th style={{ width: 80 }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(auto => {
-                  const margen = isAdmin && auto.precioCompra
-                    ? ((auto.precio - auto.precioCompra) / auto.precioCompra * 100).toFixed(1)
-                    : null
                   const thumb = thumbUrl(auto)
                   return (
                     <tr key={auto.id} onClick={() => setPreview(auto)} style={{ cursor: 'pointer' }}>
@@ -747,17 +787,7 @@ export default function AutosPage() {
                       <td className="hide-mobile">{auto.año}</td>
                       <td className="hide-mobile">{auto.kilometraje ? `${Number(auto.kilometraje).toLocaleString('es-AR')} km` : '—'}</td>
                       <td className="hide-mobile">{auto.combustible || '—'}</td>
-                      {isAdmin && <td className="hide-mobile">{auto.precioCompra ? formatCurrency(auto.precioCompra) : '—'}</td>}
                       <td style={{ fontWeight: 600 }}>{auto.precio ? formatCurrency(auto.precio) : '—'}</td>
-                      {isAdmin && (
-                        <td className="hide-mobile">
-                          {margen ? (
-                            <span style={{ color: Number(margen) > 0 ? 'var(--success)' : 'var(--danger)', fontWeight: 500, fontSize: 13 }}>
-                              {Number(margen) > 0 ? '+' : ''}{margen}%
-                            </span>
-                          ) : '—'}
-                        </td>
-                      )}
                       <td><AutoEstadoBadge estado={auto.estado} /></td>
                       <td onClick={e => e.stopPropagation()}>
                         <div className="flex gap-2">
@@ -799,9 +829,6 @@ export default function AutosPage() {
           gap: 16,
         }}>
           {filtered.map(auto => {
-            const margen = isAdmin && auto.precioCompra
-              ? ((auto.precio - auto.precioCompra) / auto.precioCompra * 100).toFixed(1)
-              : null
             const stats = [
               auto.kilometraje ? `${Number(auto.kilometraje).toLocaleString('es-AR')} km` : null,
               auto.año ? String(auto.año) : null,
@@ -885,12 +912,6 @@ export default function AutosPage() {
                   <div style={{ fontWeight: 800, fontSize: 22, color: '#fff', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
                     {auto.precio ? formatCurrency(auto.precio) : '—'}
                   </div>
-                  {isAdmin && margen && (
-                    <div style={{ fontSize: 11, fontWeight: 600, color: Number(margen) > 0 ? '#4ade80' : '#f87171', marginTop: -2 }}>
-                      {Number(margen) > 0 ? '+' : ''}{margen}% margen
-                    </div>
-                  )}
-
                   {/* Nombre vehículo */}
                   <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.78)', fontWeight: 500, textTransform: 'uppercase', lineHeight: 1.3 }}>
                     {auto.marca} {auto.modelo}
@@ -939,6 +960,7 @@ export default function AutosPage() {
           onCancel={closeModal}
           isAdmin={isAdmin}
           cotizaciones={cotizaciones}
+          propietarios={propietarios}
         />
       </Modal>
 
@@ -969,6 +991,8 @@ export default function AutosPage() {
           </div>
         )
 
+        const propietarioAuto = previewAuto.propietarioId ? getPropietarioById(previewAuto.propietarioId) : null
+
         const specs = [
           ['Tipo',        previewAuto.tipo],
           ['Año',         previewAuto.año],
@@ -983,9 +1007,11 @@ export default function AutosPage() {
           ['Color',       previewAuto.color],
           ['Patente',     previewAuto.patente],
           ['Estado',      <AutoEstadoBadge key="e" estado={previewAuto.estado} />],
-          isAdmin && previewAuto.precioCompra ? ['Precio compra', formatCurrency(previewAuto.precioCompra)] : null,
+          isAdmin && previewAuto.gananciaPretendida ? ['Gan. pretendida', formatCurrency(previewAuto.gananciaPretendida)] : null,
           ['Publicación', previewAuto.estadoPublicacion],
           ['Agregado',    formatDate(previewAuto.createdAt)],
+          isAdmin && propietarioAuto ? ['Propietario', `${propietarioAuto.apellido}, ${propietarioAuto.nombre}`] : null,
+          isAdmin && propietarioAuto?.telefono ? ['Tel. propietario', propietarioAuto.telefono] : null,
         ].filter(row => row && row[1])
 
         const historialAuto = historialPrecios.filter(h => h.autoId === previewAuto.id)
@@ -1041,8 +1067,7 @@ export default function AutosPage() {
         )
       })()}
 
-      <ConfirmDialog
-        open={!!deletingId}
+      <ConfirmDialog        open={!!deletingId}
         onClose={() => setDeleting(null)}
         onConfirm={() => deleteAuto(deletingId)}
         title="Eliminar vehículo"
