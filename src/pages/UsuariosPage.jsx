@@ -179,7 +179,7 @@ export default function UsuariosPage() {
         </div>
         <div className="flex items-center gap-2">
           <SearchBar value={search} onChange={setSearch} placeholder="Buscar usuario..." />
-          <button className="btn btn-primary" onClick={openAdd}>
+          <button className="btn btn-primary btn--icon-spin" onClick={openAdd}>
             <Plus size={16} /> Nuevo usuario
           </button>
         </div>
@@ -221,11 +221,11 @@ export default function UsuariosPage() {
                     <td><RolBadge rol={u.rol} /></td>
                     <td>
                       <div className="flex gap-2">
-                        <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(u)} title="Editar">
+                        <button className="btn btn-ghost btn-icon btn-sm btn--icon-wiggle" onClick={() => openEdit(u)} title="Editar">
                           <Pencil size={15} />
                         </button>
                         <button
-                          className="btn btn-ghost btn-icon btn-sm"
+                          className="btn btn-ghost btn-icon btn-sm btn--icon-shake"
                           onClick={() => setDel(u.id)}
                           style={{ color: 'var(--danger)' }}
                           title="Eliminar"

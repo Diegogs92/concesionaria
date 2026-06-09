@@ -163,14 +163,14 @@ export default function ReportesPage() {
 
         <div className="flex gap-2" style={{ justifyContent: 'flex-end', flexWrap: 'wrap' }}>
           {tipoReporte === 'ventas' && (
-            <button className="btn btn-primary" onClick={exportarPDF}>
+            <button className="btn btn-primary btn--icon-down" onClick={exportarPDF}>
               <Download size={16} /> Exportar PDF
             </button>
           )}
-          <button className="btn btn-secondary" onClick={exportarExcel}>
+          <button className="btn btn-secondary btn--icon-down" onClick={exportarExcel}>
             <Download size={16} /> Exportar Excel
           </button>
-          <button className="btn btn-secondary" onClick={exportarCSV}>
+          <button className="btn btn-secondary btn--icon-down" onClick={exportarCSV}>
             <Download size={16} /> Exportar CSV
           </button>
         </div>

@@ -134,7 +134,7 @@ export default function ClientesPage() {
 
         <div className="flex items-center gap-2">
           <SearchBar value={search} onChange={setSearch} placeholder="Buscar por nombre, DNI..." />
-          <button className="btn btn-primary" onClick={openAdd}>
+          <button className="btn btn-primary btn--icon-spin" onClick={openAdd}>
             <Plus size={16} /> Nuevo cliente
           </button>
         </div>
@@ -147,7 +147,7 @@ export default function ClientesPage() {
               <div className="empty-state-icon"><Users size={24} /></div>
               <strong>Sin clientes</strong>
               <p>Agregá tu primer cliente para empezar.</p>
-              <button className="btn btn-primary btn-sm" onClick={openAdd}>
+              <button className="btn btn-primary btn-sm btn--icon-spin" onClick={openAdd}>
                 <Plus size={14} /> Nuevo cliente
               </button>
             </div>
@@ -195,12 +195,12 @@ export default function ClientesPage() {
                         >
                           <WaIcon />
                         </a>
-                        <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(c)} title="Editar">
+                        <button className="btn btn-ghost btn-icon btn-sm btn--icon-wiggle" onClick={() => openEdit(c)} title="Editar">
                           <Pencil size={15} />
                         </button>
                         {isAdmin && (
                           <button
-                            className="btn btn-ghost btn-icon btn-sm"
+                            className="btn btn-ghost btn-icon btn-sm btn--icon-shake"
                             onClick={() => setDel(c.id)}
                             style={{ color: 'var(--danger)' }}
                             title="Eliminar"

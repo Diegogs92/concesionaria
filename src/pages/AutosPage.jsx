@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { formatCurrency, formatDate } from '../utils/helpers'
 import { AutoEstadoBadge } from '../components/ui/Badge'
 import Modal from '../components/ui/Modal'
+import StepBar from '../components/ui/StepBar'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import SearchBar from '../components/ui/SearchBar'
 import { supabase } from '../lib/supabase'
@@ -64,51 +65,6 @@ function ToggleGroup({ options, value, onChange }) {
   )
 }
 
-// ─── StepBar ──────────────────────────────────────────────────────────────────
-function StepBar({ step, steps, onStepClick }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24, gap: 0 }}>
-      {steps.map((label, i) => {
-        const n = i + 1
-        const done = n < step
-        const active = n === step
-        const clickable = onStepClick && n !== step
-        return (
-          <React.Fragment key={n}>
-            <div
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: clickable ? 'pointer' : 'default' }}
-              onClick={() => clickable && onStepClick(n)}
-            >
-              <div style={{
-                width: 32, height: 32, borderRadius: '50%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 13, fontWeight: 700,
-                background: done || active ? 'var(--accent)' : 'var(--bg-input)',
-                color: done || active ? '#ffffff' : 'var(--text-tertiary)',
-                border: active ? '2px solid var(--accent)' : '2px solid transparent',
-                boxShadow: active ? '0 0 0 3px var(--accent-light)' : 'none',
-                opacity: clickable ? 1 : undefined,
-                transition: 'opacity 0.15s',
-              }}>
-                {done ? '✓' : n}
-              </div>
-              <span style={{ fontSize: 11, color: active ? 'var(--accent)' : 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
-                {label}
-              </span>
-            </div>
-            {i < steps.length - 1 && (
-              <div style={{
-                flex: 1, height: 2, margin: '0 8px', marginBottom: 18,
-                background: done ? 'var(--primary)' : 'var(--divider)',
-              }} />
-            )}
-          </React.Fragment>
-        )
-      })}
-    </div>
-  )
-}
-
 // ─── Thumbnail con fallback a ícono ──────────────────────────────────────────
 function Thumbnail({ src }) {
   const [failed, setFailed] = useState(false)
@@ -143,6 +99,7 @@ function NumInput({ value, onChange, placeholder, className = 'form-input' }) {
     />
   )
 }
+
 
 // ─── Formulario multi-paso ────────────────────────────────────────────────────
 function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizaciones, propietarios = [] }) {
@@ -235,79 +192,88 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizacio
 
       {/* ── Paso 1 ── */}
       {step === 1 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div className="form-grid">
-            <div className="form-group form-full">
-              <label className="form-label">Tipo de vehículo</label>
-              <ToggleGroup options={['Auto', 'Moto']} value={form.tipo} onChange={v => set('tipo', v)} />
-            </div>
-            <div className="form-group form-full">
-              <label className="form-label">Estado de publicación</label>
-              <ToggleGroup options={['En venta', 'Novedad']} value={form.estadoPublicacion} onChange={v => set('estadoPublicacion', v)} />
-            </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+
+          {/* Tipo */}
+          <div className="form-group">
+            <label className="form-label">Tipo</label>
+            <ToggleGroup options={['Auto', 'Moto']} value={form.tipo} onChange={v => set('tipo', v)} />
           </div>
 
-          <div className="form-grid">
-            <div className="form-group">
-              <label className="form-label">Marca *</label>
-              <input className="form-input" value={form.marca} onChange={e => set('marca', e.target.value)} placeholder="Toyota" autoFocus style={{ textTransform: 'uppercase' }} />
-              {errors.marca && <span className="form-error">{errors.marca}</span>}
-            </div>
-            <div className="form-group">
-              <label className="form-label">Modelo *</label>
-              <input className="form-input" value={form.modelo} onChange={e => set('modelo', e.target.value)} placeholder="Corolla" style={{ textTransform: 'uppercase' }} />
-              {errors.modelo && <span className="form-error">{errors.modelo}</span>}
-            </div>
-            <div className="form-group">
-              <label className="form-label">Versión</label>
-              <input className="form-input" value={form.version} onChange={e => set('version', e.target.value)} placeholder="XEI CVT" style={{ textTransform: 'uppercase' }} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Año</label>
-              <select className="form-input form-select" value={form.año} onChange={e => set('año', e.target.value)}>
-                {AÑOS.map(a => <option key={a} value={a}>{a}</option>)}
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Color</label>
-              <input className="form-input" value={form.color} onChange={e => set('color', e.target.value)} placeholder="Blanco" style={{ textTransform: 'uppercase' }} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Patente</label>
-              <input className="form-input" value={form.patente} onChange={e => set('patente', e.target.value)} placeholder="AA123BB" style={{ textTransform: 'uppercase' }} />
-            </div>
-            <div className="form-group form-full">
-              <label className="form-label">Chasis / VIN</label>
-              <input className="form-input" value={form.chasis} onChange={e => set('chasis', e.target.value)} placeholder="9BWZZZ377VT004251" style={{ textTransform: 'uppercase' }} />
-            </div>
+          {/* Estado publicación */}
+          <div className="form-group">
+            <label className="form-label">Publicación</label>
+            <ToggleGroup options={['En venta', 'Novedad']} value={form.estadoPublicacion} onChange={v => set('estadoPublicacion', v)} />
           </div>
 
-          {/* ── Propietario ── */}
-          <div style={{ borderTop: '1px solid var(--divider)', paddingTop: 16 }}>
-            <label className="form-label" style={{ marginBottom: 10, display: 'block' }}>Propietario del vehículo</label>
+          {/* Marca */}
+          <div className="form-group">
+            <label className="form-label">Marca *</label>
+            <input className="form-input" value={form.marca} onChange={e => set('marca', e.target.value)} placeholder="Toyota" autoFocus style={{ textTransform: 'uppercase' }} />
+            {errors.marca && <span className="form-error">{errors.marca}</span>}
+          </div>
+
+          {/* Modelo */}
+          <div className="form-group">
+            <label className="form-label">Modelo *</label>
+            <input className="form-input" value={form.modelo} onChange={e => set('modelo', e.target.value)} placeholder="Corolla" style={{ textTransform: 'uppercase' }} />
+            {errors.modelo && <span className="form-error">{errors.modelo}</span>}
+          </div>
+
+          {/* Versión */}
+          <div className="form-group">
+            <label className="form-label">Versión</label>
+            <input className="form-input" value={form.version} onChange={e => set('version', e.target.value)} placeholder="XEI CVT" style={{ textTransform: 'uppercase' }} />
+          </div>
+
+          {/* Año */}
+          <div className="form-group">
+            <label className="form-label">Año</label>
+            <select className="form-input form-select" value={form.año} onChange={e => set('año', e.target.value)}>
+              {AÑOS.map(a => <option key={a} value={a}>{a}</option>)}
+            </select>
+          </div>
+
+          {/* Color */}
+          <div className="form-group">
+            <label className="form-label">Color</label>
+            <input className="form-input" value={form.color} onChange={e => set('color', e.target.value)} placeholder="Blanco" style={{ textTransform: 'uppercase' }} />
+          </div>
+
+          {/* Patente */}
+          <div className="form-group">
+            <label className="form-label">Patente</label>
+            <input className="form-input" value={form.patente} onChange={e => set('patente', e.target.value)} placeholder="AA123BB" style={{ textTransform: 'uppercase' }} />
+          </div>
+
+          {/* Chasis full width */}
+          <div className="form-group" style={{ gridColumn: 'span 2' }}>
+            <label className="form-label">Chasis / VIN</label>
+            <input className="form-input" value={form.chasis} onChange={e => set('chasis', e.target.value)} placeholder="9BWZZZ377VT004251" style={{ textTransform: 'uppercase' }} />
+          </div>
+
+          {/* Propietario full width */}
+          <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <label className="form-label">Propietario</label>
             <ToggleGroup
               options={['Sin propietario', 'Propietario existente', 'Nuevo propietario']}
               value={propModo === 'ninguno' ? 'Sin propietario' : propModo === 'existente' ? 'Propietario existente' : 'Nuevo propietario'}
               onChange={v => setPropModo(v === 'Sin propietario' ? 'ninguno' : v === 'Propietario existente' ? 'existente' : 'nuevo')}
             />
-
             {propModo === 'existente' && (
-              <div style={{ marginTop: 12 }}>
-                <select
-                  className="form-input form-select"
-                  value={form.propietarioId}
-                  onChange={e => set('propietarioId', e.target.value)}
-                >
-                  <option value="">— Seleccionar propietario —</option>
-                  {propietarios.map(p => (
-                    <option key={p.id} value={p.id}>{p.apellido}, {p.nombre} · {p.telefono}</option>
-                  ))}
-                </select>
-              </div>
+              <select
+                className="form-input form-select"
+                value={form.propietarioId}
+                onChange={e => set('propietarioId', e.target.value)}
+              >
+                <option value="">— Seleccionar propietario —</option>
+                {propietarios.map(p => (
+                  <option key={p.id} value={p.id}>{p.apellido}, {p.nombre} · {p.telefono}</option>
+                ))}
+              </select>
             )}
-
             {propModo === 'nuevo' && (
-              <div className="form-grid" style={{ marginTop: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 <div className="form-group">
                   <label className="form-label">Nombre</label>
                   <input className="form-input" value={propNuevo.nombre} onChange={e => setPropNuevo(p => ({ ...p, nombre: e.target.value }))} placeholder="Juan" />
@@ -316,19 +282,21 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizacio
                   <label className="form-label">Apellido</label>
                   <input className="form-input" value={propNuevo.apellido} onChange={e => setPropNuevo(p => ({ ...p, apellido: e.target.value }))} placeholder="García" />
                 </div>
-                <div className="form-group form-full">
+                <div className="form-group" style={{ gridColumn: 'span 2' }}>
                   <label className="form-label">Teléfono</label>
                   <input className="form-input" value={propNuevo.telefono} onChange={e => setPropNuevo(p => ({ ...p, telefono: e.target.value }))} placeholder="11 1234-5678" />
                 </div>
               </div>
             )}
           </div>
+
         </div>
       )}
 
       {/* ── Paso 2 ── */}
       {step === 2 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+
           <div className="form-group">
             <label className="form-label">Condición</label>
             <ToggleGroup options={['Usado', 'Nuevo']} value={form.condicion} onChange={v => set('condicion', v)} />
@@ -354,23 +322,24 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizacio
             <ToggleGroup options={PUERTAS} value={String(form.puertas)} onChange={v => set('puertas', v)} />
           </div>
 
-          <div className="form-grid">
-            <div className="form-group">
-              <label className="form-label">Carrocería</label>
-              <select className="form-input form-select" value={form.carroceria} onChange={e => set('carroceria', e.target.value)}>
-                <option value="">— Seleccionar —</option>
-                {CARROCERIAS.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Motor</label>
-              <input className="form-input" value={form.motor} onChange={e => set('motor', e.target.value)} placeholder="2.0 TSI 190cv" style={{ textTransform: 'uppercase' }} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Kilometraje</label>
-              <NumInput value={form.kilometraje} onChange={v => set('kilometraje', v)} placeholder="15.000" />
-            </div>
+          <div className="form-group">
+            <label className="form-label">Carrocería</label>
+            <select className="form-input form-select" value={form.carroceria} onChange={e => set('carroceria', e.target.value)}>
+              <option value="">— Seleccionar —</option>
+              {CARROCERIAS.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
           </div>
+
+          <div className="form-group">
+            <label className="form-label">Motor</label>
+            <input className="form-input" value={form.motor} onChange={e => set('motor', e.target.value)} placeholder="2.0 TSI 190cv" style={{ textTransform: 'uppercase' }} />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Kilometraje</label>
+            <NumInput value={form.kilometraje} onChange={v => set('kilometraje', v)} placeholder="15.000" />
+          </div>
+
         </div>
       )}
 
@@ -456,7 +425,7 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizacio
                     {i === 0 && (
                       <span style={{
                         position: 'absolute', bottom: 2, left: 2,
-                        fontSize: 10, background: 'var(--primary)', color: '#fff',
+                        fontSize: 10, background: 'var(--accent)', color: '#fff',
                         borderRadius: 4, padding: '1px 4px',
                       }}>
                         Principal
@@ -471,12 +440,15 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizacio
       )}
 
       {/* ── Navegación ── */}
-      <div className="modal-footer" style={{ paddingInline: 0, paddingBottom: 0, marginTop: 20 }}>
-        <button type="button" className="btn btn-secondary" onClick={step === 1 ? onCancel : prev}>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--divider)',
+      }}>
+        <button type="button" className={`btn btn-secondary${step === 1 ? '' : ' btn--icon-left'}`} onClick={step === 1 ? onCancel : prev}>
           {step === 1 ? 'Cancelar' : <><ChevronLeft size={16} /> Atrás</>}
         </button>
         {step < 3 ? (
-          <button type="button" className="btn btn-primary" onClick={next}>
+          <button type="button" className="btn btn-primary btn--icon-right" onClick={next}>
             Siguiente <ChevronRight size={16} />
           </button>
         ) : (
@@ -575,7 +547,6 @@ function PhotoCarousel({ fotos, compact = false, fillHeight = false, expandable 
           }}
           onClick={expandable ? () => setLightbox(true) : undefined}
         />
-        {/* spacer para que el div tenga altura cuando fillHeight */}
         {fillHeight && <div style={{ paddingTop: '66%' }} />}
         {fotos.length > 1 && (
           <>
@@ -594,7 +565,6 @@ function PhotoCarousel({ fotos, compact = false, fillHeight = false, expandable 
         )}
       </div>
 
-      {/* Lightbox */}
       {lightbox && (
         <div
           onClick={() => setLightbox(false)}
@@ -625,6 +595,31 @@ function PhotoCarousel({ fotos, compact = false, fillHeight = false, expandable 
         </div>
       )}
     </>
+  )
+}
+
+// ─── Grupo de specs en el preview ─────────────────────────────────────────────
+function SpecGroup({ label, items }) {
+  const visibles = items.filter(r => r && r[1] != null && r[1] !== '')
+  if (!visibles.length) return null
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{
+        fontSize: 10, fontWeight: 700, color: 'var(--text-tertiary)',
+        textTransform: 'uppercase', letterSpacing: '0.8px',
+        marginBottom: 6,
+      }}>
+        {label}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+        {visibles.map(([k, v]) => (
+          <div key={k} style={{ background: 'var(--bg-input)', borderRadius: 8, padding: '7px 10px' }}>
+            <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginBottom: 2 }}>{k}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, textTransform: typeof v === 'string' ? 'uppercase' : 'none' }}>{v}</div>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -727,7 +722,7 @@ export default function AutosPage() {
               <LayoutGrid size={16} />
             </button>
           </div>
-          <button className="btn btn-primary" onClick={openAdd}>
+          <button className="btn btn-primary btn--icon-spin" onClick={openAdd}>
             <Plus size={16} /> Agregar
           </button>
         </div>
@@ -739,7 +734,7 @@ export default function AutosPage() {
             <div className="empty-state-icon"><Car size={24} /></div>
             <strong>Sin resultados</strong>
             <p>No se encontraron vehículos con esos criterios.</p>
-            <button className="btn btn-primary btn-sm" onClick={openAdd}>
+            <button className="btn btn-primary btn-sm btn--icon-spin" onClick={openAdd}>
               <Plus size={14} /> Agregar el primero
             </button>
           </div>
@@ -794,7 +789,7 @@ export default function AutosPage() {
                           {isAdmin && (
                             <>
                               <button
-                                className="btn btn-ghost btn-icon btn-sm"
+                                className="btn btn-ghost btn-icon btn-sm btn--icon-wiggle"
                                 onClick={() => openEdit(auto)}
                                 title="Editar"
                                 disabled={auto.estado === 'vendido'}
@@ -802,7 +797,7 @@ export default function AutosPage() {
                                 <Pencil size={15} />
                               </button>
                               <button
-                                className="btn btn-ghost btn-icon btn-sm"
+                                className="btn btn-ghost btn-icon btn-sm btn--icon-shake"
                                 onClick={() => setDeleting(auto.id)}
                                 title="Eliminar"
                                 style={{ color: 'var(--danger)' }}
@@ -822,7 +817,6 @@ export default function AutosPage() {
           </div>
         </div>
       ) : (
-        /* ── Vista mosaico ── */
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
@@ -852,10 +846,8 @@ export default function AutosPage() {
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.22)' }}
                 onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.12)' }}
               >
-                {/* Fondo: carousel automático */}
                 <CardCarousel fotos={auto.fotos} />
 
-                {/* Badge top-left */}
                 <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 2 }}>
                   <div style={{
                     display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -870,14 +862,13 @@ export default function AutosPage() {
                   </div>
                 </div>
 
-                {/* Botones acción top-right */}
                 {isAdmin && (
                   <div
                     onClick={e => e.stopPropagation()}
                     style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, display: 'flex', gap: 6 }}
                   >
                     <button
-                      className="btn btn-ghost btn-icon btn-sm"
+                      className="btn btn-ghost btn-icon btn-sm btn--icon-wiggle"
                       onClick={() => openEdit(auto)}
                       disabled={auto.estado === 'vendido'}
                       style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)', color: '#fff', borderRadius: 8 }}
@@ -885,7 +876,7 @@ export default function AutosPage() {
                       <Pencil size={14} />
                     </button>
                     <button
-                      className="btn btn-ghost btn-icon btn-sm"
+                      className="btn btn-ghost btn-icon btn-sm btn--icon-shake"
                       onClick={() => setDeleting(auto.id)}
                       disabled={auto.estado === 'vendido'}
                       style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)', color: '#ff6b6b', borderRadius: 8 }}
@@ -895,24 +886,20 @@ export default function AutosPage() {
                   </div>
                 )}
 
-                {/* Gradiente oscuro */}
                 <div style={{
                   position: 'absolute', inset: 0, zIndex: 1,
                   background: 'linear-gradient(to top, rgba(0,0,0,0.93) 0%, rgba(0,0,0,0.55) 45%, transparent 72%)',
                   pointerEvents: 'none',
                 }} />
 
-                {/* Contenido sobre gradiente */}
                 <div style={{
                   position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 2,
                   padding: '0 16px 16px',
                   display: 'flex', flexDirection: 'column', gap: 5,
                 }}>
-                  {/* Precio */}
                   <div style={{ fontWeight: 800, fontSize: 22, color: '#fff', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
                     {auto.precio ? formatCurrency(auto.precio) : '—'}
                   </div>
-                  {/* Nombre vehículo */}
                   <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.78)', fontWeight: 500, textTransform: 'uppercase', lineHeight: 1.3 }}>
                     {auto.marca} {auto.modelo}
                     {auto.version && (
@@ -920,7 +907,6 @@ export default function AutosPage() {
                     )}
                   </div>
 
-                  {/* Stats con separadores */}
                   {stats.length > 0 && (
                     <div style={{ display: 'flex', alignItems: 'center', fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>
                       {stats.map((s, i) => (
@@ -934,7 +920,6 @@ export default function AutosPage() {
                     </div>
                   )}
 
-                  {/* Pie: condición + estado */}
                   <div style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     marginTop: 6, paddingTop: 8,
@@ -992,30 +977,50 @@ export default function AutosPage() {
         )
 
         const propietarioAuto = previewAuto.propietarioId ? getPropietarioById(previewAuto.propietarioId) : null
-
-        const specs = [
-          ['Tipo',        previewAuto.tipo],
-          ['Año',         previewAuto.año],
-          ['Condición',   previewAuto.condicion],
-          ['Kilometraje', previewAuto.kilometraje ? `${Number(previewAuto.kilometraje).toLocaleString('es-AR')} km` : null],
-          ['Combustible', previewAuto.combustible],
-          ['Transmisión', previewAuto.transmision],
-          ['Tracción',    previewAuto.traccion],
-          ['Carrocería',  previewAuto.carroceria],
-          ['Puertas',     previewAuto.puertas],
-          ['Motor',       previewAuto.motor],
-          ['Color',       previewAuto.color],
-          ['Patente',     previewAuto.patente],
-          ['Estado',      <AutoEstadoBadge key="e" estado={previewAuto.estado} />],
-          isAdmin && previewAuto.gananciaPretendida ? ['Gan. pretendida', formatCurrency(previewAuto.gananciaPretendida)] : null,
-          ['Publicación', previewAuto.estadoPublicacion],
-          ['Agregado',    formatDate(previewAuto.createdAt)],
-          isAdmin && propietarioAuto ? ['Propietario', `${propietarioAuto.apellido}, ${propietarioAuto.nombre}`] : null,
-          isAdmin && propietarioAuto?.telefono ? ['Tel. propietario', propietarioAuto.telefono] : null,
-        ].filter(row => row && row[1])
-
         const historialAuto = historialPrecios.filter(h => h.autoId === previewAuto.id)
           .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+
+        const specGroups = [
+          {
+            label: 'Identidad',
+            items: [
+              ['Año', previewAuto.año],
+              ['Condición', previewAuto.condicion],
+              ['Color', previewAuto.color],
+              ['Patente', previewAuto.patente],
+              ['Chasis', previewAuto.chasis],
+              ['Tipo', previewAuto.tipo],
+            ],
+          },
+          {
+            label: 'Mecánica',
+            items: [
+              ['Carrocería', previewAuto.carroceria],
+              ['Motor', previewAuto.motor],
+              ['Combustible', previewAuto.combustible],
+              ['Transmisión', previewAuto.transmision],
+              ['Tracción', previewAuto.traccion],
+              ['Puertas', previewAuto.puertas],
+              ['Kilometraje', previewAuto.kilometraje ? `${Number(previewAuto.kilometraje).toLocaleString('es-AR')} km` : null],
+            ],
+          },
+          {
+            label: 'Estado',
+            items: [
+              ['Estado', <AutoEstadoBadge key="e" estado={previewAuto.estado} />],
+              ['Publicación', previewAuto.estadoPublicacion],
+              ['Agregado', formatDate(previewAuto.createdAt)],
+            ],
+          },
+          ...(isAdmin && (previewAuto.gananciaPretendida || propietarioAuto) ? [{
+            label: 'Financiero',
+            items: [
+              previewAuto.gananciaPretendida ? ['Gan. pretendida', formatCurrency(previewAuto.gananciaPretendida)] : null,
+              propietarioAuto ? ['Propietario', `${propietarioAuto.apellido}, ${propietarioAuto.nombre}`] : null,
+              propietarioAuto?.telefono ? ['Teléfono', propietarioAuto.telefono] : null,
+            ].filter(Boolean),
+          }] : []),
+        ]
 
         return (
           <Modal open={!!previewAuto} onClose={() => setPreview(null)} title={previewTitle} size="xl" noScroll>
@@ -1052,13 +1057,10 @@ export default function AutosPage() {
                 )}
               </div>
 
-              {/* Derecha: especificaciones */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignContent: 'start' }}>
-                {specs.map(([k, v]) => (
-                  <div key={k} style={{ background: 'var(--bg-input)', borderRadius: 8, padding: '8px 12px' }}>
-                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 2 }}>{k}</div>
-                    <div style={{ fontSize: 13, fontWeight: 600, textTransform: typeof v === 'string' ? 'uppercase' : 'none' }}>{v}</div>
-                  </div>
+              {/* Derecha: specs agrupadas */}
+              <div style={{ overflowY: 'auto' }}>
+                {specGroups.map(group => (
+                  <SpecGroup key={group.label} label={group.label} items={group.items} />
                 ))}
               </div>
 
@@ -1067,7 +1069,8 @@ export default function AutosPage() {
         )
       })()}
 
-      <ConfirmDialog        open={!!deletingId}
+      <ConfirmDialog
+        open={!!deletingId}
         onClose={() => setDeleting(null)}
         onConfirm={() => deleteAuto(deletingId)}
         title="Eliminar vehículo"

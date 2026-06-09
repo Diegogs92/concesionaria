@@ -587,7 +587,7 @@ export default function FinanzasPage() {
             <option value="PAGO_PARCIAL">Pago parcial</option>
             <option value="PAGADA">Pagadas</option>
           </select>
-          <button className="btn btn-primary" onClick={openAdd}>
+          <button className="btn btn-primary btn--icon-spin" onClick={openAdd}>
             <Plus size={16} /> Agregar deuda
           </button>
           {dolarBlue && (
@@ -617,7 +617,7 @@ export default function FinanzasPage() {
               <div className="empty-state-icon"><CircleDollarSign size={24} /></div>
               <strong>Sin deudas registradas</strong>
               <p>Agregá la primera deuda para seguir su pago desde esta tabla.</p>
-              <button className="btn btn-primary btn-sm" onClick={openAdd}>
+              <button className="btn btn-primary btn-sm btn--icon-spin" onClick={openAdd}>
                 <Plus size={14} /> Agregar deuda
               </button>
             </div>
@@ -694,11 +694,11 @@ export default function FinanzasPage() {
                         </td>
                         <td>
                           <div className="flex gap-2">
-                            <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(deuda)} title="Editar deuda">
+                            <button className="btn btn-ghost btn-icon btn-sm btn--icon-wiggle" onClick={() => openEdit(deuda)} title="Editar deuda">
                               <Pencil size={15} />
                             </button>
                             <button
-                              className="btn btn-ghost btn-icon btn-sm"
+                              className="btn btn-ghost btn-icon btn-sm btn--icon-shake"
                               onClick={() => setDeleting(deuda)}
                               style={{ color: 'var(--danger)' }}
                               title="Eliminar deuda"
@@ -755,11 +755,11 @@ export default function FinanzasPage() {
                                         : arsConversionFormatter.format(p.monto)}
                                     </span>
                                     <div className="flex gap-2" style={{ marginLeft: 'auto' }}>
-                                      <button className="btn btn-ghost btn-icon btn-sm" title="Editar pago"
+                                      <button className="btn btn-ghost btn-icon btn-sm btn--icon-wiggle" title="Editar pago"
                                         onClick={() => setEditingPago({ id: p.id, deudaId: deuda.id, monto: String(p.monto), fecha: p.fecha || p.createdAt?.slice(0,10) })}>
                                         <Pencil size={13} />
                                       </button>
-                                      <button className="btn btn-ghost btn-icon btn-sm" title="Eliminar pago"
+                                      <button className="btn btn-ghost btn-icon btn-sm btn--icon-shake" title="Eliminar pago"
                                         style={{ color: 'var(--danger)' }}
                                         onClick={() => deleteDeudaPago(p.id, deuda.id)}>
                                         <Trash2 size={13} />

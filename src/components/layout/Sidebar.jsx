@@ -13,13 +13,13 @@ const ALL_ROLES = ['administrador', 'vendedor', 'desarrollador']
 const ADMIN_ROLES = ['administrador', 'desarrollador']
 
 const NAV_ITEMS = [
-  { to: '/',            label: 'Dashboard',  icon: BarChart2,     roles: ALL_ROLES },
-  { to: '/autos',       label: 'Vehículos',  icon: Car,           roles: ALL_ROLES },
-  { to: '/clientes',    label: 'Clientes',   icon: Users,         roles: ALL_ROLES },
-  { to: '/ventas',      label: 'Ventas',     icon: ShoppingBag,   roles: ALL_ROLES },
-  { to: '/finanzas',    label: 'Finanzas',   icon: Wallet,        roles: ADMIN_ROLES },
-  { to: '/reportes',    label: 'Reportes',   icon: FileBarChart,  roles: ADMIN_ROLES },
-  { to: '/usuarios',    label: 'Usuarios',   icon: UserCheck,     roles: ['desarrollador'] },
+  { to: '/',         id: 'dashboard', label: 'Dashboard',  icon: BarChart2,    roles: ALL_ROLES },
+  { to: '/autos',    id: 'autos',     label: 'Vehículos',  icon: Car,          roles: ALL_ROLES },
+  { to: '/clientes', id: 'clientes',  label: 'Clientes',   icon: Users,        roles: ALL_ROLES },
+  { to: '/ventas',   id: 'ventas',    label: 'Ventas',     icon: ShoppingBag,  roles: ALL_ROLES },
+  { to: '/finanzas', id: 'finanzas',  label: 'Finanzas',   icon: Wallet,       roles: ADMIN_ROLES },
+  { to: '/reportes', id: 'reportes',  label: 'Reportes',   icon: FileBarChart, roles: ADMIN_ROLES },
+  { to: '/usuarios', id: 'usuarios',  label: 'Usuarios',   icon: UserCheck,    roles: ['desarrollador'] },
 ]
 
 /**
@@ -77,11 +77,12 @@ export default function Sidebar({ isOpen, onClose }) {
       <nav className="sidebar-nav">
         <span className="sidebar-section-label">Menú</span>
 
-        {visibleItems.map(({ to, label, icon: Icon }) => (
+        {visibleItems.map(({ to, id, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
+            data-nav={id}
             onClick={handleNavClick}
             className={({ isActive }) =>
               `sidebar-link ${isActive ? 'active' : ''}`
@@ -108,7 +109,7 @@ export default function Sidebar({ isOpen, onClose }) {
           </div>
         </div>
 
-        <button className="sidebar-link" onClick={handleLogout}>
+        <button className="sidebar-link" data-nav="logout" onClick={handleLogout}>
           <LogOut size={18} />
           Cerrar sesión
         </button>

@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { formatCurrency, formatDate, today } from '../utils/helpers'
 import { TipoPagoBadge } from '../components/ui/Badge'
 import Modal from '../components/ui/Modal'
+import StepBar from '../components/ui/StepBar'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import SearchBar from '../components/ui/SearchBar'
 import { generateFacturaPDF } from '../utils/pdfGenerator'
@@ -14,12 +15,12 @@ function SummaryRow({ label, value, valueColor, bold }) {
   return (
     <div style={{
       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      padding: '10px 16px',
-      background: bold ? 'var(--bg-tertiary)' : 'var(--bg-modal)',
+      padding: '9px 14px',
+      background: bold ? 'var(--bg-tertiary)' : 'transparent',
       borderTop: bold ? '1px solid var(--border-color)' : 'none',
     }}>
-      <span style={{ fontSize: 13, color: bold ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: bold ? 700 : 400 }}>{label}</span>
-      <span style={{ fontSize: bold ? 16 : 13, fontWeight: bold ? 700 : 500, color: valueColor || 'var(--text-primary)' }}>{value}</span>
+      <span style={{ fontSize: 12, color: bold ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: bold ? 700 : 400 }}>{label}</span>
+      <span style={{ fontSize: bold ? 15 : 12, fontWeight: bold ? 700 : 500, color: valueColor || 'var(--text-primary)' }}>{value}</span>
     </div>
   )
 }
@@ -34,7 +35,9 @@ function UserAvatar({ user, size = 44 }) {
       </div>
 }
 
-// ─── Formulario de venta (wizard 6 pasos) ────────────────────────────────────
+const STEPS = ['Vendedor', 'Cliente', 'Vehículo', 'Precio', 'Resumen']
+
+// ─── Formulario de venta (wizard 5 pasos) ────────────────────────────────────
 function VentaForm({ onSubmit, onCancel }) {
   const { autos, clientes, addCliente } = useApp()
   const { usuarios, currentUser } = useAuth()
@@ -51,7 +54,6 @@ function VentaForm({ onSubmit, onCancel }) {
   const [savingNC, setSavingNC] = useState(false)
   const [nc, setNC] = useState({ nombre: '', apellido: '', dni: '', telefono: '' })
 
-  // Autos disponibles ordenados por marca
   const autosDisponibles = useMemo(() =>
     [...autos.filter(a => a.estado === 'disponible')]
       .sort((a, b) => a.marca.localeCompare(b.marca, 'es')),
@@ -66,7 +68,6 @@ function VentaForm({ onSubmit, onCancel }) {
     )
   }, [autosDisponibles, autoSearch])
 
-  // Clientes ordenados por apellido
   const clientesOrdenados = useMemo(() =>
     [...clientes].sort((a, b) => (a.apellido || '').localeCompare(b.apellido || '', 'es')),
     [clientes]
@@ -91,10 +92,9 @@ function VentaForm({ onSubmit, onCancel }) {
   const [comisionPct,   setComisionPct]     = useState('')
   const [comisionMonto, setComisionMonto]   = useState('')
   const [pagosATerceros, setPagosATerceros] = useState([])
-  const [transferencia, setTransferencia] = useState({ cargo: 'icy', monto: '' })
-  const [autoUsado, setAutoUsado] = useState({ activo: false, marca: '', modelo: '', año: '', km: '', valor: '' })
+  const [transferencia, setTransferencia]   = useState({ cargo: 'icy', monto: '' })
+  const [autoUsado, setAutoUsado]           = useState({ activo: false, marca: '', modelo: '', año: '', km: '', valor: '' })
 
-  // Cerrar auto-dropdown al click fuera
   useEffect(() => {
     function handleClick(e) {
       if (autoRef.current && !autoRef.current.contains(e.target)) setAutoOpen(false)
@@ -163,7 +163,6 @@ function VentaForm({ onSubmit, onCancel }) {
   const transferenciaNum     = transferencia.cargo === 'icy' ? Number(transferencia.monto) || 0 : 0
   const utilidad             = precioBase - gananciaPretendidaAuto - (Number(comisionMonto) || 0) - totalTerceros - transferenciaNum
 
-  // Navegación entre pasos
   function nextStep() {
     const e = {}
     if (step === 1 && !form.vendedorId)  e.vendedorId  = 'Seleccioná un vendedor'
@@ -175,7 +174,6 @@ function VentaForm({ onSubmit, onCancel }) {
     if (step === 4 && !form.precioFinal) e.precioFinal = 'Ingresá el precio de venta'
     if (Object.keys(e).length > 0) { setErrors(e); return }
     setErrors({})
-    // Pre-fill comisión al entrar al paso 5 solo si tiene comisión configurada
     if (step === 4 && comisionMonto === '') {
       const pct = vendedorSeleccionado?.comision ?? 0
       if (pct > 0) {
@@ -207,50 +205,17 @@ function VentaForm({ onSubmit, onCancel }) {
     }, autoSeleccionado)
   }
 
-  // Labels de pasos
-  const STEPS = ['Vendedor', 'Cliente', 'Vehículo', 'Precio', 'Comisión', 'Terceros', 'Utilidad']
-
-  // ── Indicador de pasos ────────────────────────────────────────────────────────
-  const stepIndicator = (
-    <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: 24 }}>
-      {STEPS.map((label, i) => {
-        const n = i + 1
-        const done   = n < step
-        const active = n === step
-        return (
-          <React.Fragment key={n}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flex: 1 }}>
-              <div style={{
-                width: 32, height: 32, borderRadius: '50%',
-                background: done ? 'var(--success)' : active ? 'var(--accent)' : 'var(--bg-tertiary)',
-                color: done || active ? '#fff' : 'var(--text-tertiary)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 12, fontWeight: 700, transition: 'all 0.2s',
-                boxShadow: active ? '0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent)' : 'none',
-              }}>
-                {done ? '✓' : n}
-              </div>
-              <span style={{ fontSize: 11, color: active ? 'var(--accent)' : 'var(--text-tertiary)', fontWeight: active ? 600 : 400, whiteSpace: 'nowrap' }}>
-                {label}
-              </span>
-            </div>
-            {i < STEPS.length - 1 && (
-              <div style={{ flex: 1, height: 2, background: done ? 'var(--success)' : 'var(--divider)', marginTop: 15, transition: 'background 0.3s', maxWidth: 32 }} />
-            )}
-          </React.Fragment>
-        )
-      })}
-    </div>
-  )
-
-  // ── Botones de navegación ─────────────────────────────────────────────────────
+  // ── Navegación ────────────────────────────────────────────────────────────────
   const nav = (
-    <div className="modal-footer" style={{ paddingInline: 0, paddingBottom: 0, marginTop: 20 }}>
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--divider)',
+    }}>
       {step > 1
         ? <button type="button" className="btn btn-secondary" onClick={prevStep}>← Atrás</button>
         : <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancelar</button>
       }
-      {step < 7
+      {step < 5
         ? <button type="button" className="btn btn-primary" onClick={nextStep}>Continuar →</button>
         : <button type="button" className="btn btn-primary" onClick={handleSubmit}>Registrar venta</button>
       }
@@ -259,7 +224,7 @@ function VentaForm({ onSubmit, onCancel }) {
 
   return (
     <div>
-      {stepIndicator}
+      <StepBar step={step} steps={STEPS} />
 
       {/* ═══════════════════════════════════════════════════════════════════════
           PASO 1 — Vendedor
@@ -309,7 +274,7 @@ function VentaForm({ onSubmit, onCancel }) {
                 <option value="">Seleccionar cliente existente...</option>
                 {clientesOrdenados.map(c => <option key={c.id} value={c.id}>{c.apellido}, {c.nombre} — {c.dni}</option>)}
               </select>
-              <button type="button" className="btn btn-secondary" onClick={() => setShowNC(true)}
+              <button type="button" className="btn btn-secondary btn--icon-spin" onClick={() => setShowNC(true)}
                 style={{ alignSelf: 'stretch', gap: 8, justifyContent: 'center', border: '2px dashed var(--accent)', color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 6%, transparent)' }}>
                 <UserPlus size={16} /> Nuevo cliente
               </button>
@@ -318,7 +283,7 @@ function VentaForm({ onSubmit, onCancel }) {
             <div style={{ background: 'var(--bg-tertiary)', borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', gap: 8, border: '1px solid var(--accent)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>Nuevo cliente</span>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setShowNC(false)} style={{ padding: '2px 8px', gap: 4, fontSize: 12 }}>
+                <button type="button" className="btn btn-ghost btn-sm btn--icon-spin" onClick={() => setShowNC(false)} style={{ padding: '2px 8px', gap: 4, fontSize: 12 }}>
                   <X size={12} /> Cancelar
                 </button>
               </div>
@@ -345,7 +310,6 @@ function VentaForm({ onSubmit, onCancel }) {
       {step === 3 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-          {/* Buscador de autos */}
           <div className="form-group">
             <label className="form-label">Vehículo *</label>
             <div ref={autoRef} style={{ position: 'relative' }}>
@@ -390,7 +354,6 @@ function VentaForm({ onSubmit, onCancel }) {
             {autosDisponibles.length === 0 && <span style={{ fontSize: 12, color: 'var(--warning)' }}>No hay autos disponibles.</span>}
           </div>
 
-          {/* Preview del auto seleccionado */}
           {autoSeleccionado && (
             <div style={{ display: 'flex', gap: 12, padding: 12, background: 'var(--bg-tertiary)', borderRadius: 10, border: '1px solid var(--border-color)' }}>
               {autoSeleccionado.fotos?.[0]
@@ -407,7 +370,6 @@ function VentaForm({ onSubmit, onCancel }) {
             </div>
           )}
 
-          {/* Fecha */}
           <div className="form-group">
             <label className="form-label">Fecha *</label>
             <input type="date" className={`form-input${errors.fecha ? ' input-error' : ''}`} value={form.fecha} onChange={e => set('fecha', e.target.value)} />
@@ -513,223 +475,194 @@ function VentaForm({ onSubmit, onCancel }) {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          PASO 5 — Comisión del vendedor
+          PASO 5 — Resumen: comisión + terceros + transferencia + utilidad live
       ════════════════════════════════════════════════════════════════════════ */}
       {step === 5 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {vendedorSeleccionado && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'var(--bg-tertiary)', borderRadius: 10 }}>
-              <UserAvatar user={vendedorSeleccionado} size={40} />
-              <div>
-                <div style={{ fontWeight: 600 }}>{vendedorSeleccionado.nombre}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>Comisión base: {vendedorSeleccionado.comision ?? 0}%</div>
-              </div>
-              {ganancia !== null && (
-                <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>Ganancia bruta</div>
-                  <div style={{ fontWeight: 700, color: ganancia >= 0 ? 'var(--success)' : 'var(--danger)' }}>{formatCurrency(ganancia)}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 3fr) minmax(0, 2fr)', gap: 20, alignItems: 'start' }}>
+
+          {/* Columna izquierda: inputs */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+            {/* Vendedor recap */}
+            {vendedorSeleccionado && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--bg-tertiary)', borderRadius: 10 }}>
+                <UserAvatar user={vendedorSeleccionado} size={36} />
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 13 }}>{vendedorSeleccionado.nombre}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>Comisión base: {vendedorSeleccionado.comision ?? 0}%</div>
                 </div>
-              )}
-            </div>
-          )}
-
-          <div className="form-grid">
-            <div className="form-group">
-              <label className="form-label">Porcentaje (%)</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <input type="text" inputMode="decimal" className="form-input" value={comisionPct}
-                  onChange={e => {
-                    const pct = e.target.value.replace(/[^0-9.]/g, '')
-                    setComisionPct(pct)
-                    const calc = ganancia != null ? Math.round(ganancia * (Number(pct) || 0) / 100) : 0
-                    setComisionMonto(String(calc))
-                  }}
-                  placeholder="0" />
-                <span style={{ color: 'var(--text-secondary)', fontSize: 14, fontWeight: 500, flexShrink: 0 }}>%</span>
+                {ganancia !== null && (
+                  <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+                    <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>Ganancia bruta</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: ganancia >= 0 ? 'var(--success)' : 'var(--danger)' }}>{formatCurrency(ganancia)}</div>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
 
-            <div className="form-group">
-              <label className="form-label">Monto</label>
-              <input type="text" inputMode="numeric" className="form-input"
-                value={comisionMonto !== '' ? formatCurrency(Number(comisionMonto)) : ''}
-                onChange={e => {
-                  const raw = e.target.value.replace(/\D/g, '')
-                  setComisionMonto(raw)
-                  const pct = ganancia && ganancia !== 0 ? ((Number(raw) || 0) / ganancia * 100).toFixed(2) : '0'
-                  setComisionPct(pct)
-                }}
-                placeholder="$ 0" />
-            </div>
-          </div>
-
-          <button type="button"
-            style={{ alignSelf: 'flex-start', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--text-tertiary)', padding: 0 }}
-            onClick={() => {
-              const pct = vendedorSeleccionado?.comision ?? 0
-              setComisionPct(String(pct))
-              setComisionMonto(String(comisionCalculada))
-            }}>
-            ↩ Restablecer ({vendedorSeleccionado?.comision ?? 0}% → {formatCurrency(comisionCalculada)})
-          </button>
-        </div>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════════════════
-          PASO 6 — Pagos a terceros
-      ════════════════════════════════════════════════════════════════════════ */}
-      {step === 6 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 14, margin: 0 }}>
-            Agregá los pagos a terceros involucrados en esta venta (opcional).
-          </p>
-
-          {pagosATerceros.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-tertiary)', fontSize: 13 }}>
-              Sin pagos a terceros registrados.
-            </div>
-          )}
-
-          {pagosATerceros.map(p => (
-            <div key={p.id} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <input className="form-input" placeholder="Descripción (ej: Gestoría)"
-                style={{ flex: 2 }}
-                value={p.descripcion}
-                onChange={e => updatePagoTercero(p.id, 'descripcion', e.target.value)} />
-              <input type="text" inputMode="numeric" className="form-input" placeholder="$ 0"
-                style={{ flex: 1, minWidth: 110 }}
-                value={p.monto !== '' ? formatCurrency(Number(p.monto)) : ''}
-                onChange={e => updatePagoTercero(p.id, 'monto', e.target.value.replace(/\D/g, ''))} />
-              <button type="button" className="btn btn-ghost btn-icon btn-sm"
-                style={{ color: 'var(--danger)', flexShrink: 0 }}
-                onClick={() => removePagoTercero(p.id)}>
-                <Trash2 size={15} />
+            {/* Comisión */}
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>Comisión vendedor</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ position: 'relative' }}>
+                    <input type="text" inputMode="decimal" className="form-input" value={comisionPct}
+                      onChange={e => {
+                        const pct = e.target.value.replace(/[^0-9.]/g, '')
+                        setComisionPct(pct)
+                        const calc = ganancia != null ? Math.round(ganancia * (Number(pct) || 0) / 100) : 0
+                        setComisionMonto(String(calc))
+                      }}
+                      placeholder="0"
+                      style={{ paddingRight: 28, textAlign: 'right' }} />
+                    <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: 'var(--text-tertiary)', pointerEvents: 'none' }}>%</span>
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 3, textAlign: 'center' }}>Porcentaje</div>
+                </div>
+                <div style={{ flex: 2 }}>
+                  <input type="text" inputMode="numeric" className="form-input"
+                    value={comisionMonto !== '' ? formatCurrency(Number(comisionMonto)) : ''}
+                    onChange={e => {
+                      const raw = e.target.value.replace(/\D/g, '')
+                      setComisionMonto(raw)
+                      const pct = ganancia && ganancia !== 0 ? ((Number(raw) || 0) / ganancia * 100).toFixed(2) : '0'
+                      setComisionPct(pct)
+                    }}
+                    placeholder="$ monto" />
+                  <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 3, textAlign: 'center' }}>Monto</div>
+                </div>
+              </div>
+              <button type="button"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--text-tertiary)', padding: 0, marginTop: 6 }}
+                onClick={() => {
+                  const pct = vendedorSeleccionado?.comision ?? 0
+                  setComisionPct(String(pct))
+                  setComisionMonto(String(comisionCalculada))
+                }}>
+                ↩ Restablecer ({vendedorSeleccionado?.comision ?? 0}% → {formatCurrency(comisionCalculada)})
               </button>
             </div>
-          ))}
 
-          <button type="button" className="btn btn-secondary btn-sm" onClick={addPagoTercero}
-            style={{ alignSelf: 'flex-start', gap: 6 }}>
-            <Plus size={14} /> Agregar pago
-          </button>
+            {/* Pagos a terceros */}
+            <div style={{ borderTop: '1px solid var(--divider)', paddingTop: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>Pagos a terceros</div>
 
-          {totalTerceros > 0 && (
-            <div style={{ textAlign: 'right', fontSize: 13, color: 'var(--text-secondary)', paddingTop: 4 }}>
-              Total terceros: <strong style={{ color: 'var(--text-primary)' }}>{formatCurrency(totalTerceros)}</strong>
-            </div>
-          )}
+              {pagosATerceros.length === 0 && (
+                <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 8 }}>Sin pagos registrados.</div>
+              )}
 
-          {/* Transferencia */}
-          <div style={{ borderTop: '1px solid var(--divider)', paddingTop: 14 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Transferencia</div>
-            <div style={{ display: 'flex', gap: 0, borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border-strong)', marginBottom: 10 }}>
-              {[['icy', 'A cargo de ICY'], ['comprador', 'A cargo del comprador']].map(([val, label], i) => {
-                const active = transferencia.cargo === val
-                return (
-                  <button key={val} type="button"
-                    onClick={() => setTransferencia(t => ({ ...t, cargo: val }))}
-                    style={{
-                      flex: 1, padding: '10px 8px', fontSize: 13,
-                      fontWeight: active ? 700 : 400,
-                      background: active ? 'var(--accent)' : 'var(--bg-input)',
-                      color: active ? '#fff' : 'var(--text-secondary)',
-                      border: 'none',
-                      borderRight: i === 0 ? '1px solid var(--border-strong)' : 'none',
-                      cursor: 'pointer', transition: 'all 0.15s',
-                    }}>
-                    {label}
+              {pagosATerceros.map(p => (
+                <div key={p.id} style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
+                  <input className="form-input" placeholder="Descripción (ej: Gestoría)"
+                    style={{ flex: 2, fontSize: 12 }}
+                    value={p.descripcion}
+                    onChange={e => updatePagoTercero(p.id, 'descripcion', e.target.value)} />
+                  <input type="text" inputMode="numeric" className="form-input" placeholder="$ 0"
+                    style={{ flex: 1, fontSize: 12, minWidth: 90 }}
+                    value={p.monto !== '' ? formatCurrency(Number(p.monto)) : ''}
+                    onChange={e => updatePagoTercero(p.id, 'monto', e.target.value.replace(/\D/g, ''))} />
+                  <button type="button" className="btn btn-ghost btn-icon btn-sm btn--icon-shake"
+                    style={{ color: 'var(--danger)', flexShrink: 0 }}
+                    onClick={() => removePagoTercero(p.id)}>
+                    <Trash2 size={13} />
                   </button>
-                )
-              })}
-            </div>
-            {transferencia.cargo === 'icy' && (
-              <input
-                type="text" inputMode="numeric" className="form-input"
-                placeholder="Monto transferencia $ 0"
-                value={transferencia.monto !== '' ? formatCurrency(Number(transferencia.monto)) : ''}
-                onChange={e => setTransferencia(t => ({ ...t, monto: e.target.value.replace(/\D/g, '') }))}
-              />
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════════════════
-          PASO 7 — Utilidad ICY (resumen final)
-      ════════════════════════════════════════════════════════════════════════ */}
-      {step === 7 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-          {/* Recap vehículo + vendedor */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div style={{ padding: '10px 14px', background: 'var(--bg-tertiary)', borderRadius: 10 }}>
-              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 6 }}>Vehículo</div>
-              {autoSeleccionado?.fotos?.[0] && (
-                <img src={autoSeleccionado.fotos[0]} alt="" style={{ width: '100%', height: 56, objectFit: 'cover', borderRadius: 6, marginBottom: 6 }} />
-              )}
-              <div style={{ fontSize: 13, fontWeight: 700 }}>{autoSeleccionado?.marca} {autoSeleccionado?.modelo}</div>
-              <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{autoSeleccionado?.año}</div>
-            </div>
-            <div style={{ padding: '10px 14px', background: 'var(--bg-tertiary)', borderRadius: 10 }}>
-              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 6 }}>Vendedor</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <UserAvatar user={vendedorSeleccionado} size={32} />
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>{vendedorSeleccionado?.nombre}</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)', textTransform: 'capitalize' }}>{vendedorSeleccionado?.rol}</div>
                 </div>
+              ))}
+
+              <button type="button" className="btn btn-secondary btn-sm btn--icon-spin" onClick={addPagoTercero}
+                style={{ gap: 4, fontSize: 12 }}>
+                <Plus size={12} /> Agregar pago
+              </button>
+            </div>
+
+            {/* Transferencia */}
+            <div style={{ borderTop: '1px solid var(--divider)', paddingTop: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>Transferencia</div>
+              <div style={{ display: 'flex', gap: 0, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border-strong)', marginBottom: 8 }}>
+                {[['icy', 'A cargo de ICY'], ['comprador', 'A cargo del comprador']].map(([val, label], i) => {
+                  const active = transferencia.cargo === val
+                  return (
+                    <button key={val} type="button"
+                      onClick={() => setTransferencia(t => ({ ...t, cargo: val }))}
+                      style={{
+                        flex: 1, padding: '9px 8px', fontSize: 12,
+                        fontWeight: active ? 700 : 400,
+                        background: active ? 'var(--accent)' : 'var(--bg-input)',
+                        color: active ? '#fff' : 'var(--text-secondary)',
+                        border: 'none',
+                        borderRight: i === 0 ? '1px solid var(--border-strong)' : 'none',
+                        cursor: 'pointer', transition: 'all 0.15s',
+                      }}>
+                      {label}
+                    </button>
+                  )
+                })}
               </div>
+              {transferencia.cargo === 'icy' && (
+                <input
+                  type="text" inputMode="numeric" className="form-input"
+                  placeholder="Monto transferencia $ 0"
+                  style={{ fontSize: 12 }}
+                  value={transferencia.monto !== '' ? formatCurrency(Number(transferencia.monto)) : ''}
+                  onChange={e => setTransferencia(t => ({ ...t, monto: e.target.value.replace(/\D/g, '') }))}
+                />
+              )}
             </div>
           </div>
 
-          {/* Auto usado entregado */}
-          {autoUsado.activo && (
-            <div style={{ padding: '10px 14px', background: 'var(--bg-tertiary)', borderRadius: 10, border: '1px solid var(--border-color)' }}>
-              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Auto entregado como parte de pago</div>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>{[autoUsado.marca, autoUsado.modelo, autoUsado.año].filter(Boolean).join(' ')}</div>
-              {autoUsado.km && <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{Number(autoUsado.km).toLocaleString('es-AR')} km</div>}
-              {autoUsado.valor > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-                  <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Valor acordado</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--info)' }}>{formatCurrency(Number(autoUsado.valor))}</span>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Columna derecha: resumen financiero live */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Resumen financiero</div>
 
-          {/* Desglose financiero */}
-          <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-            <SummaryRow label="Precio de venta" value={formatCurrency(precioBase)} />
-            {autoUsado.activo && autoUsado.valor > 0 && (
-              <SummaryRow label={`Auto usado (${[autoUsado.marca, autoUsado.modelo].filter(Boolean).join(' ')})`} value={`− ${formatCurrency(Number(autoUsado.valor))}`} valueColor="var(--info)" />
-            )}
-            {gananciaPretendidaAuto > 0 && (
+            <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border-color)', background: 'var(--bg-modal)' }}>
+              <SummaryRow label="Precio de venta" value={formatCurrency(precioBase)} />
+              {autoUsado.activo && Number(autoUsado.valor) > 0 && (
+                <SummaryRow
+                  label={[autoUsado.marca, autoUsado.modelo].filter(Boolean).join(' ') || 'Auto usado'}
+                  value={`− ${formatCurrency(Number(autoUsado.valor))}`}
+                  valueColor="var(--info)" />
+              )}
+              {gananciaPretendidaAuto > 0 && (
+                <SummaryRow label="Gan. propietario" value={`− ${formatCurrency(gananciaPretendidaAuto)}`} valueColor="var(--info)" />
+              )}
               <SummaryRow
-                label={`Ganancia propietario`}
-                value={`− ${formatCurrency(gananciaPretendidaAuto)}`}
-                valueColor="var(--info)" />
-            )}
-            <SummaryRow
-              label={`Comisión ${vendedorSeleccionado?.nombre ?? ''}`}
-              value={`− ${formatCurrency(Number(comisionMonto) || 0)}`}
-              valueColor="var(--warning)" />
-            {pagosATerceros.filter(p => p.descripcion.trim() && p.monto).map(p => (
-              <SummaryRow key={p.id}
-                label={p.descripcion}
-                value={`− ${formatCurrency(Number(p.monto))}`}
-                valueColor="var(--text-secondary)" />
-            ))}
-            {transferenciaNum > 0 && (
+                label={`Comisión ${vendedorSeleccionado?.nombre ?? ''}`}
+                value={`− ${formatCurrency(Number(comisionMonto) || 0)}`}
+                valueColor="var(--warning)" />
+              {pagosATerceros.filter(p => p.descripcion.trim() && p.monto).map(p => (
+                <SummaryRow key={p.id}
+                  label={p.descripcion}
+                  value={`− ${formatCurrency(Number(p.monto))}`}
+                  valueColor="var(--text-secondary)" />
+              ))}
+              {transferenciaNum > 0 && (
+                <SummaryRow label="Transferencia (ICY)" value={`− ${formatCurrency(transferenciaNum)}`} valueColor="var(--text-secondary)" />
+              )}
               <SummaryRow
-                label="Transferencia (ICY)"
-                value={`− ${formatCurrency(transferenciaNum)}`}
-                valueColor="var(--text-secondary)" />
+                label="Utilidad ICY"
+                value={formatCurrency(utilidad)}
+                valueColor={utilidad >= 0 ? 'var(--success)' : 'var(--danger)'}
+                bold />
+            </div>
+
+            {autoSeleccionado && (
+              <div style={{ padding: '10px 12px', background: 'var(--bg-tertiary)', borderRadius: 10, border: '1px solid var(--border-color)' }}>
+                <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginBottom: 6 }}>Vehículo</div>
+                {autoSeleccionado.fotos?.[0] && (
+                  <img src={autoSeleccionado.fotos[0]} alt="" style={{ width: '100%', height: 52, objectFit: 'cover', borderRadius: 6, marginBottom: 6 }} />
+                )}
+                <div style={{ fontSize: 12, fontWeight: 700 }}>{autoSeleccionado.marca} {autoSeleccionado.modelo}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{autoSeleccionado.año}{autoSeleccionado.version ? ` · ${autoSeleccionado.version}` : ''}</div>
+              </div>
             )}
-            <SummaryRow
-              label="Utilidad ICY"
-              value={formatCurrency(utilidad)}
-              valueColor={utilidad >= 0 ? 'var(--success)' : 'var(--danger)'}
-              bold />
+
+            {autoUsado.activo && (
+              <div style={{ padding: '10px 12px', background: 'var(--bg-tertiary)', borderRadius: 10, border: '1px solid var(--border-color)' }}>
+                <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginBottom: 4 }}>Auto entregado</div>
+                <div style={{ fontSize: 12, fontWeight: 600 }}>{[autoUsado.marca, autoUsado.modelo, autoUsado.año].filter(Boolean).join(' ') || '—'}</div>
+                {autoUsado.km && <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{Number(autoUsado.km).toLocaleString('es-AR')} km</div>}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -783,7 +716,7 @@ export default function VentasPage() {
 
         <div className="flex items-center gap-2">
           <SearchBar value={search} onChange={setSearch} placeholder="Buscar auto, cliente..." />
-          <button className="btn btn-primary" onClick={() => setModal(true)}>
+          <button className="btn btn-primary btn--icon-spin" onClick={() => setModal(true)}>
             <Plus size={16} /> Registrar venta
           </button>
         </div>
@@ -796,7 +729,7 @@ export default function VentasPage() {
               <div className="empty-state-icon"><ShoppingBag size={24} /></div>
               <strong>Sin ventas</strong>
               <p>Registrá tu primera venta cuando vendas un auto.</p>
-              <button className="btn btn-primary btn-sm" onClick={() => setModal(true)}>
+              <button className="btn btn-primary btn-sm btn--icon-spin" onClick={() => setModal(true)}>
                 <Plus size={14} /> Nueva venta
               </button>
             </div>
@@ -858,13 +791,13 @@ export default function VentasPage() {
                       </td>
                       <td>
                         <div className="flex gap-2">
-                          <button className="btn btn-ghost btn-icon btn-sm"
+                          <button className="btn btn-ghost btn-icon btn-sm btn--icon-down"
                             onClick={() => generateFacturaPDF(v, auto, cliente, getVendedorObj(v.vendedorId), getVehiculoEntregadoByVentaId(v.id)).catch(console.error)}
                             title="Descargar boleto de compraventa">
                             <FileText size={15} />
                           </button>
                           {isAdmin && (
-                            <button className="btn btn-ghost btn-icon btn-sm"
+                            <button className="btn btn-ghost btn-icon btn-sm btn--icon-shake"
                               onClick={() => setDel(v)}
                               style={{ color: 'var(--danger)' }}
                               title="Anular venta">
