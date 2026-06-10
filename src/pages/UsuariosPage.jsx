@@ -10,7 +10,7 @@ import { getInitials } from '../utils/helpers'
 
 const EMPTY_FORM = { nombre: '', username: '', password: '', rol: 'administrador', foto_url: '' }
 
-function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCancel }) {
+function UsuarioForm({ initial = EMPTY_FORM, passwordMode = 'none', onSubmit, onCancel }) {
   const [form, setForm]         = useState({ ...EMPTY_FORM, ...initial })
   const [errors, setErrors]     = useState({})
   const [showPass, setShowPass] = useState(false)
@@ -18,6 +18,10 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
   const [preview, setPreview]   = useState(initial.foto_url || '')
   const fileRef                 = useRef(null)
   const { usuarios }            = useAuth()
+
+  // 'self' = editás tu propio usuario → podés cambiar tu contraseña (self-service).
+  // 'none' = editás a otro → el reset se hace desde el panel de Supabase por ahora.
+  const canChangePassword = passwordMode === 'self'
 
   function set(field, value) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -35,7 +39,6 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
     const e = {}
     if (!form.nombre.trim())   e.nombre   = 'Requerido'
     if (!form.username.trim()) e.username  = 'Requerido'
-    if (!isEditing && !form.password.trim()) e.password = 'Requerido'
     const exists = usuarios.find(u => u.username === form.username.trim() && u.id !== initial.id)
     if (exists) e.username = 'Ese nombre de usuario ya existe'
     setErrors(e)
@@ -44,9 +47,9 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
 
   function handleSubmit() {
     if (!validate()) return
-    const data = { ...form }
-    if (isEditing && !form.password.trim()) delete data.password
-    onSubmit(data, fotoFile)
+    const data = { nombre: form.nombre.trim(), username: form.username.trim(), rol: form.rol }
+    const newPassword = canChangePassword ? form.password.trim() : ''
+    onSubmit(data, fotoFile, newPassword)
   }
 
   return (
@@ -90,27 +93,35 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
             {errors.username && <span className="form-error">{errors.username}</span>}
           </div>
 
-          <div className="form-group">
-            <label className="form-label">{isEditing ? 'Nueva contraseña (dejar vacío para no cambiar)' : 'Contraseña *'}</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type={showPass ? 'text' : 'password'}
-                className="form-input"
-                value={form.password}
-                onChange={e => set('password', e.target.value)}
-                placeholder={isEditing ? '(sin cambios)' : '••••••'}
-                style={{ paddingRight: 44 }}
-                autoComplete="new-password"
-              />
-              <button type="button" className="btn btn-ghost btn-icon"
-                onClick={() => setShowPass(s => !s)}
-                style={{ position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)', width: 32, height: 32 }}
-              >
-                {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
-              </button>
+          {canChangePassword ? (
+            <div className="form-group">
+              <label className="form-label">Nueva contraseña (dejar vacío para no cambiar)</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showPass ? 'text' : 'password'}
+                  className="form-input"
+                  value={form.password}
+                  onChange={e => set('password', e.target.value)}
+                  placeholder="(sin cambios)"
+                  style={{ paddingRight: 44 }}
+                  autoComplete="new-password"
+                />
+                <button type="button" className="btn btn-ghost btn-icon"
+                  onClick={() => setShowPass(s => !s)}
+                  style={{ position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)', width: 32, height: 32 }}
+                >
+                  {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
             </div>
-            {errors.password && <span className="form-error">{errors.password}</span>}
-          </div>
+          ) : (
+            <div className="form-group">
+              <label className="form-label">Contraseña</label>
+              <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: '6px 0 0' }}>
+                El reset de contraseña de otros usuarios se hace desde el panel de Supabase por ahora.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="form-group">
@@ -126,7 +137,7 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
       <div className="modal-footer" style={{ paddingInline: 0, paddingBottom: 0, marginTop: 16 }}>
         <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancelar</button>
         <button type="button" className="btn btn-primary" onClick={handleSubmit}>
-          {isEditing ? 'Guardar cambios' : 'Crear usuario'}
+          Guardar cambios
         </button>
       </div>
     </form>
@@ -134,12 +145,13 @@ function UsuarioForm({ initial = EMPTY_FORM, isEditing = false, onSubmit, onCanc
 }
 
 export default function UsuariosPage() {
-  const { usuarios, addUsuario, updateUsuario, deleteUsuario } = useAuth()
+  const { usuarios, updateUsuario, deleteUsuario, currentUser, changeOwnPassword } = useAuth()
 
   const [search, setSearch]   = useState('')
   const [modalOpen, setModal] = useState(false)
   const [editing, setEditing] = useState(null)
   const [deletingId, setDel]  = useState(null)
+  const [infoOpen, setInfoOpen] = useState(false)
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
@@ -148,21 +160,18 @@ export default function UsuariosPage() {
     )
   }, [usuarios, search])
 
-  function openAdd()    { setEditing(null); setModal(true) }
+  function openAdd()    { setInfoOpen(true) }
   function openEdit(u)  { setEditing(u); setModal(true) }
   function closeModal() { setModal(false); setEditing(null) }
 
-  async function handleSubmit(data, fotoFile) {
-    if (editing) {
-      let foto_url = editing.foto_url ?? ''
-      if (fotoFile) foto_url = await usuariosService.uploadFoto(editing.id, fotoFile)
-      await updateUsuario(editing.id, { ...data, foto_url })
-    } else {
-      const nuevo = await addUsuario({ ...data, foto_url: '' })
-      if (fotoFile) {
-        const foto_url = await usuariosService.uploadFoto(nuevo.id, fotoFile)
-        await updateUsuario(nuevo.id, { foto_url })
-      }
+  async function handleSubmit(data, fotoFile, newPassword) {
+    if (!editing) return
+    let foto_url = editing.foto_url ?? ''
+    if (fotoFile) foto_url = await usuariosService.uploadFoto(editing.id, fotoFile)
+    await updateUsuario(editing.id, { ...data, foto_url })
+    if (newPassword) {
+      const r = await changeOwnPassword(newPassword)
+      if (!r.ok) { alert('No se pudo cambiar la contraseña: ' + r.error); return }
     }
     closeModal()
   }
@@ -245,10 +254,22 @@ export default function UsuariosPage() {
       <Modal open={modalOpen} onClose={closeModal} title={editing ? 'Editar usuario' : 'Nuevo usuario'}>
         <UsuarioForm
           initial={editing ?? EMPTY_FORM}
-          isEditing={!!editing}
+          passwordMode={editing && currentUser && editing.id === currentUser.id ? 'self' : 'none'}
           onSubmit={handleSubmit}
           onCancel={closeModal}
         />
+      </Modal>
+
+      <Modal open={infoOpen} onClose={() => setInfoOpen(false)} title="Alta de usuarios">
+        <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+          Por ahora, las altas de usuarios se hacen desde el panel de Supabase
+          (<strong>Authentication → Add user</strong>), porque crear la identidad de
+          acceso requiere permisos de servidor. La gestión completa desde acá se
+          habilitará cuando montemos el backend del sitio público.
+        </p>
+        <div className="modal-footer" style={{ paddingInline: 0, paddingBottom: 0, marginTop: 16 }}>
+          <button className="btn btn-primary" onClick={() => setInfoOpen(false)}>Entendido</button>
+        </div>
       </Modal>
 
       <ConfirmDialog

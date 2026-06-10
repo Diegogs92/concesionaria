@@ -337,15 +337,18 @@ export const usuariosService = {
   },
 
   create: async (data) => {
+    // password ya no vive en la tabla (está en Supabase Auth). Nunca la escribimos.
+    const { password, ...clean } = data
     const { data: row, error } = await supabase
-      .from('usuarios').insert(data).select().single()
+      .from('usuarios').insert(clean).select().single()
     throwIfError(error, 'usuarios.create')
     return row
   },
 
   update: async (id, data) => {
+    const { password, ...clean } = data
     const { data: row, error } = await supabase
-      .from('usuarios').update(data).eq('id', id).select().single()
+      .from('usuarios').update(clean).eq('id', id).select().single()
     throwIfError(error, 'usuarios.update')
     return row
   },
@@ -359,6 +362,13 @@ export const usuariosService = {
     const { data, error } = await supabase
       .from('usuarios').select('*').eq('username', username).maybeSingle()
     throwIfError(error, 'usuarios.findByUsername')
+    return data
+  },
+
+  findByAuthId: async (authId) => {
+    const { data, error } = await supabase
+      .from('usuarios').select('*').eq('auth_id', authId).maybeSingle()
+    throwIfError(error, 'usuarios.findByAuthId')
     return data
   },
 

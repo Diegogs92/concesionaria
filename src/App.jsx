@@ -13,16 +13,30 @@ import FinanzasPage from './pages/FinanzasPage'
 import UsuariosPage from './pages/UsuariosPage'
 import ReportesPage from './pages/ReportesPage'
 
+// ─── Pantalla mientras se restaura la sesión de Supabase Auth ────────────────
+function AuthLoading() {
+  return (
+    <div style={{
+      minHeight: '100vh', display: 'grid', placeItems: 'center',
+      color: 'var(--text-secondary)', fontSize: 14,
+    }}>
+      Cargando…
+    </div>
+  )
+}
+
 // ─── Ruta protegida: redirige al login si no hay sesión ──────────────────────
 function PrivateRoute({ children }) {
-  const { currentUser } = useAuth()
+  const { currentUser, loading } = useAuth()
+  if (loading) return <AuthLoading />
   if (!currentUser) return <Navigate to="/login" replace />
   return <Layout>{children}</Layout>
 }
 
 // ─── Ruta para gerentes y developer ──────────────────────────────────────────
 function AdminRoute({ children }) {
-  const { currentUser, isAdmin, isDeveloper } = useAuth()
+  const { currentUser, loading, isAdmin, isDeveloper } = useAuth()
+  if (loading)                  return <AuthLoading />
   if (!currentUser)              return <Navigate to="/login" replace />
   if (!isAdmin && !isDeveloper) return <Navigate to="/" replace />
   return <Layout>{children}</Layout>
@@ -30,7 +44,8 @@ function AdminRoute({ children }) {
 
 // ─── Ruta solo para developer ─────────────────────────────────────────────────
 function DevRoute({ children }) {
-  const { currentUser, isDeveloper } = useAuth()
+  const { currentUser, loading, isDeveloper } = useAuth()
+  if (loading)       return <AuthLoading />
   if (!currentUser)  return <Navigate to="/login" replace />
   if (!isDeveloper)  return <Navigate to="/" replace />
   return <Layout>{children}</Layout>
@@ -38,7 +53,8 @@ function DevRoute({ children }) {
 
 // ─── Rutas públicas: redirige al dashboard si ya está logueado ───────────────
 function PublicRoute({ children }) {
-  const { currentUser } = useAuth()
+  const { currentUser, loading } = useAuth()
+  if (loading) return <AuthLoading />
   if (currentUser) return <Navigate to="/" replace />
   return children
 }

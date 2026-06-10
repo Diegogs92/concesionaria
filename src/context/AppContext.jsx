@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { today } from '../utils/helpers'
+import { useAuth } from './AuthContext'
 import {
   autosService,
   clientesService,
@@ -29,8 +30,24 @@ export function AppProvider({ children }) {
   const [loading,         setLoading]         = useState(true)
   const [error,           setError]           = useState(null)
 
-  // Cargar todos los datos al iniciar
+  const { currentUser } = useAuth()
+
+  // Cargar todos los datos cuando hay sesión activa.
+  // Con RLS, `anon` no puede leer nada: si no hay usuario, ni intentamos
+  // consultar (y limpiamos lo que hubiera, para no dejar datos tras logout).
   useEffect(() => {
+    if (!currentUser) {
+      setAutos([]); setClientes([]); setVentas([]); setVehiculosEntregados([])
+      setEgresos([]); setDeudas([]); setDeudaConceptos([]); setDeudaPagos([])
+      setHistorialPrecios([]); setPropietarios([])
+      setLoading(false)
+      return
+    }
+
+    let active = true
+    setLoading(true)
+    setError(null)
+
     async function cargarDatos() {
       try {
         const [a, c, v, ve, e, d, dc, dp, hp, pr] = await Promise.all([
@@ -45,6 +62,7 @@ export function AppProvider({ children }) {
           historialService.list(),
           propietariosService.list(),
         ])
+        if (!active) return
         setAutos(a)
         setClientes(c)
         setVentas(v)
@@ -56,14 +74,17 @@ export function AppProvider({ children }) {
         setHistorialPrecios(hp)
         setPropietarios(pr)
       } catch (err) {
+        if (!active) return
         setError('Error al conectar con la base de datos.')
         console.error(err)
       } finally {
-        setLoading(false)
+        if (active) setLoading(false)
       }
     }
+
     cargarDatos()
-  }, [])
+    return () => { active = false }
+  }, [currentUser?.id])
 
   // ===================== AUTOS =====================
 

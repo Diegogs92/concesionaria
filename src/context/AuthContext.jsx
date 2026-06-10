@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
+import { usernameToEmail } from '../lib/authEmail'
 import { usuariosService } from '../services/database'
 import { today } from '../utils/helpers'
 
@@ -6,46 +8,85 @@ const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [usuarios, setUsuarios] = useState([])
-  const [currentUser, setCurrentUser] = useState(() => {
-    const saved = sessionStorage.getItem('currentUser')
-    return saved ? JSON.parse(saved) : null
-  })
+  const [currentUser, setCurrentUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    usuariosService.list()
-      .then(setUsuarios)
-      .catch(console.error)
-  }, [])
-
-  async function login(username, password) {
-    try {
-      const user = await usuariosService.findByUsername(username.trim())
-
-      if (!user || user.password !== password) {
-        return { ok: false, error: 'Usuario o contraseña incorrectos.' }
-      }
-
-      setCurrentUser(user)
-      sessionStorage.setItem('currentUser', JSON.stringify(user))
-
-      return { ok: true }
-    } catch (error) {
-      console.error('Error al iniciar sesión:', error)
-      return {
-        ok: false,
-        error: error.message || 'No se pudo iniciar sesión.',
-      }
-    }
+  // Carga el perfil (tabla usuarios) a partir del id de Supabase Auth.
+  async function loadProfile(authUserId) {
+    const profile = await usuariosService.findByAuthId(authUserId)
+    setCurrentUser(profile)
+    return profile
   }
 
-  function logout() {
+  // Restaura la sesión al montar y escucha cambios de auth (login/logout/refresh).
+  useEffect(() => {
+    let active = true
+
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!active) return
+      if (session?.user) {
+        try { await loadProfile(session.user.id) } catch (e) { console.error(e) }
+      }
+      setLoading(false)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return
+      if (session?.user) {
+        loadProfile(session.user.id).catch(console.error)
+      } else {
+        setCurrentUser(null)
+      }
+    })
+
+    return () => { active = false; subscription.unsubscribe() }
+  }, [])
+
+  // La lista de usuarios (para UsuariosPage) solo tiene sentido con sesión activa.
+  useEffect(() => {
+    if (!currentUser) { setUsuarios([]); return }
+    usuariosService.list().then(setUsuarios).catch(console.error)
+  }, [currentUser?.id])
+
+  async function login(username, password) {
+    const email = usernameToEmail(username)
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+
+    if (error || !data?.user) {
+      return { ok: false, error: 'Usuario o contraseña incorrectos.' }
+    }
+
+    try {
+      const profile = await loadProfile(data.user.id)
+      if (!profile) {
+        await supabase.auth.signOut()
+        return { ok: false, error: 'Tu usuario no tiene un perfil asociado. Contactá al administrador.' }
+      }
+    } catch (e) {
+      console.error('Error al cargar el perfil:', e)
+      await supabase.auth.signOut()
+      return { ok: false, error: 'No se pudo cargar tu perfil. Intentá de nuevo.' }
+    }
+
+    return { ok: true }
+  }
+
+  async function logout() {
+    await supabase.auth.signOut()
     setCurrentUser(null)
-    sessionStorage.removeItem('currentUser')
   }
 
   function refreshCurrentUser(updatedUser) {
     setCurrentUser(updatedUser)
-    sessionStorage.setItem('currentUser', JSON.stringify(updatedUser))
+  }
+
+  // Cambio de contraseña propia (self-service vía Supabase Auth).
+  // El reset de OTROS usuarios necesita la admin API (server-side) y por ahora
+  // se hace desde el panel de Supabase.
+  async function changeOwnPassword(newPassword) {
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) return { ok: false, error: error.message }
+    return { ok: true }
   }
 
   async function addUsuario(data) {
@@ -73,6 +114,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         currentUser,
+        loading,
         isAdmin,
         isDeveloper,
         login,
@@ -83,6 +125,7 @@ export function AuthProvider({ children }) {
         updateUsuario,
         deleteUsuario,
         refreshCurrentUser,
+        changeOwnPassword,
       }}
     >
       {children}
