@@ -1,0 +1,163 @@
+/* ── Página de vehículo ─────────────────────────────────────────────────── */
+
+.page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 5vw, 64px) clamp(48px, 7vw, 80px);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: clamp(16px, 2.5vw, 28px) 0;
+}
+
+.brand { display: inline-flex; }
+
+.brandMark {
+  display: block;
+  height: clamp(38px, 4vw, 48px);
+  width: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.back {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink-2);
+  transition: color 0.2s var(--ease-out);
+}
+
+.back:hover { color: var(--ink); }
+
+/* ── Layout: galería + panel de compra ──────────────────────────────────── */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(24px, 4vw, 56px);
+  align-items: start;
+  margin-top: clamp(8px, 1.5vw, 16px);
+}
+
+.titulo {
+  margin: 0;
+  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.version {
+  margin: 6px 0 0;
+  font-size: 16px;
+  color: var(--ink-2);
+}
+
+.meta {
+  margin: 10px 0 0;
+  font-size: 15px;
+  color: var(--ink-3);
+}
+
+.precio {
+  margin: clamp(18px, 2.5vw, 26px) 0 0;
+  font-size: clamp(1.7rem, 2.8vw, 2.2rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 28px;
+  margin-top: 18px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 16px;
+  transition: background-color 0.25s var(--ease-out), transform 0.25s var(--ease-out);
+}
+
+.cta:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.cta:active { transform: scale(0.98); }
+
+.descripcion {
+  margin: clamp(20px, 3vw, 28px) 0 0;
+  line-height: 1.65;
+  color: var(--ink-2);
+  max-width: 58ch;
+  white-space: pre-line;
+}
+
+/* ── Ficha técnica ──────────────────────────────────────────────────────── */
+
+.ficha { margin-top: clamp(40px, 6vw, 72px); }
+
+.fichaTitulo {
+  margin: 0;
+  font-size: clamp(1.3rem, 2.2vw, 1.7rem);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+.grupos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: clamp(20px, 3vw, 36px);
+  margin-top: clamp(18px, 2.5vw, 28px);
+}
+
+.grupo {
+  background: var(--bg-0);
+  border: 1px solid rgba(28, 28, 30, 0.08);
+  border-radius: var(--radius);
+  padding: clamp(18px, 2.5vw, 26px);
+}
+
+.grupoTitulo {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.datos {
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.dato {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dato dt {
+  color: var(--ink-3);
+  font-size: 14px;
+}
+
+.dato dd {
+  margin: 0;
+  font-weight: 600;
+  font-size: 15px;
+  text-align: right;
+  text-transform: capitalize;
+}
+
+/* ── Mobile ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .cta { width: 100%; }
+}

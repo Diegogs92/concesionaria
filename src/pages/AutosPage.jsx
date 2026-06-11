@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react'
-import { Plus, Pencil, Trash2, Car, Clock, ChevronLeft, ChevronRight, Upload, X, LayoutGrid, List } from 'lucide-react'
+import { Plus, Pencil, Trash2, Car, Clock, ChevronLeft, ChevronRight, Upload, X, LayoutGrid, List, Globe } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import { formatCurrency, formatDate } from '../utils/helpers'
@@ -689,6 +689,11 @@ export default function AutosPage() {
     return null
   }
 
+  // Publica/despublica en la vitrina web (vista autos_publicos).
+  async function togglePublicado(auto) {
+    await updateAuto(auto.id, { publicado: !auto.publicado })
+  }
+
   return (
     <>
       <div className="page-header">
@@ -789,6 +794,15 @@ export default function AutosPage() {
                           {isAdmin && (
                             <>
                               <button
+                                className="btn btn-ghost btn-icon btn-sm"
+                                onClick={() => togglePublicado(auto)}
+                                title={auto.publicado ? 'Quitar de la web' : 'Publicar en la web'}
+                                disabled={auto.estado === 'vendido'}
+                                style={{ color: auto.publicado ? 'var(--success)' : 'var(--text-tertiary)' }}
+                              >
+                                <Globe size={15} />
+                              </button>
+                              <button
                                 className="btn btn-ghost btn-icon btn-sm btn--icon-wiggle"
                                 onClick={() => openEdit(auto)}
                                 title="Editar"
@@ -867,6 +881,15 @@ export default function AutosPage() {
                     onClick={e => e.stopPropagation()}
                     style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, display: 'flex', gap: 6 }}
                   >
+                    <button
+                      className="btn btn-ghost btn-icon btn-sm"
+                      onClick={() => togglePublicado(auto)}
+                      disabled={auto.estado === 'vendido'}
+                      title={auto.publicado ? 'Quitar de la web' : 'Publicar en la web'}
+                      style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)', color: auto.publicado ? '#4ade80' : 'rgba(255,255,255,0.65)', borderRadius: 8 }}
+                    >
+                      <Globe size={14} />
+                    </button>
                     <button
                       className="btn btn-ghost btn-icon btn-sm btn--icon-wiggle"
                       onClick={() => openEdit(auto)}
@@ -1009,6 +1032,7 @@ export default function AutosPage() {
             items: [
               ['Estado', <AutoEstadoBadge key="e" estado={previewAuto.estado} />],
               ['Publicación', previewAuto.estadoPublicacion],
+              ['En la web', previewAuto.publicado ? 'Publicado' : 'No publicado'],
               ['Agregado', formatDate(previewAuto.createdAt)],
             ],
           },

@@ -1,0 +1,193 @@
+/* ── Catálogo público ───────────────────────────────────────────────────── */
+
+.section {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: clamp(48px, 8vw, 96px) clamp(20px, 5vw, 64px);
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.count {
+  margin: 8px 0 0;
+  color: var(--ink-3);
+  font-size: 15px;
+  max-width: 56ch;
+}
+
+/* ── Filtro por tipo ────────────────────────────────────────────────────── */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.filter,
+.filterActive {
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background-color 0.2s var(--ease-out), color 0.2s var(--ease-out),
+    border-color 0.2s var(--ease-out);
+}
+
+.filter {
+  background: transparent;
+  border: 1.5px solid rgba(28, 28, 30, 0.18);
+  color: var(--ink-2);
+}
+
+.filterActive {
+  background: var(--ink);
+  border: 1.5px solid var(--ink);
+  color: #ffffff;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .filter:hover { border-color: var(--ink); color: var(--ink); }
+}
+
+/* ── Grilla de vehículos ────────────────────────────────────────────────── */
+
+.grid {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: clamp(16px, 2.5vw, 28px);
+}
+
+.card {
+  background: var(--bg-0);
+  border: 1px solid rgba(28, 28, 30, 0.08);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(28, 28, 30, 0.1);
+  }
+}
+
+.cardLink { display: block; }
+
+.media {
+  margin: 0;
+  aspect-ratio: 4 / 3;
+  background: var(--bg-2);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sinFoto {
+  color: var(--ink-3);
+  font-size: 14px;
+}
+
+.info { padding: 16px 18px 20px; }
+
+.cardTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.version {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.precio {
+  margin: 10px 0 0;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* Entrada sutil de las cards al scrollear (solo con soporte nativo) */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .card {
+      animation: cardIn linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 50%;
+    }
+  }
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(20px); }
+}
+
+/* ── Estado vacío / error ───────────────────────────────────────────────── */
+
+.empty {
+  margin-top: 32px;
+  padding: clamp(32px, 5vw, 56px);
+  background: var(--bg-0);
+  border: 1px solid rgba(28, 28, 30, 0.08);
+  border-radius: var(--radius);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  font-weight: 700;
+}
+
+.emptyText {
+  margin: 10px 0 0;
+  color: var(--ink-2);
+  line-height: 1.6;
+  max-width: 52ch;
+}
+
+.emptyCta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 50px;
+  padding: 0 26px;
+  margin-top: 24px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #ffffff;
+  font-weight: 600;
+  transition: background-color 0.25s var(--ease-out);
+}
+
+.emptyCta:hover { background: var(--accent-hover); }
