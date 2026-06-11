@@ -4,6 +4,7 @@ import { getAutoPublico } from '../../../lib/autos'
 import { formatKm, formatPrecio } from '../../../lib/format'
 import { waLink } from '../../../lib/site'
 import Gallery from '../../../components/vehicle/Gallery'
+import StickyBar from '../../../components/vehicle/StickyBar'
 import styles from './page.module.css'
 
 export const revalidate = 0
@@ -94,7 +95,7 @@ export default async function VehiculoPage({ params }) {
 
           <p className={styles.precio}>{formatPrecio(auto.precio)}</p>
 
-          <a href={waLink(mensaje)} className={styles.cta}>
+          <a id="cta-principal" href={waLink(mensaje)} className={styles.cta}>
             Consultar por WhatsApp
           </a>
 
@@ -122,6 +123,7 @@ export default async function VehiculoPage({ params }) {
           </div>
         </section>
       )}
+      <StickyBar titulo={titulo} precio={formatPrecio(auto.precio)} waUrl={waLink(mensaje)} />
     </main>
   )
 }

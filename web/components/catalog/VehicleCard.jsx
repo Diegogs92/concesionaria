@@ -9,7 +9,14 @@ export default function VehicleCard({ auto }) {
   return (
     <li className={styles.card}>
       <Link href={`/vehiculo/${auto.id}`} className={styles.cardLink}>
-        <CardCarousel fotos={auto.fotos} titulo={`${auto.marca} ${auto.modelo}`} />
+        <div className={styles.mediaWrap}>
+          <CardCarousel fotos={auto.fotos} titulo={`${auto.marca} ${auto.modelo}`} />
+          {auto.condicion && (
+            <span className={styles.badge} data-condicion={auto.condicion}>
+              {auto.condicion === 'Nuevo' ? '0 km' : auto.condicion}
+            </span>
+          )}
+        </div>
         <div className={styles.info}>
           <h3 className={styles.cardTitle}>
             {auto.marca} {auto.modelo}
