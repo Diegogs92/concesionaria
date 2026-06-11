@@ -24,9 +24,7 @@
 
 .slide[data-active="true"] { opacity: 1; }
 
-/* Transición de scale al hover (coordinada con Catalog.module.css) */
 @media (hover: hover) and (pointer: fine) {
-  .carousel:hover .slide[data-active="true"] { transform: scale(1.04); }
   .slide { transition: opacity 0.45s ease, transform 0.4s var(--ease-out); }
 }
 

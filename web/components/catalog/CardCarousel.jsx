@@ -1,35 +1,37 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import styles from './CardCarousel.module.css'
 
 export default function CardCarousel({ fotos, titulo }) {
   const [idx, setIdx] = useState(0)
   const timerRef = useRef(null)
+  const rootRef = useRef(null)
   const count = fotos.length
 
-  const start = useCallback(() => {
+  useEffect(() => {
     if (count < 2) return
-    clearInterval(timerRef.current)
-    timerRef.current = setInterval(() => {
-      setIdx(i => (i + 1) % count)
-    }, 2200)
-  }, [count])
+    const el = rootRef.current
+    if (!el) return
 
-  const stop = useCallback(() => {
-    clearInterval(timerRef.current)
-  }, [])
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        timerRef.current = setInterval(() => setIdx(i => (i + 1) % count), 2200)
+      } else {
+        clearInterval(timerRef.current)
+      }
+    }, { threshold: 0.25 })
+
+    obs.observe(el)
+    return () => { obs.disconnect(); clearInterval(timerRef.current) }
+  }, [count])
 
   if (!fotos[0]) {
     return <figure className={styles.carousel}><span className={styles.sinFoto}>Fotos en camino</span></figure>
   }
 
   return (
-    <figure
-      className={styles.carousel}
-      onMouseEnter={start}
-      onMouseLeave={stop}
-    >
+    <figure ref={rootRef} className={styles.carousel}>
       {fotos.map((src, i) => (
         <img
           key={src}
