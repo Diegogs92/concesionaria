@@ -6,7 +6,7 @@ import { waLink } from '../../../lib/site'
 import Gallery from '../../../components/vehicle/Gallery'
 import styles from './page.module.css'
 
-export const revalidate = 60
+export const revalidate = 0
 
 function tituloDe(auto) {
   return [auto.marca, auto.modelo, auto.anio].filter(Boolean).join(' ')
