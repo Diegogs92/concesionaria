@@ -1,9 +1,9 @@
 /* ── Footer ─────────────────────────────────────────────────────────────── */
 
 .footer {
-  border-top: 1px solid rgba(28, 28, 30, 0.1);
+  border-top: 1px solid rgba(var(--ink-rgb), 0.1);
   background: var(--bg-2);
-  padding: clamp(32px, 5vw, 56px) clamp(20px, 5vw, 64px) clamp(24px, 3vw, 36px);
+  padding: clamp(20px, 3vw, 32px) clamp(20px, 5vw, 64px) clamp(14px, 2vw, 20px);
 }
 
 .inner {
@@ -18,23 +18,32 @@
 
 .logo {
   display: block;
-  height: 44px;
+  height: 36px;
   width: auto;
   user-select: none;
   -webkit-user-drag: none;
 }
 
-.tagline {
-  margin: 12px 0 0;
-  color: var(--ink-2);
+.logoDark { display: none; }
+
+:global([data-theme='dark']) .logoLight { display: none; }
+:global([data-theme='dark']) .logoDark { display: block; }
+
+.address {
+  display: inline-block;
+  margin-top: 8px;
   font-size: 14px;
-  max-width: 36ch;
+  color: var(--ink-3);
+  transition: color 0.2s var(--ease-out);
 }
 
+.address:hover { color: var(--accent-hover); }
+
+/* En fila: mantiene los targets de 44px sin apilar altura */
 .links {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 0 clamp(16px, 3vw, 28px);
 }
 
 .links a {
@@ -51,7 +60,22 @@
 
 .legal {
   max-width: 1280px;
-  margin: clamp(28px, 4vw, 44px) auto 0;
+  margin: clamp(14px, 2vw, 22px) auto 0;
   color: var(--ink-3);
   font-size: 13px;
 }
+
+.credit {
+  margin: 10px 0 0;
+  text-align: center;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+.credit a {
+  font-weight: 600;
+  color: var(--ink-2);
+  transition: color 0.2s var(--ease-out);
+}
+
+.credit a:hover { color: var(--accent-hover); }

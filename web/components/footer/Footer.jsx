@@ -1,4 +1,4 @@
-import { INSTAGRAM_URL, waLink } from '../../lib/site'
+import { ADDRESS, INSTAGRAM_URL, MAPS_URL, waLink } from '../../lib/site'
 import styles from './Footer.module.css'
 
 export default function Footer() {
@@ -6,10 +6,16 @@ export default function Footer() {
     <footer className={styles.footer}>
       <div className={styles.inner}>
         <div className={styles.brand}>
-          <img src="/logo.webp" alt="ICY Automotores" className={styles.logo} draggable="false" />
-          <p className={styles.tagline}>
-            Stock real, precios publicados y datos verificados.
-          </p>
+          <img src="/logo.webp" alt="ICY Automotores" className={`${styles.logo} ${styles.logoLight}`} draggable="false" />
+          <img src="/logo-on-dark.webp" alt="ICY Automotores" className={`${styles.logo} ${styles.logoDark}`} draggable="false" />
+          <a
+            href={MAPS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.address}
+          >
+            {ADDRESS}
+          </a>
         </div>
 
         <nav className={styles.links} aria-label="Contacto">
@@ -21,6 +27,17 @@ export default function Footer() {
 
       <p className={styles.legal}>
         © {new Date().getFullYear()} ICY Automotores. Precios y disponibilidad sujetos a cambios sin previo aviso.
+      </p>
+
+      <p className={styles.credit}>
+        Desarrollado por{' '}
+        <a
+          href="https://wa.me/543815151163"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          DGS Solutions
+        </a>
       </p>
     </footer>
   )

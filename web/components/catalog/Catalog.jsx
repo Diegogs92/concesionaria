@@ -13,7 +13,8 @@ export default async function Catalog() {
   }
 
   return (
-    <section id="stock" className={styles.section}>
+    <section id="stock" className={styles.outer}>
+      <div className={styles.section}>
       <header className={styles.header}>
         <h2 className={styles.title}>Stock disponible</h2>
         {autos.length > 0 && (
@@ -49,6 +50,7 @@ export default async function Catalog() {
           </a>
         </div>
       )}
+      </div>
     </section>
   )
 }

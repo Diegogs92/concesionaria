@@ -5,10 +5,10 @@
   right: 0;
   z-index: 100;
   background: var(--bg-0);
-  border-top: 1px solid rgba(28, 28, 30, 0.1);
+  border-top: 1px solid rgba(var(--ink-rgb), 0.1);
   padding: 12px clamp(20px, 5vw, 64px);
   transform: translateY(100%);
-  box-shadow: 0 -8px 24px rgba(28, 28, 30, 0.08);
+  box-shadow: 0 -8px 24px rgba(var(--shadow-rgb), 0.14);
 }
 
 @media (prefers-reduced-motion: no-preference) {

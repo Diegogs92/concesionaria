@@ -5,6 +5,7 @@ import { formatKm, formatPrecio } from '../../../lib/format'
 import { waLink } from '../../../lib/site'
 import Gallery from '../../../components/vehicle/Gallery'
 import StickyBar from '../../../components/vehicle/StickyBar'
+import ThemeToggle from '../../../components/theme/ThemeToggle'
 import styles from './page.module.css'
 
 export const revalidate = 0
@@ -78,11 +79,15 @@ export default async function VehiculoPage({ params }) {
     <main className={styles.page}>
       <header className={styles.top}>
         <Link href="/" className={styles.brand} aria-label="ICY Automotores, inicio">
-          <img src="/logo.webp" alt="" className={styles.brandMark} draggable="false" />
+          <img src="/logo.webp" alt="" className={`${styles.brandMark} ${styles.brandLight}`} draggable="false" />
+          <img src="/logo-on-dark.webp" alt="" className={`${styles.brandMark} ${styles.brandDark}`} draggable="false" />
         </Link>
-        <Link href="/#stock" className={styles.back}>
-          Volver al stock
-        </Link>
+        <div className={styles.topActions}>
+          <ThemeToggle />
+          <Link href="/#stock" className={styles.back}>
+            Volver al stock
+          </Link>
+        </div>
       </header>
 
       <div className={styles.layout}>

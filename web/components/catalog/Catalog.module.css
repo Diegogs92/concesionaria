@@ -1,5 +1,12 @@
 /* ── Catálogo público ───────────────────────────────────────────────────── */
 
+/* Full-bleed: continúa el glow rojo del hero para que la transición
+   hero → stock no corte de golpe (mismo eje horizontal, 76%). */
+.outer {
+  background:
+    radial-gradient(1000px 480px at 76% -120px, rgba(229, 21, 21, 0.07), transparent 70%);
+}
+
 .section {
   max-width: 1280px;
   margin: 0 auto;
@@ -41,7 +48,7 @@
   height: 44px;
   padding: 0 14px;
   border-radius: var(--radius);
-  border: 1.5px solid rgba(28, 28, 30, 0.18);
+  border: 1.5px solid rgba(var(--ink-rgb), 0.18);
   background: transparent;
   color: var(--ink-2);
   font: inherit;
@@ -61,6 +68,11 @@
   .sort:hover { border-color: var(--ink); color: var(--ink); }
 }
 
+/* La flecha del select va incrustada como SVG: necesita su variante clara */
+:global([data-theme='dark']) .sort {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238e8e93' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
 .filter,
 .filterActive {
   min-height: 44px;
@@ -76,14 +88,14 @@
 
 .filter {
   background: transparent;
-  border: 1.5px solid rgba(28, 28, 30, 0.18);
+  border: 1.5px solid rgba(var(--ink-rgb), 0.18);
   color: var(--ink-2);
 }
 
 .filterActive {
   background: var(--ink);
   border: 1.5px solid var(--ink);
-  color: #ffffff;
+  color: var(--on-ink);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -103,7 +115,7 @@
 
 .card {
   background: var(--bg-0);
-  border: 1px solid rgba(28, 28, 30, 0.08);
+  border: 1px solid rgba(var(--ink-rgb), 0.08);
   border-radius: var(--radius);
   overflow: hidden;
   transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
@@ -142,7 +154,7 @@
 @media (hover: hover) and (pointer: fine) {
   .card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 12px 32px rgba(28, 28, 30, 0.1);
+    box-shadow: 0 12px 32px rgba(var(--shadow-rgb), 0.18);
   }
 }
 
@@ -222,7 +234,7 @@
   margin-top: 32px;
   padding: clamp(32px, 5vw, 56px);
   background: var(--bg-0);
-  border: 1px solid rgba(28, 28, 30, 0.08);
+  border: 1px solid rgba(var(--ink-rgb), 0.08);
   border-radius: var(--radius);
 }
 
