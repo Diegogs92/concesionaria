@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react'
-import { Plus, Pencil, Trash2, Car, Clock, ChevronLeft, ChevronRight, Upload, X, LayoutGrid, List, Globe } from 'lucide-react'
+import { Plus, Pencil, Trash2, Car, Clock, ChevronLeft, ChevronRight, Upload, X, LayoutGrid, List, Globe, Download } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import { formatCurrency, formatDate } from '../utils/helpers'
@@ -1082,10 +1082,38 @@ export default function AutosPage() {
               </div>
 
               {/* Derecha: specs agrupadas */}
-              <div style={{ overflowY: 'auto' }}>
+              <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 0 }}>
                 {specGroups.map(group => (
                   <SpecGroup key={group.label} label={group.label} items={group.items} />
                 ))}
+
+                {isAdmin && previewAuto.publicado && (
+                  <div style={{ marginTop: 16, padding: '12px 0 4px' }}>
+                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                      Imagen social
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {['post', 'story'].map(tipo => {
+                        const WEB = import.meta.env.VITE_WEB_URL || 'http://localhost:3000'
+                        const href = `${WEB}/api/imagen-social?id=${previewAuto.id}&tipo=${tipo}`
+                        return (
+                          <a
+                            key={tipo}
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                            className="btn btn-ghost btn-sm"
+                            style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}
+                          >
+                            <Download size={13} />
+                            {tipo === 'post' ? 'Post (1080×1080)' : 'Story (1080×1920)'}
+                          </a>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
             </div>
