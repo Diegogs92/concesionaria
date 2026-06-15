@@ -1,5 +1,6 @@
 import { Archivo } from 'next/font/google'
 import Footer from '../components/footer/Footer'
+import AnimatedFavicon from '../components/AnimatedFavicon'
 import { SITE_URL } from '../lib/site'
 import './globals.css'
 
@@ -23,17 +24,14 @@ export const metadata = {
   },
 }
 
-// Se ejecuta antes del primer paint: lee la preferencia guardada (o la del
-// sistema) y marca <html data-theme> para que no haya flash de tema.
-const themeInit = `(function(){try{var t=localStorage.getItem('icy-theme');if(t!=='dark'&&t!=='light'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}document.documentElement.setAttribute('data-theme',t)}catch(e){document.documentElement.setAttribute('data-theme','light')}})()`
-
+// El sitio es de tema único oscuro: combina con el hero (estacionamiento a
+// oscuras) y con el efecto de encendido de faros. Se fija data-theme="dark"
+// estático, sin selector ni detección de preferencia.
 export default function RootLayout({ children }) {
   return (
-    <html lang="es-AR" className={archivo.variable} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInit }} />
-      </head>
+    <html lang="es-AR" data-theme="dark" className={archivo.variable}>
       <body>
+        <AnimatedFavicon />
         {children}
         <Footer />
       </body>

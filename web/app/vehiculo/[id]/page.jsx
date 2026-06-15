@@ -5,7 +5,6 @@ import { formatKm, formatPrecio } from '../../../lib/format'
 import { waLink } from '../../../lib/site'
 import Gallery from '../../../components/vehicle/Gallery'
 import StickyBar from '../../../components/vehicle/StickyBar'
-import ThemeToggle from '../../../components/theme/ThemeToggle'
 import styles from './page.module.css'
 
 export const revalidate = 0
@@ -83,7 +82,6 @@ export default async function VehiculoPage({ params }) {
           <img src="/logo-on-dark.webp" alt="" className={`${styles.brandMark} ${styles.brandDark}`} draggable="false" />
         </Link>
         <div className={styles.topActions}>
-          <ThemeToggle />
           <Link href="/#stock" className={styles.back}>
             Volver al stock
           </Link>

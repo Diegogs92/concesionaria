@@ -1,4 +1,8 @@
-/* ── Hero: vidriera ICY (paleta del sistema interno) ────────────────────── */
+/* ── Hero: faros que se encienden ───────────────────────────────────────────
+   Siempre oscuro (#050505), independiente del tema del sitio: un
+   estacionamiento con las luces apagadas. El efecto de encendido de faros
+   (mix-blend screen) solo se lee sobre fondo oscuro, así que el hero no sigue
+   el tema. Texto claro fijo; el rojo de marca queda para CTAs y acentos. */
 
 .hero {
   position: relative;
@@ -6,10 +10,14 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* Misma base que el catálogo (--bg-1) para que el cruce hero → stock no
+     tenga escalón; encima, el glow rojo de marca (eje 76%) que el catálogo
+     continúa hacia abajo en el mismo 76%. */
   background:
     radial-gradient(900px 520px at 76% 70%, rgba(229, 21, 21, 0.1), transparent 70%),
     radial-gradient(620px 320px at 14% 10%, rgba(229, 21, 21, 0.045), transparent 70%),
     var(--bg-1);
+  color: #f2f2f7;
 }
 
 /* ── Barra superior ─────────────────────────────────────────────────────── */
@@ -39,17 +47,11 @@
   -webkit-user-drag: none;
 }
 
-/* Variante de logo según tema */
-.logoDark { display: none; }
-
-:global([data-theme='dark']) .logoLight { display: none; }
-:global([data-theme='dark']) .logoDark { display: block; }
-
 .logoWord {
   font-weight: 500;
   font-size: clamp(10px, 1.1vw, 13px);
   letter-spacing: 0.34em;
-  color: var(--ink-3);
+  color: rgba(242, 242, 247, 0.6);
 }
 
 .nav {
@@ -76,9 +78,9 @@
   transition: background-color 0.25s var(--ease-out);
 }
 
-.navCta:hover { background: var(--accent-hover); }
+.navCta:hover { background: #ff4d4d; }
 
-/* ── Layout: copy izquierda, vidriera derecha ───────────────────────────── */
+/* ── Layout: copy izquierda, auto a oscuras derecha ─────────────────────── */
 
 .layout {
   flex: 1;
@@ -100,7 +102,7 @@
   margin: 0 0 18px;
   font-size: clamp(13px, 1.3vw, 15px);
   font-weight: 600;
-  color: var(--accent-hover);
+  color: #ff4d4d;
 }
 
 /* Punto "en vivo": el stock se actualiza en tiempo real */
@@ -131,10 +133,17 @@
   letter-spacing: -0.025em;
 }
 
+/* Primera línea del titular: el sustantivo que rota (auto/moto). Se funde al
+   cambiar de vehículo, en sincronía con la escena. */
+.lead {
+  display: inline-block;
+  transition: opacity 0.36s var(--ease-out), transform 0.36s var(--ease-out);
+}
+
 .accent {
   position: relative;
   font-style: italic;
-  color: var(--accent-hover);
+  color: #ff4d4d;
 }
 
 /* Subrayado que se "dibuja" al entrar (estático con motion reducido) */
@@ -154,7 +163,7 @@
   margin: clamp(18px, 2.5vw, 26px) 0 0;
   font-size: clamp(16px, 1.6vw, 19px);
   line-height: 1.55;
-  color: var(--ink-2);
+  color: rgba(242, 242, 247, 0.78);
   max-width: 46ch;
 }
 
@@ -182,119 +191,125 @@
   color: #ffffff;
 }
 
-.btnPrimary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.btnPrimary:hover { background: #ff4d4d; transform: translateY(-1px); }
 .btnPrimary:active { transform: scale(0.98); }
 
 .btnGhost {
-  border: 1.5px solid rgba(var(--ink-rgb), 0.25);
-  color: var(--ink);
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  color: #f2f2f7;
 }
 
-.btnGhost:hover { border-color: var(--accent); color: var(--accent-hover); }
+.btnGhost:hover { border-color: var(--accent); color: #ff4d4d; }
 .btnGhost:active { transform: scale(0.98); }
 
-/* ── Vidriera: tres planos de profundidad ───────────────────────────────── */
+/* ── Escena: auto sumergido en la oscuridad ─────────────────────────────── */
 
-.stage {
+.scene {
   position: relative;
-  height: clamp(320px, 52vh, 560px);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
   min-width: 0;
 }
 
-.watermark {
+/* Marco con el aspect del cutout (1474x857, fondo transparente): coincide
+   con el bounding box del auto, así las coordenadas en % de las luces
+   quedan ancladas a los faros en cualquier tamaño. */
+.carFrame {
+  position: relative;
+  width: min(100%, var(--frame-w, 620px));
+  aspect-ratio: var(--frame-ratio, 1474 / 857);
+}
+
+/* Capa que envuelve al vehículo: se funde al rotar (el stage no). Separada
+   del marco para no interferir con la opacity que maneja la física de entrada. */
+.fade {
   position: absolute;
-  top: 4%;
-  right: -3%;
-  font-size: clamp(130px, 16vw, 270px);
-  font-weight: 900;
-  line-height: 0.8;
-  letter-spacing: -0.04em;
-  color: transparent;
-  -webkit-text-stroke: 1.5px rgba(229, 21, 21, 0.16);
-  user-select: none;
+  inset: 0;
+  transition: opacity 0.36s ease;
 }
 
-/* Cada plano ocupa todo el escenario; el parallax mueve el plano entero,
-   así el vehículo nunca se despega de su línea de horizonte. */
-.layer { position: absolute; inset: 0; }
-
-.layerBack { opacity: 0.55; --parallax: 84px; }
-.layerMid  { opacity: 0.85; --parallax: 46px; }
-.layerFront { --parallax: 16px; }
-
-.roadBack,
-.roadMid,
-.roadFront {
-  position: absolute;
-  height: 1px;
-  background: rgba(var(--ink-rgb), 0.16);
+/* Estado apagado: silueta oscura sobre el negro del hero. El encendido
+   (600ms) es más rápido que el apagado (900ms): prender es un click,
+   apagarse es un fundido. */
+.carImg {
+  object-fit: contain;
+  filter: brightness(0.5);
+  transition: filter 0.9s ease;
 }
 
-.roadBack  { left: -4%; right: 34%; bottom: 56%; }
-.roadMid   { left: 26%; right: -6%; bottom: 27%; background: rgba(var(--ink-rgb), 0.2); }
-.roadFront {
-  left: -8%; right: 10%; bottom: 2%;
-  height: 2px;
-  border-radius: 1px;
-  background: rgba(var(--ink-rgb), 0.28);
+/* La carrocería apenas se insinúa más al encender (derrame de luz),
+   pero el protagonismo es de los faros */
+.lit .carImg {
+  filter: brightness(0.72);
+  transition: filter 0.6s var(--ease-out);
 }
 
-/* Vehículos: solo transform y opacity */
-.veh { position: absolute; }
-
-.veh img {
-  display: block;
-  width: 100%;
-  height: auto;
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
-.flip { transform: scaleX(-1); }
-
-.vehMoto  { left: 8%;  bottom: 56%; width: min(130px, 12vw); }
-.vehSedan { right: 0;  bottom: 27%; width: min(320px, 27vw); }
-.vehSuv   { left: 1%;  bottom: 2%;  width: min(430px, 36vw); }
-
-/* ── Streaks: líneas de velocidad que cruzan la vidriera ────────────────── */
-/* Invisibles por defecto; solo cobran vida con motion habilitado. */
-
-.streak {
-  position: absolute;
-  left: 102%;
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, transparent, rgba(var(--ink-rgb), 0.22));
+/* Faros encendidos: overlay de la misma imagen con solo las lentes
+   intensificadas + bloom. Alineación píxel a píxel: la luz nace del faro,
+   no de un halo pintado encima. Solo se anima opacity. */
+.lightsImg {
+  object-fit: contain;
+  mix-blend-mode: screen;
   opacity: 0;
+  transition: opacity 0.9s ease;
   pointer-events: none;
 }
 
-.streakRed {
-  background: linear-gradient(90deg, transparent, rgba(229, 21, 21, 0.45));
+.lit .lightsImg {
+  opacity: 1;
+  transition: opacity 0.6s var(--ease-out);
 }
 
-.streakB1 { bottom: 63%; width: 150px; --dur: 5.2s; --delay: 0.8s; --peak: 0.55; }
-.streakB2 { bottom: 71%; width: 90px;  --dur: 6.4s; --delay: 3s;   --peak: 0.5; }
-.streakM1 { bottom: 33%; width: 200px; --dur: 4.2s; --delay: 0s;   --peak: 0.7; }
-.streakM2 { bottom: 41%; width: 120px; --dur: 5.6s; --delay: 2.2s; --peak: 0.6; }
-.streakF1 { bottom: 8%;  width: 260px; --dur: 3.4s; --delay: 1.2s; --peak: 0.85; }
-.streakF2 { bottom: 16%; width: 140px; --dur: 4.8s; --delay: 2.6s; --peak: 0.7; }
-
-/* Sombra de contacto: ancla el cutout a su horizonte */
-.shadow {
+/* Capa de luz ambiental (solo el haz del piso) */
+.beam {
   position: absolute;
-  left: 5%;
-  right: 5%;
-  bottom: -9px;
-  height: 16px;
-  background: radial-gradient(ellipse 50% 50% at center, rgba(var(--shadow-rgb), 0.32), transparent 72%);
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+
+.lit .beam {
+  opacity: 1;
+  transition: opacity 0.6s var(--ease-out);
+}
+
+/* Haz tenue proyectado sobre el piso, por delante del auto */
+.beamFloor {
+  left: var(--beam-left, 4%);
+  top: var(--beam-top, 80%);
+  width: var(--beam-w, 72%);
+  height: var(--beam-h, 45%);
+  background: radial-gradient(
+    closest-side,
+    rgba(200, 220, 255, 0.18),
+    transparent 70%
+  );
+  filter: blur(30px);
+}
+
+/* Flicker de encendido: 2-3 parpadeos, solo la primera vez por sesión
+   (lo gobierna HeadlightScene vía sessionStorage) */
+.flicker .beam,
+.flicker .lightsImg {
+  animation: flickerOn 0.45s linear both;
+}
+
+@keyframes flickerOn {
+  0%        { opacity: 0; }
+  15%       { opacity: 1; }
+  28%       { opacity: 0.2; }
+  45%       { opacity: 1; }
+  60%       { opacity: 0.45; }
+  75%, 100% { opacity: 1; }
 }
 
 /* ── Ticker: cinta de marca al pie del hero ─────────────────────────────── */
 
 .ticker {
   overflow: hidden;
-  border-top: 1px solid rgba(var(--ink-rgb), 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding: 14px 0;
   user-select: none;
 }
@@ -311,35 +326,23 @@
   padding-right: clamp(40px, 6vw, 76px);
 }
 
-/* Logos en escala de grises; recuperan color al pasar el mouse */
+/* Logos invertidos a claros sobre el fondo negro; el hover devuelve color */
 .tickerLogo {
   height: clamp(26px, 3vw, 34px);
   width: auto;
-  filter: grayscale(1) opacity(0.55);
+  filter: grayscale(1) invert(1) brightness(1.6) opacity(0.6);
   transition: filter 0.3s var(--ease-out);
   user-select: none;
   -webkit-user-drag: none;
 }
 
-.tickerLogo:hover { filter: grayscale(0) opacity(1); }
-
-/* En oscuro los logos grises se invierten a claros; el hover devuelve color */
-:global([data-theme='dark']) .tickerLogo {
-  filter: grayscale(1) invert(1) brightness(1.6) opacity(0.6);
-}
-
-:global([data-theme='dark']) .tickerLogo:hover {
-  filter: grayscale(0) invert(0) brightness(1) opacity(1);
-}
+.tickerLogo:hover { filter: grayscale(0) invert(0) brightness(1) opacity(1); }
 
 .ticker:hover .tickerTrack { animation-play-state: paused; }
 
 /* ── Motion (solo si el usuario no pidió motion reducido) ───────────────── */
 
 @media (prefers-reduced-motion: no-preference) {
-  /* El logo entra "manejando" como los vehículos, y después queda
-     flotando suave (la entrada va en el anchor, el loop en la marca:
-     dos elementos para que los transforms no se pisen). */
   .logo { animation: driveInLeft 0.8s var(--ease-out) both; }
 
   .logoMark { animation: logoFloat 4.5s ease-in-out 1.4s infinite; }
@@ -352,21 +355,10 @@
   .sub     { animation-delay: 0.16s; }
   .actions { animation-delay: 0.24s; }
 
-  /* Los vehículos estacionan en escena una sola vez */
-  .vehSuv   { animation: driveInLeft 0.9s var(--ease-out) 0.25s both; }
-  .vehSedan { animation: driveInRight 0.95s var(--ease-out) 0.4s both; }
-  .vehMoto  { animation: driveInLeft 1s var(--ease-out) 0.55s both; }
-
-  /* Después de estacionar, ralenti: micro-deriva desincronizada.
-     `translate` compone con `transform`, así no pisa el scaleX del flip. */
-  .vehSuv img   { animation: idleDrift 5.5s ease-in-out 1.2s infinite; }
-  .vehSedan img { animation: idleDrift 6.5s ease-in-out 1.8s infinite; }
-  .vehMoto img  { animation: idleDrift 4.8s ease-in-out 2.4s infinite; }
-
-  /* Streaks: cruzan la vidriera en loop, cada una a su ritmo */
-  .streak {
-    animation: streakFlow var(--dur, 4s) linear var(--delay, 0s) infinite;
-  }
+  /* La entrada del auto vive en HeadlightScene (física de frenada +
+     suspensión integrada por rAF); acá solo el pivot del pitch:
+     el eje delantero (por vehículo vía --pivot). */
+  .carFrame { transform-origin: var(--pivot, 28% 78%); }
 
   /* El subrayado se dibuja después de que el título sube */
   .accent::after {
@@ -378,18 +370,6 @@
 
   /* Cinta de marca en movimiento perpetuo */
   .tickerTrack { animation: marquee 28s linear infinite; }
-
-  /* Parallax de scroll sin JS: cada plano acompaña el scroll a distinta
-     velocidad mientras el hero sale del viewport. Fallback: estático. */
-  @supports (animation-timeline: view()) {
-    .layer,
-    .watermark {
-      animation: parallax linear both;
-      animation-timeline: view();
-      animation-range: exit 0% exit 100%;
-    }
-    .watermark { --parallax: 110px; }
-  }
 }
 
 @keyframes rise {
@@ -400,29 +380,10 @@
   from { opacity: 0; transform: translateX(-26%); }
 }
 
-@keyframes driveInRight {
-  from { opacity: 0; transform: translateX(26%); }
-}
-
-@keyframes parallax {
-  to { transform: translateY(var(--parallax, 0px)); }
-}
 
 @keyframes logoFloat {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-4px); }
-}
-
-@keyframes idleDrift {
-  0%, 100% { translate: 0 0; }
-  50%      { translate: 5px -2px; }
-}
-
-@keyframes streakFlow {
-  0%   { translate: 0 0; opacity: 0; }
-  6%   { opacity: var(--peak, 0.8); }
-  75%  { opacity: var(--peak, 0.8); }
-  100% { translate: -120vw 0; opacity: 0; }
 }
 
 @keyframes sweepIn {
@@ -439,7 +400,24 @@
   to { translate: -50% 0; }
 }
 
-/* ── Mobile: una sola columna, vidriera debajo del copy ─────────────────── */
+/* ── Motion reducido: el auto ya iluminado, sin animaciones ─────────────── */
+/* Va al final: a igual especificidad que .lit .carImg / .lit .beam, gana. */
+
+@media (prefers-reduced-motion: reduce) {
+  .scene .carImg {
+    filter: brightness(0.72);
+    transition: none;
+  }
+
+  .scene .beam,
+  .scene .lightsImg {
+    opacity: 1;
+    transition: none;
+    animation: none;
+  }
+}
+
+/* ── Mobile: una sola columna, auto debajo del copy ─────────────────────── */
 
 @media (max-width: 900px) {
   .nav a:not(.navCta) { display: none; }
@@ -447,15 +425,11 @@
   .layout {
     grid-template-columns: 1fr;
     align-items: start;
-    gap: 12px;
+    gap: 16px;
     padding-top: 12px;
   }
 
-  .stage { height: min(320px, 42vh); }
+  .scene { justify-content: center; }
 
-  .watermark { font-size: clamp(110px, 30vw, 180px); right: 0; }
-
-  .vehMoto  { width: 17vw; }
-  .vehSedan { width: 42vw; }
-  .vehSuv   { width: 56vw; }
+  .carFrame { width: min(100%, var(--frame-w, 480px)); }
 }

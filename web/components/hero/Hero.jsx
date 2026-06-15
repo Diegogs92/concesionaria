@@ -1,7 +1,14 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import styles from './Hero.module.css'
-import ParallaxFallback from './ParallaxFallback'
-import ThemeToggle from '../theme/ThemeToggle'
+import HeadlightScene from './HeadlightScene'
 import { waLink } from '../../lib/site'
+import { VEHICLES, VEHICLE_KEYS } from './vehicles'
+
+// Cada cuánto rota el vehículo y cuánto dura el fundido del cambio.
+const ROTATE_MS = 5000
+const FADE_MS = 360
 
 const WHATSAPP_URL = waLink('Hola, vengo de la web de ICY Automotores.')
 
@@ -39,23 +46,41 @@ function TickerGroup({ hidden }) {
   )
 }
 
-// Cutouts fotográficos generados y procesados por scripts/process-vehicles.mjs
-// (perfil 90°, mirando a la derecha, fondo transparente).
-
+// El hero es siempre oscuro (#050505), independiente del tema del resto de
+// la página: un estacionamiento con las luces apagadas donde el vehículo
+// "enciende" los faros (ver HeadlightScene).
 export default function Hero() {
+  // Rotación auto↔moto cada 5s: el titular y la imagen cambian juntos. El
+  // fundido apaga (visible=false), recién ahí swapea el índice y vuelve a
+  // encender, así el cambio sucede oculto.
+  const [index, setIndex] = useState(0)
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (VEHICLE_KEYS.length < 2) return
+    let swap
+    const tick = setInterval(() => {
+      setVisible(false)
+      swap = setTimeout(() => {
+        setIndex((n) => (n + 1) % VEHICLE_KEYS.length)
+        setVisible(true)
+      }, FADE_MS)
+    }, ROTATE_MS)
+    return () => {
+      clearInterval(tick)
+      clearTimeout(swap)
+    }
+  }, [])
+
+  const vehicle = VEHICLES[VEHICLE_KEYS[index]]
+
   return (
     <section className={styles.hero}>
       <header className={styles.topbar}>
         <a href="/" className={styles.logo} aria-label="ICY Automotores, inicio">
           <img
-            className={`${styles.logoMark} ${styles.logoLight}`}
-            src="/logo.webp"
-            alt=""
-            loading="eager"
-            draggable="false"
-          />
-          <img
-            className={`${styles.logoMark} ${styles.logoDark}`}
+            className={styles.logoMark}
             src="/logo-on-dark.webp"
             alt=""
             loading="eager"
@@ -65,7 +90,6 @@ export default function Hero() {
         </a>
         <nav className={styles.nav}>
           <a href="#stock">Catálogo</a>
-          <ThemeToggle />
           <a href={WHATSAPP_URL} className={styles.navCta}>WhatsApp</a>
         </nav>
       </header>
@@ -77,7 +101,13 @@ export default function Hero() {
             Concesionaria digital · Stock real, actualizado
           </p>
           <h1 className={styles.title}>
-            Tu próximo vehículo<br />
+            <span
+              className={styles.lead}
+              style={{ opacity: visible ? 1 : 0, transform: visible ? 'none' : 'translateY(8px)' }}
+            >
+              {vehicle.lead}
+            </span>
+            <br />
             ya está <em className={styles.accent}>en movimiento.</em>
           </h1>
           <p className={styles.sub}>
@@ -89,45 +119,10 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Vidriera: tres planos de profundidad con parallax de scroll (CSS puro) */}
-        <div className={styles.stage} aria-hidden="true">
-          <span className={styles.watermark} data-parallax="0.13">ICY</span>
-
-          <div className={`${styles.layer} ${styles.layerBack}`} data-parallax="0.1">
-            <div className={styles.roadBack} />
-            <span className={`${styles.streak} ${styles.streakB1}`} />
-            <span className={`${styles.streak} ${styles.streakRed} ${styles.streakB2}`} />
-            <div className={`${styles.veh} ${styles.vehMoto}`}>
-              <img src="/vehicles/moto.webp" alt="" loading="eager" draggable="false" />
-              <div className={styles.shadow} />
-            </div>
-          </div>
-
-          <div className={`${styles.layer} ${styles.layerMid}`} data-parallax="0.055">
-            <div className={styles.roadMid} />
-            <span className={`${styles.streak} ${styles.streakM1}`} />
-            <span className={`${styles.streak} ${styles.streakRed} ${styles.streakM2}`} />
-            <div className={`${styles.veh} ${styles.vehSedan}`}>
-              <img className={styles.flip} src="/vehicles/sedan.webp" alt="" loading="eager" draggable="false" />
-              <div className={styles.shadow} />
-            </div>
-          </div>
-
-          <div className={`${styles.layer} ${styles.layerFront}`} data-parallax="0.02">
-            <div className={styles.roadFront} />
-            <span className={`${styles.streak} ${styles.streakRed} ${styles.streakF1}`} />
-            <span className={`${styles.streak} ${styles.streakF2}`} />
-            <div className={`${styles.veh} ${styles.vehSuv}`}>
-              <img src="/vehicles/suv.webp" alt="" loading="eager" draggable="false" />
-              <div className={styles.shadow} />
-            </div>
-          </div>
-        </div>
-
-        <ParallaxFallback />
+        <HeadlightScene vehicle={vehicle} visible={visible} />
       </div>
 
-      {/* Cinta de marca: refuerza el "en movimiento" y cierra el hero */}
+      {/* Cinta de marca: cierra el hero */}
       <div className={styles.ticker}>
         <div className={styles.tickerTrack}>
           <TickerGroup />
