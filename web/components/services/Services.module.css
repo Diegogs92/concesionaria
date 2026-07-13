@@ -1,0 +1,50 @@
+/* ── Banda de servicios: blanca, con hairlines arriba y abajo ───────────── */
+
+.band {
+  background: var(--bg-0);
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: clamp(32px, 5vw, 48px) clamp(20px, 5vw, 64px);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: clamp(24px, 4vw, 48px);
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--secondary-light);
+  color: var(--secondary);
+}
+
+.icon svg { width: 22px; height: 22px; }
+
+.titulo {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.texto {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}

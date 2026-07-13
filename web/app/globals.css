@@ -1,56 +1,40 @@
 /* ICY Automotores — base visual
-   Paleta heredada del sistema interno (src/index.css): neutros iOS-like,
-   tinta #1c1c1e y acento rojo #e51515. */
+   Lenguaje heredado de icyautomotores.com: tema claro (#f8f9fa), tinta
+   near-black #1a1a1a como acento de acción y ámbar #d97706 como secundario. */
 
 :root {
   color-scheme: light;
 
-  /* superficies (mismos valores que el panel interno) */
+  /* superficies */
   --bg-0: #ffffff;
-  --bg-1: #f2f2f7;
-  --bg-2: #e5e5ea;
+  --bg-1: #f8f9fa;
+  --bg-2: #f3f4f6;
 
   /* tinta */
-  --ink:   #1c1c1e;
-  --ink-2: #3c3c43;
-  --ink-3: #6e6e73;
+  --ink:   #212529;
+  --ink-2: #6b7280;
+  --ink-3: #9ca3af;
 
   /* canal de tinta para hairlines/bordes con alpha: rgba(var(--ink-rgb), X) */
-  --ink-rgb: 28, 28, 30;
-  /* canal de sombras: oscuro en ambos temas (una sombra nunca es clara) */
-  --shadow-rgb: 28, 28, 30;
+  --ink-rgb: 33, 37, 41;
+  --shadow-rgb: 17, 24, 39;
   /* texto sobre superficies var(--ink) (botones de filtro activos) */
   --on-ink: #ffffff;
 
-  /* acento rojo del sistema interno */
-  --accent:       #e51515;
-  --accent-hover: #c01010;
-  --accent-light: rgba(229, 21, 21, 0.1);
+  /* acento de acción: near-black (botones, CTAs) */
+  --accent:       #1a1a1a;
+  --accent-hover: #333333;
+  --accent-light: rgba(26, 26, 26, 0.06);
 
-  --radius: 12px;
+  /* secundario ámbar: badges, momentos de marca */
+  --secondary:       #d97706;
+  --secondary-light: rgba(217, 119, 6, 0.1);
+
+  --border:       #d1d5db;
+  --border-light: #e5e7eb;
+
+  --radius: 16px;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1); /* ease-out-quint */
-}
-
-/* Tema oscuro: mismas relaciones tonales que el claro, tinta invertida.
-   El rojo de marca no cambia; el hover sube en vez de bajar (sobre fondo
-   oscuro, "más claro" es lo que lee como interactivo). */
-html[data-theme='dark'] {
-  color-scheme: dark;
-
-  --bg-0: #1c1c1e;
-  --bg-1: #121214;
-  --bg-2: #2a2a2d;
-
-  --ink:   #f2f2f7;
-  --ink-2: #c0c0c6;
-  --ink-3: #8e8e93;
-
-  --ink-rgb: 242, 242, 247;
-  --shadow-rgb: 0, 0, 0;
-  --on-ink: #1c1c1e;
-
-  --accent-hover: #ff4d4d;
-  --accent-light: rgba(229, 21, 21, 0.16);
 }
 
 * { box-sizing: border-box; }
@@ -60,23 +44,23 @@ html, body {
   padding: 0;
 }
 
+html { scroll-behavior: smooth; }
+
 body {
   background: var(--bg-1);
   color: var(--ink);
-  font-family: var(--font-archivo), system-ui, sans-serif;
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  body {
-    transition: background-color 0.25s var(--ease-out), color 0.25s var(--ease-out);
-  }
 }
 
 a { color: inherit; text-decoration: none; }
 
 ::selection {
-  background: var(--accent-light);
+  background: var(--secondary-light);
   color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
 }

@@ -3,35 +3,12 @@
 .page {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 clamp(20px, 5vw, 64px) clamp(48px, 7vw, 80px);
+  /* El top despeja la navbar fija global (no hay hero acá que la tape) */
+  padding: clamp(88px, 12vw, 112px) clamp(20px, 5vw, 64px) clamp(48px, 7vw, 80px);
 }
 
 .top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: clamp(16px, 2.5vw, 28px) 0;
-}
-
-.brand { display: inline-flex; }
-
-.brandMark {
-  display: block;
-  height: clamp(38px, 4vw, 48px);
-  width: auto;
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
-.brandDark { display: none; }
-
-:global([data-theme='dark']) .brandLight { display: none; }
-:global([data-theme='dark']) .brandDark { display: block; }
-
-.topActions {
-  display: flex;
-  align-items: center;
-  gap: clamp(8px, 2vw, 16px);
+  padding: 0 0 clamp(12px, 2vw, 20px);
 }
 
 .back {
@@ -87,18 +64,21 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   min-height: 52px;
   padding: 0 28px;
   margin-top: 18px;
   border-radius: var(--radius);
-  background: var(--accent);
+  background: #25d366;
   color: #ffffff;
   font-weight: 600;
   font-size: 16px;
   transition: background-color 0.25s var(--ease-out), transform 0.25s var(--ease-out);
 }
 
-.cta:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.cta svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+.cta:hover { background: #1fbb5a; transform: translateY(-1px); }
 .cta:active { transform: scale(0.98); }
 
 .descripcion {

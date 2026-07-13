@@ -1,14 +1,15 @@
-import { Archivo } from 'next/font/google'
+import { DM_Sans } from 'next/font/google'
+import Navbar from '../components/nav/Navbar'
 import Footer from '../components/footer/Footer'
 import AnimatedFavicon from '../components/AnimatedFavicon'
 import { SITE_URL } from '../lib/site'
 import './globals.css'
 
-const archivo = Archivo({
+const dmSans = DM_Sans({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-archivo',
-  weight: ['400', '500', '600', '800', '900'],
+  variable: '--font-dm-sans',
+  weight: ['400', '500', '600', '700', '800'],
 })
 
 export const metadata = {
@@ -24,14 +25,14 @@ export const metadata = {
   },
 }
 
-// El sitio es de tema único oscuro: combina con el hero (estacionamiento a
-// oscuras) y con el efecto de encendido de faros. Se fija data-theme="dark"
-// estático, sin selector ni detección de preferencia.
+// Tema único claro (lenguaje icyautomotores.com); el hero mantiene su
+// escena oscura propia, como una foto nocturna dentro de la página clara.
 export default function RootLayout({ children }) {
   return (
-    <html lang="es-AR" data-theme="dark" className={archivo.variable}>
+    <html lang="es-AR" className={dmSans.variable}>
       <body>
         <AnimatedFavicon />
+        <Navbar />
         {children}
         <Footer />
       </body>

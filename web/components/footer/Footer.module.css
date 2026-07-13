@@ -1,72 +1,86 @@
 /* ── Footer ─────────────────────────────────────────────────────────────── */
 
 .footer {
-  border-top: 1px solid rgba(var(--ink-rgb), 0.1);
+  border-top: 1px solid var(--border-light);
   background: var(--bg-2);
-  padding: clamp(20px, 3vw, 32px) clamp(20px, 5vw, 64px) clamp(14px, 2vw, 20px);
+  padding: clamp(40px, 6vw, 64px) clamp(20px, 5vw, 64px) clamp(20px, 3vw, 28px);
 }
 
-.inner {
+.grid {
   max-width: 1280px;
   margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(28px, 5vw, 56px);
+}
+
+.brand {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: clamp(24px, 4vw, 48px);
-  flex-wrap: wrap;
+  gap: 14px;
 }
 
 .logo {
   display: block;
-  height: 36px;
+  flex-shrink: 0;
+  height: 34px;
   width: auto;
   user-select: none;
   -webkit-user-drag: none;
 }
 
-.logoDark { display: none; }
-
-:global([data-theme='dark']) .logoLight { display: none; }
-:global([data-theme='dark']) .logoDark { display: block; }
-
-.address {
-  display: inline-block;
-  margin-top: 8px;
+.tagline {
+  margin: 0;
+  max-width: 36ch;
   font-size: 14px;
-  color: var(--ink-3);
-  transition: color 0.2s var(--ease-out);
+  line-height: 1.6;
+  color: var(--ink-2);
 }
 
-.address:hover { color: var(--accent-hover); }
+.heading {
+  margin: 0 0 16px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
 
-/* En fila: mantiene los targets de 44px sin apilar altura */
-.links {
+.links,
+.contact {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0 clamp(16px, 3vw, 28px);
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.links a {
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  font-weight: 600;
-  font-size: 15px;
+.links a,
+.contact a {
+  font-size: 14px;
   color: var(--ink-2);
   transition: color 0.2s var(--ease-out);
 }
 
-.links a:hover { color: var(--ink); }
+.contact li:first-child a { line-height: 1.5; }
+
+.links a:hover,
+.contact a:hover { color: var(--ink); }
 
 .legal {
   max-width: 1280px;
-  margin: clamp(14px, 2vw, 22px) auto 0;
+  margin: clamp(28px, 4vw, 40px) auto 0;
+  padding-top: clamp(16px, 2.5vw, 22px);
+  border-top: 1px solid var(--border-light);
+  text-align: center;
   color: var(--ink-3);
   font-size: 13px;
 }
 
 .credit {
-  margin: 10px 0 0;
+  margin: 6px 0 0;
   text-align: center;
   color: var(--ink-3);
   font-size: 13px;
@@ -79,3 +93,7 @@
 }
 
 .credit a:hover { color: var(--accent-hover); }
+
+@media (max-width: 720px) {
+  .grid { grid-template-columns: 1fr; gap: 32px; }
+}

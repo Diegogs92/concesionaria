@@ -1,0 +1,158 @@
+/* ── Marcas: carrusel horizontal (réplica icyautomotores.com) ───────────── */
+
+.section {
+  background: var(--bg-1);
+}
+
+.inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: clamp(48px, 8vw, 88px) 0 clamp(48px, 8vw, 88px);
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0 20px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+
+.title {
+  margin: 0 20px;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.sub {
+  margin: 8px 20px 0;
+  color: var(--ink-2);
+  font-size: 15px;
+}
+
+/* ── Carrusel: track con scroll-snap + flechas de desplazamiento ────────── */
+
+.carousel {
+  position: relative;
+  margin-top: clamp(28px, 4vw, 40px);
+}
+
+.track {
+  list-style: none;
+  margin: 0;
+  padding: 4px clamp(20px, 5vw, 64px) 12px;
+  display: flex;
+  gap: clamp(12px, 2vw, 20px);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* Desvanece los bordes: insinúa que hay más marcas para el lado */
+  mask-image: linear-gradient(
+    to right, transparent, black clamp(20px, 5vw, 64px),
+    black calc(100% - clamp(20px, 5vw, 64px)), transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to right, transparent, black clamp(20px, 5vw, 64px),
+    black calc(100% - clamp(20px, 5vw, 64px)), transparent
+  );
+}
+
+.track::-webkit-scrollbar { display: none; }
+
+.item {
+  flex: 0 0 auto;
+  width: clamp(112px, 24vw, 148px);
+  scroll-snap-align: start;
+}
+
+.card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: clamp(18px, 3vw, 26px) 10px;
+  background: var(--bg-0);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.25s var(--ease-out), border-color 0.25s var(--ease-out),
+    box-shadow 0.25s var(--ease-out);
+}
+
+.logo {
+  height: 38px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  filter: grayscale(1) opacity(0.75);
+  transition: filter 0.25s var(--ease-out);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+  transition: color 0.2s var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(26, 26, 26, 0.16);
+    box-shadow: 0 8px 24px rgba(var(--shadow-rgb), 0.08);
+  }
+
+  .card:hover .logo { filter: grayscale(0) opacity(1); }
+  .card:hover .name { color: var(--ink); }
+}
+
+.card:active { transform: scale(0.98); }
+
+/* ── Flechas: solo con mouse (en touch, el swipe alcanza) ────────────────── */
+
+.arrow {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border-light);
+    border-radius: 999px;
+    background: var(--bg-0);
+    color: var(--ink);
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(var(--shadow-rgb), 0.1);
+    transition: background-color 0.2s var(--ease-out), transform 0.2s var(--ease-out);
+  }
+
+  .arrow svg { width: 18px; height: 18px; }
+
+  .arrow:hover { background: var(--bg-2); }
+  .arrow:active { transform: translateY(-50%) scale(0.94); }
+
+  .arrowLeft { left: -20px; }
+  .arrowRight { right: -20px; }
+}
+
+@media (hover: hover) and (pointer: fine) and (max-width: 1160px) {
+  .arrowLeft { left: 8px; }
+  .arrowRight { right: 8px; }
+}

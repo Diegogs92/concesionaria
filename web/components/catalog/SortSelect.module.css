@@ -1,0 +1,73 @@
+/* ── Dropdown de orden (panel propio, no <select> nativo) ───────────────── */
+
+.root {
+  position: relative;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 160px;
+  height: 44px;
+  padding: 0 14px;
+  border: 1.5px solid var(--border-light);
+  border-radius: 12px;
+  background: var(--bg-0);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease-out), color 0.2s var(--ease-out);
+}
+
+.trigger:hover { border-color: rgba(var(--ink-rgb), 0.3); color: var(--ink); }
+
+.trigger svg {
+  width: 16px;
+  height: 16px;
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: transform 0.2s var(--ease-out);
+}
+
+.trigger svg[data-abierto='true'] { transform: rotate(180deg); }
+
+.panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  min-width: 220px;
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+  background: var(--bg-0);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 32px rgba(var(--shadow-rgb), 0.14);
+}
+
+.option,
+.optionActive {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.15s var(--ease-out);
+}
+
+.option { color: var(--ink-2); font-weight: 500; }
+.option:hover { background: var(--bg-2); color: var(--ink); }
+
+.optionActive {
+  color: var(--ink);
+  font-weight: 700;
+  background: var(--secondary-light);
+}
