@@ -38,7 +38,6 @@ export default function Navbar() {
           loading="eager"
           draggable="false"
         />
-        <span className={styles.logoWord}>AUTOMOTORES</span>
       </a>
       <nav className={styles.nav}>
         <a href="/#stock">En stock</a>

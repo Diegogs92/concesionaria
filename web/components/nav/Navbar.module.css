@@ -55,13 +55,6 @@
   height: clamp(30px, 3.2vw, 38px);
 }
 
-.logoWord {
-  font-weight: 500;
-  font-size: clamp(10px, 1.1vw, 12px);
-  letter-spacing: 0.34em;
-  opacity: 0.65;
-}
-
 .nav {
   display: flex;
   align-items: center;
@@ -102,5 +95,4 @@
 
 @media (max-width: 720px) {
   .nav a:not(.cta) { display: none; }
-  .logoWord { display: none; }
 }
