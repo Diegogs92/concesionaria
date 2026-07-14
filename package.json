@@ -33,7 +33,7 @@
     "@vitejs/plugin-react": "^4.3.2",
     "jimp": "^1.6.1",
     "supabase": "^2.98.2",
-    "vite": "^8.0.16",
+    "vite": "^7.3.6",
     "vite-plugin-pwa": "^1.3.0"
   }
 }
