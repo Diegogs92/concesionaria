@@ -25,7 +25,7 @@ export default function Footer() {
           <p className={styles.heading}>Navegación</p>
           <nav className={styles.links} aria-label="Navegación">
             <a href="/#stock">En Stock</a>
-            <a href={waLink('Hola, quiero vender mi vehículo.')}>Vendé tu Vehículo</a>
+            <a href="/#vende">Vendé tu Vehículo</a>
             <a href="/#contacto">Contacto</a>
           </nav>
         </div>

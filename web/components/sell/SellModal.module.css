@@ -1,0 +1,407 @@
+/* ── Modal "Vendé tu vehículo" (#vende) ───────────────────────────────────
+   Réplica de icyautomotores.com: scrim oscuro, encabezado claro flotando y
+   la tarjeta blanca del wizard por encima. El resto del sitio es claro; acá
+   el fondo oscuro concentra el foco en el formulario. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  padding: clamp(16px, 4vw, 40px);
+  overflow-y: auto;
+  background: rgba(10, 12, 14, 0.62);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+/* margin:auto centra cuando entra; permite scroll cuando no */
+.dialog {
+  position: relative;
+  margin: auto;
+  width: 100%;
+  max-width: 640px;
+  outline: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dialog { animation: modalIn 0.28s var(--ease-out) both; }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+}
+
+.close {
+  position: absolute;
+  top: -6px;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s var(--ease-out);
+}
+
+.close:hover { background: rgba(255, 255, 255, 0.2); }
+.close svg { width: 20px; height: 20px; }
+
+/* ── Encabezado (texto claro sobre el scrim) ─────────────────────────────── */
+
+.header {
+  text-align: center;
+  margin-bottom: clamp(20px, 3vw, 28px);
+  padding: 0 44px; /* deja aire para el botón cerrar */
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.5rem, 4.5vw, 2.1rem);
+  line-height: 1.14;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.sub {
+  margin: 10px auto 0;
+  max-width: 30rem;
+  font-size: clamp(13px, 1.6vw, 15px);
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ── Barra de pasos (sobre el scrim) ─────────────────────────────────────── */
+
+.steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: clamp(16px, 2.5vw, 22px);
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dot,
+.dotActive,
+.dotDone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  transition: background-color 0.25s var(--ease-out), color 0.25s var(--ease-out),
+    box-shadow 0.25s var(--ease-out);
+}
+
+.dot {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.dotActive {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.dotDone {
+  background: var(--secondary);
+  color: #fff;
+}
+
+.stepLabel,
+.stepLabelActive {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.stepLabel { color: rgba(255, 255, 255, 0.5); }
+.stepLabelActive { color: #fff; }
+
+.stepLine {
+  width: clamp(12px, 4vw, 36px);
+  height: 1px;
+  background: rgba(255, 255, 255, 0.22);
+  margin: 0 2px;
+}
+
+@media (max-width: 560px) {
+  .stepLabel,
+  .stepLabelActive { display: none; }
+  .stepLine { width: clamp(16px, 8vw, 40px); }
+}
+
+/* ── Tarjeta del wizard (blanca) ─────────────────────────────────────────── */
+
+.card {
+  background: #fff;
+  border-radius: 20px;
+  padding: clamp(22px, 3.5vw, 32px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: block;
+}
+
+.label {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.opcional {
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink-3);
+}
+
+/* Inputs y selects: mismas medidas que la SearchCard del hero */
+.input,
+.select,
+.textarea {
+  width: 100%;
+  border: 2px solid var(--border-light);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  transition: border-color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
+}
+
+.input,
+.select {
+  height: 44px;
+  padding: 0 14px;
+}
+
+.select {
+  padding-right: 34px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.textarea {
+  padding: 12px 14px;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 88px;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: #999;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+}
+
+.input:disabled {
+  color: var(--ink-3);
+  cursor: default;
+  opacity: 0.7;
+}
+
+.input::placeholder,
+.textarea::placeholder { color: var(--ink-3); }
+
+.hint {
+  margin: -4px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+/* ── Selección tipo / transmisión (botones pill) ─────────────────────────── */
+
+.tipoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.tipoBtn,
+.tipoActive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease-out), background-color 0.2s var(--ease-out),
+    color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
+}
+
+.tipoBtn {
+  border: 2px solid var(--border-light);
+  background: transparent;
+  color: var(--ink-2);
+}
+
+.tipoBtn:hover {
+  border-color: var(--border);
+  color: var(--ink);
+}
+
+.tipoActive {
+  border: 2px solid var(--accent);
+  background: var(--accent);
+  color: var(--on-ink);
+  box-shadow: 0 2px 10px rgba(26, 26, 26, 0.18);
+}
+
+.tipoBtn svg,
+.tipoActive svg { width: 20px; height: 20px; }
+
+/* ── Navegación del wizard ───────────────────────────────────────────────── */
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: clamp(22px, 3vw, 28px);
+  padding-top: clamp(18px, 2.5vw, 22px);
+  border-top: 1px solid var(--border-light);
+}
+
+.atras {
+  border: none;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 10px 8px;
+  cursor: pointer;
+  transition: color 0.2s var(--ease-out);
+}
+
+.atras:hover { color: var(--ink); }
+
+.siguiente {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 46px;
+  padding: 0 30px;
+  border: none;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--on-ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s var(--ease-out), transform 0.2s var(--ease-out),
+    box-shadow 0.2s var(--ease-out);
+}
+
+.siguiente:hover:not(:disabled) {
+  background: var(--accent-hover);
+  box-shadow: 0 4px 20px rgba(26, 26, 26, 0.2);
+}
+
+.siguiente:active:not(:disabled) { transform: scale(0.98); }
+
+.siguiente:disabled {
+  background: var(--border);
+  color: var(--bg-0);
+  cursor: not-allowed;
+}
+
+/* Envío final por WhatsApp: verde de canal, igual al resto del sitio */
+.enviar,
+.enviarDisabled {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 46px;
+  padding: 0 26px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  transition: background-color 0.2s var(--ease-out), transform 0.2s var(--ease-out),
+    box-shadow 0.2s var(--ease-out);
+}
+
+.enviar {
+  background: #25d366;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.28);
+}
+
+.enviar:hover {
+  background: #1fbb5a;
+  transform: translateY(-1px);
+}
+
+.enviar:active { transform: scale(0.98); }
+
+.enviarDisabled {
+  background: var(--border);
+  color: var(--bg-0);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.enviar svg,
+.enviarDisabled svg { width: 19px; height: 19px; flex-shrink: 0; }
+
+@media (max-width: 460px) {
+  .siguiente,
+  .enviar,
+  .enviarDisabled { padding: 0 20px; }
+}

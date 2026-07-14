@@ -1,6 +1,7 @@
 import { DM_Sans } from 'next/font/google'
 import Navbar from '../components/nav/Navbar'
 import Footer from '../components/footer/Footer'
+import SellModal from '../components/sell/SellModal'
 import AnimatedFavicon from '../components/AnimatedFavicon'
 import { SITE_URL } from '../lib/site'
 import './globals.css'
@@ -35,6 +36,7 @@ export default function RootLayout({ children }) {
         <Navbar />
         {children}
         <Footer />
+        <SellModal />
       </body>
     </html>
   )

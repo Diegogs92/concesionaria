@@ -42,6 +42,7 @@ export default function Navbar() {
       </a>
       <nav className={styles.nav}>
         <a href="/#stock">En stock</a>
+        <a href="/#vende">Vendé tu vehículo</a>
         <a href="/#servicios">Servicios</a>
         <a href="/#contacto">Contacto</a>
         <a href={WHATSAPP_URL} className={styles.cta}>

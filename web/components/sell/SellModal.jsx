@@ -1,10 +1,10 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { BRANDS } from '../../lib/brands'
 import { waLink } from '../../lib/site'
 import WhatsAppIcon from '../icons/WhatsAppIcon'
-import styles from './SellSection.module.css'
+import styles from './SellModal.module.css'
 
 const PASOS = ['Vehículo', 'Detalles', 'Precio', 'Contacto']
 
@@ -29,6 +29,12 @@ const BikeIcon = () => (
   </svg>
 )
 
+const CloseIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M18 6 6 18M6 6l12 12" />
+  </svg>
+)
+
 const INICIAL = {
   tipo: '',
   marca: '',
@@ -47,13 +53,54 @@ function formatMiles(valor) {
   return digitos ? Number(digitos).toLocaleString('es-AR') : ''
 }
 
-// Wizard "Vendé tu vehículo" (réplica del #vende de icyautomotores.com):
-// 4 pasos con validación por paso. Sin backend de leads: al finalizar arma
-// un mensaje de WhatsApp prellenado con todos los datos hacia el negocio,
-// que es donde realmente se atienden las tasaciones.
-export default function SellSection() {
+// Modal "Vendé tu vehículo" (réplica del #vende de icyautomotores.com).
+// Se abre por hash: los links del navbar/footer son <a href="/#vende">, así
+// funcionan desde cualquier página y la URL queda compartible. Wizard de 4
+// pasos con validación; al finalizar arma un mensaje de WhatsApp prellenado
+// hacia el negocio, que es donde se atienden las tasaciones.
+export default function SellModal() {
+  const [open, setOpen] = useState(false)
   const [paso, setPaso] = useState(0)
   const [datos, setDatos] = useState(INICIAL)
+  const dialogRef = useRef(null)
+
+  // Sincroniza apertura con el hash de la URL (#vende)
+  useEffect(() => {
+    const sync = () => setOpen(window.location.hash === '#vende')
+    sync()
+    window.addEventListener('hashchange', sync)
+    return () => window.removeEventListener('hashchange', sync)
+  }, [])
+
+  const cerrar = useCallback(() => {
+    // Quita el hash sin ensuciar el historial y cierra
+    history.replaceState(null, '', location.pathname + location.search)
+    setOpen(false)
+  }, [])
+
+  // Al cerrar, reinicia el wizard para que la próxima apertura arranque limpio
+  useEffect(() => {
+    if (!open) {
+      setPaso(0)
+      setDatos(INICIAL)
+    }
+  }, [open])
+
+  // Mientras está abierto: Esc cierra, bloquea el scroll del fondo y toma foco
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e) => {
+      if (e.key === 'Escape') cerrar()
+    }
+    document.addEventListener('keydown', onKey)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    dialogRef.current?.focus()
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [open, cerrar])
 
   function set(campo, valor) {
     setDatos((prev) => ({ ...prev, [campo]: valor }))
@@ -84,15 +131,26 @@ export default function SellSection() {
     return lineas.filter(Boolean).join('\n')
   }, [datos])
 
-  return (
-    <section id="vende" className={styles.section}>
-      <div className={styles.bg} aria-hidden="true" />
-      <div className={styles.overlay} aria-hidden="true" />
+  if (!open) return null
 
-      <div className={styles.inner}>
+  return (
+    <div className={styles.overlay} onClick={cerrar} role="presentation">
+      <div
+        className={styles.dialog}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="vende-title"
+        ref={dialogRef}
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button type="button" className={styles.close} onClick={cerrar} aria-label="Cerrar">
+          <CloseIcon />
+        </button>
+
         <header className={styles.header}>
           <p className={styles.eyebrow}>Vendé</p>
-          <h2 className={styles.title}>¿Querés vender tu vehículo?</h2>
+          <h2 id="vende-title" className={styles.title}>¿Querés vender tu vehículo?</h2>
           <p className={styles.sub}>Completá los datos y te contactamos para hacer la tasación.</p>
         </header>
 
@@ -305,6 +363,6 @@ export default function SellSection() {
           </div>
         </div>
       </div>
-    </section>
+    </div>
   )
 }
