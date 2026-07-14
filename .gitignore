@@ -27,3 +27,8 @@ env.local
 .claude/
 
 .vercel
+
+# Agent tooling
+.agents/
+.windsurf/
+skills-lock.json
