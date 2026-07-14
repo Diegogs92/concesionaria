@@ -110,6 +110,8 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizacio
   const [submitting, setSubmitting] = useState(false)
   const [propModo, setPropModo] = useState(initial.propietarioId ? 'existente' : 'ninguno')
   const [propNuevo, setPropNuevo] = useState({ nombre: '', apellido: '', telefono: '' })
+  const [dragIdx, setDragIdx] = useState(null)
+  const [overIdx, setOverIdx] = useState(null)
 
   function set(field, value) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -160,6 +162,14 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizacio
 
   function removePhoto(idx) {
     set('fotos', form.fotos.filter((_, i) => i !== idx))
+  }
+
+  function movePhoto(from, to) {
+    if (from == null || to == null || from === to) return
+    const next = [...form.fotos]
+    const [moved] = next.splice(from, 1)
+    next.splice(to, 0, moved)
+    set('fotos', next)
   }
 
   async function handleSubmit() {
@@ -405,35 +415,61 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizacio
             </label>
 
             {form.fotos && form.fotos.length > 0 && (
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                {form.fotos.map((url, i) => (
-                  <div key={i} style={{ position: 'relative', width: 80, height: 80, borderRadius: 8, overflow: 'hidden', flexShrink: 0 }}>
-                    <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    <button
-                      type="button"
-                      onClick={() => removePhoto(i)}
+              <>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '10px 0 8px' }}>
+                  Arrastrá para reordenar. La primera foto es la principal.
+                </p>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                  gap: 10, marginTop: 4,
+                }}>
+                  {form.fotos.map((url, i) => (
+                    <div
+                      key={url}
+                      draggable
+                      onDragStart={() => setDragIdx(i)}
+                      onDragEnter={() => setOverIdx(i)}
+                      onDragOver={e => e.preventDefault()}
+                      onDrop={() => { movePhoto(dragIdx, i); setDragIdx(null); setOverIdx(null) }}
+                      onDragEnd={() => { setDragIdx(null); setOverIdx(null) }}
                       style={{
-                        position: 'absolute', top: 2, right: 2,
-                        width: 20, height: 20, borderRadius: '50%',
-                        background: 'rgba(0,0,0,0.6)', border: 'none', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: '#fff', padding: 0,
+                        position: 'relative', aspectRatio: '4 / 3', borderRadius: 10,
+                        overflow: 'hidden', cursor: 'grab',
+                        border: i === 0 ? '2px solid var(--accent)' : '2px solid transparent',
+                        outline: overIdx === i && dragIdx !== i ? '2px dashed var(--accent)' : 'none',
+                        outlineOffset: 2,
+                        opacity: dragIdx === i ? 0.4 : 1,
+                        transition: 'opacity .15s, outline .15s',
                       }}
                     >
-                      <X size={12} />
-                    </button>
-                    {i === 0 && (
-                      <span style={{
-                        position: 'absolute', bottom: 2, left: 2,
-                        fontSize: 10, background: 'var(--accent)', color: '#fff',
-                        borderRadius: 4, padding: '1px 4px',
-                      }}>
-                        Principal
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
+                      <img src={url} alt="" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
+                      <button
+                        type="button"
+                        onClick={() => removePhoto(i)}
+                        style={{
+                          position: 'absolute', top: 4, right: 4,
+                          width: 24, height: 24, borderRadius: '50%',
+                          background: 'rgba(0,0,0,0.6)', border: 'none', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: '#fff', padding: 0,
+                        }}
+                      >
+                        <X size={14} />
+                      </button>
+                      {i === 0 && (
+                        <span style={{
+                          position: 'absolute', bottom: 4, left: 4,
+                          fontSize: 11, fontWeight: 600, background: 'var(--accent)', color: '#fff',
+                          borderRadius: 4, padding: '2px 6px',
+                        }}>
+                          Principal
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
