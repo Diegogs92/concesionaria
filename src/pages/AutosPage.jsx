@@ -400,13 +400,15 @@ function AutoForm({ initial = EMPTY_FORM, onSubmit, onCancel, isAdmin, cotizacio
           <div className="form-group">
             <label className="form-label">Fotos</label>
             <label style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              gap: 8, padding: '20px 16px', borderRadius: 12,
-              border: '2px dashed var(--divider)', cursor: 'pointer',
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '9px 14px', borderRadius: 10,
+              border: '1px solid var(--divider)', cursor: uploading ? 'default' : 'pointer',
               background: 'var(--bg-input)', color: 'var(--text-secondary)',
+              fontSize: 13, fontWeight: 500, width: 'fit-content',
+              opacity: uploading ? 0.6 : 1,
             }}>
-              <Upload size={24} />
-              <span style={{ fontSize: 13 }}>{uploading ? 'Subiendo...' : 'Toca para subir fotos'}</span>
+              <Upload size={16} />
+              <span>{uploading ? 'Subiendo...' : 'Subir fotos'}</span>
               <input
                 type="file" accept="image/*" multiple hidden
                 disabled={uploading}
