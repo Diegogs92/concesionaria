@@ -1,6 +1,7 @@
 import sharp from 'sharp'
 import path from 'path'
 import fs from 'fs'
+import { WHATSAPP_DISPLAY, INSTAGRAM_HANDLE } from './site'
 
 const PAD = 60
 const BG = { r: 28, g: 28, b: 30, alpha: 1 }
@@ -159,6 +160,97 @@ export async function generarImagenSocial(tipo, auto) {
       top: 40,
       left: W - logoW - 40,
     })
+  }
+
+  return sharp(bg).composite(composites).png().toBuffer()
+}
+
+// ─── Flyer con lista de precios (múltiples vehículos) ─────────────────────
+
+const FLYER_DIMS = {
+  story: { W: 1080, H: 1920, headerH: 220, footerH: 110, rowH: 190, thumb: 150 },
+  post:  { W: 1080, H: 1080, headerH: 130, footerH: 70,  rowH: 108, thumb: 88 },
+}
+
+function buildFlyerSvg(tipo, autos) {
+  const { W, H, headerH, footerH, rowH, thumb } = FLYER_DIMS[tipo]
+  const titleSize = tipo === 'story' ? 52 : 36
+  const rowTitleSize = tipo === 'story' ? 34 : 24
+  const rowSpecSize = tipo === 'story' ? 24 : 18
+  const priceSize = tipo === 'story' ? 34 : 24
+
+  const rows = autos.map((auto, i) => {
+    const rowY = headerH + i * rowH
+    const midY = rowY + thumb / 2
+    const textX = PAD + thumb + 24
+
+    const title = [auto.marca, auto.modelo].filter(Boolean).map(s => String(s).toUpperCase()).join(' ')
+    const kmStr = auto.kilometraje ? `${Number(auto.kilometraje).toLocaleString('es-AR')} km` : null
+    const specStr = [auto.año ? String(auto.año) : null, kmStr].filter(Boolean).join('  ·  ')
+    const precioStr = auto.precio ? `$ ${Number(auto.precio).toLocaleString('es-AR')}` : 'Consultar'
+
+    return `
+      <text x="${textX}" y="${midY - 6}" font-family="${FONT}" font-weight="700" font-size="${rowTitleSize}" fill="${WHITE}">${esc(title)}</text>
+      ${specStr ? `<text x="${textX}" y="${midY + rowSpecSize + 2}" font-family="${FONT}" font-size="${rowSpecSize}" fill="${GRAY}">${esc(specStr)}</text>` : ''}
+      <text x="${W - PAD}" y="${midY + priceSize / 3}" font-family="${FONT}" font-weight="900" font-size="${priceSize}" fill="${RED}" text-anchor="end">${esc(precioStr)}</text>
+      ${i < autos.length - 1 ? `<line x1="${PAD}" y1="${rowY + rowH - 1}" x2="${W - PAD}" y2="${rowY + rowH - 1}" stroke="${GRAY2}" stroke-opacity="0.25" stroke-width="1"/>` : ''}
+    `
+  }).join('')
+
+  const contactoStr = `${WHATSAPP_DISPLAY}  ·  ${INSTAGRAM_HANDLE}`
+
+  return `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="${W}" height="${H}" fill="${BG.r === 28 ? '#1c1c1e' : '#1c1c1e'}"/>
+
+  <text x="${PAD}" y="${headerH * 0.62}" font-family="${FONT}" font-weight="900" font-size="${titleSize}" fill="${WHITE}">STOCK DISPONIBLE</text>
+
+  ${rows}
+
+  <line x1="${PAD}" y1="${H - footerH}" x2="${W - PAD}" y2="${H - footerH}" stroke="${RED}" stroke-width="2"/>
+  <text x="${W / 2}" y="${H - footerH / 2 + 6}" font-family="${FONT}" font-size="${tipo === 'story' ? 26 : 20}" fill="${GRAY}" text-anchor="middle">${esc(contactoStr)}</text>
+
+  <rect x="0" y="${H - 8}" width="${W}" height="8" fill="${RED}"/>
+</svg>`
+}
+
+export async function generarImagenSocialMultiple(tipo, autos) {
+  const { W, H, rowH, thumb } = FLYER_DIMS[tipo]
+
+  const bg = await sharp({
+    create: { width: W, height: H, channels: 4, background: BG },
+  }).png().toBuffer()
+
+  const composites = []
+
+  for (let i = 0; i < autos.length; i++) {
+    const auto = autos[i]
+    const fotoUrl = auto.fotos?.[0] ?? auto.foto ?? null
+    const rowY = FLYER_DIMS[tipo].headerH + i * rowH + (rowH - thumb) / 2
+    if (!fotoUrl) continue
+    try {
+      const res = await fetch(fotoUrl)
+      if (res.ok) {
+        const buf = Buffer.from(await res.arrayBuffer())
+        const thumbBuffer = await sharp(buf)
+          .resize(thumb, thumb, { fit: 'cover', position: 'centre' })
+          .toBuffer()
+        composites.push({ input: thumbBuffer, top: Math.round(rowY), left: PAD })
+      }
+    } catch {
+      // sin foto → deja el espacio vacío
+    }
+  }
+
+  const svgBuf = Buffer.from(buildFlyerSvg(tipo, autos))
+  composites.push({ input: svgBuf, top: 0, left: 0 })
+
+  const logoPath = path.join(process.cwd(), 'public', 'logo.png')
+  if (fs.existsSync(logoPath)) {
+    const logoW = 110
+    const logoBuffer = await sharp(logoPath)
+      .resize(logoW, null, { fit: 'inside' })
+      .toBuffer()
+    composites.push({ input: logoBuffer, top: 40, left: W - logoW - 40 })
   }
 
   return sharp(bg).composite(composites).png().toBuffer()

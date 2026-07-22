@@ -674,6 +674,10 @@ export default function AutosPage() {
   const [deletingId, setDeleting] = useState(null)
   const [previewAuto, setPreview] = useState(null)
   const [cotizaciones, setCotizaciones] = useState(null)
+  const [selectedIds, setSelectedIds] = useState([])
+  const [flyerModalOpen, setFlyerModalOpen] = useState(false)
+
+  const MAX_FLYER = 8
 
   useEffect(() => {
     fetch('https://dolarapi.com/v1/dolares')
@@ -732,6 +736,21 @@ export default function AutosPage() {
     await updateAuto(auto.id, { publicado: !auto.publicado })
   }
 
+  function toggleSelect(id) {
+    setSelectedIds(prev => {
+      if (prev.includes(id)) return prev.filter(x => x !== id)
+      if (prev.length >= MAX_FLYER) {
+        alert(`Máximo ${MAX_FLYER} vehículos por flyer.`)
+        return prev
+      }
+      return [...prev, id]
+    })
+  }
+
+  function clearSelection() {
+    setSelectedIds([])
+  }
+
   return (
     <>
       <div className="page-header">
@@ -765,6 +784,19 @@ export default function AutosPage() {
               <LayoutGrid size={16} />
             </button>
           </div>
+          {isAdmin && selectedIds.length > 0 && (
+            <>
+              <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                {selectedIds.length} seleccionado{selectedIds.length !== 1 ? 's' : ''}
+              </span>
+              <button className="btn btn-primary btn-sm" onClick={() => setFlyerModalOpen(true)}>
+                <Download size={14} /> Generar flyer
+              </button>
+              <button className="btn btn-ghost btn-sm" onClick={clearSelection}>
+                Cancelar
+              </button>
+            </>
+          )}
           <button className="btn btn-primary btn--icon-spin" onClick={openAdd}>
             <Plus size={16} /> Agregar
           </button>
@@ -788,6 +820,7 @@ export default function AutosPage() {
             <table>
               <thead>
                 <tr>
+                  {isAdmin && <th style={{ width: 32 }}></th>}
                   <th>Vehículo</th>
                   <th className="hide-mobile">Año</th>
                   <th className="hide-mobile">Km</th>
@@ -802,6 +835,17 @@ export default function AutosPage() {
                   const thumb = thumbUrl(auto)
                   return (
                     <tr key={auto.id} onClick={() => setPreview(auto)} style={{ cursor: 'pointer' }}>
+                      {isAdmin && (
+                        <td onClick={e => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(auto.id)}
+                            onChange={() => toggleSelect(auto.id)}
+                            disabled={!auto.publicado}
+                            title={auto.publicado ? 'Incluir en el flyer' : 'Publicá el vehículo para incluirlo en el flyer'}
+                          />
+                        </td>
+                      )}
                       <td>
                         <div className="flex items-center gap-3">
                           <div style={{
@@ -1158,6 +1202,36 @@ export default function AutosPage() {
           </Modal>
         )
       })()}
+
+      <Modal
+        open={flyerModalOpen}
+        onClose={() => setFlyerModalOpen(false)}
+        title="Flyer de vehículos seleccionados"
+      >
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 0 }}>
+          {selectedIds.length} vehículo{selectedIds.length !== 1 ? 's' : ''} seleccionado{selectedIds.length !== 1 ? 's' : ''}. Elegí el formato para descargar.
+        </p>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {['story', 'post'].map(tipo => {
+            const WEB = import.meta.env.VITE_WEB_URL || 'http://localhost:3000'
+            const href = `${WEB}/api/imagen-social-multiple?ids=${selectedIds.join(',')}&tipo=${tipo}`
+            return (
+              <a
+                key={tipo}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                className="btn btn-ghost btn-sm"
+                style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}
+              >
+                <Download size={13} />
+                {tipo === 'story' ? 'Story (1080×1920)' : 'Feed (1080×1080)'}
+              </a>
+            )
+          })}
+        </div>
+      </Modal>
 
       <ConfirmDialog
         open={!!deletingId}
