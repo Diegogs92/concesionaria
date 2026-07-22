@@ -200,8 +200,6 @@ function buildFlyerSvg(tipo, autos) {
   const contactoStr = `${WHATSAPP_DISPLAY}  ·  ${INSTAGRAM_HANDLE}`
 
   return `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="${W}" height="${H}" fill="${BG.r === 28 ? '#1c1c1e' : '#1c1c1e'}"/>
-
   <text x="${PAD}" y="${headerH * 0.62}" font-family="${FONT}" font-weight="900" font-size="${titleSize}" fill="${WHITE}">STOCK DISPONIBLE</text>
 
   ${rows}
