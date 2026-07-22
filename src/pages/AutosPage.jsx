@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react'
-import { Plus, Pencil, Trash2, Car, Clock, ChevronLeft, ChevronRight, Upload, X, LayoutGrid, List, Globe, Download } from 'lucide-react'
+import { Plus, Pencil, Trash2, Car, Clock, ChevronLeft, ChevronRight, Upload, X, LayoutGrid, List, Globe, Download, AlertTriangle } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import { formatCurrency, formatDate } from '../utils/helpers'
@@ -677,6 +677,7 @@ export default function AutosPage() {
   const [selectedIds, setSelectedIds] = useState([])
   const [flyerModalOpen, setFlyerModalOpen] = useState(false)
   const [flyerTipo, setFlyerTipo] = useState('story')
+  const [limitAlertOpen, setLimitAlertOpen] = useState(false)
 
   const MAX_FLYER = 8
 
@@ -741,7 +742,7 @@ export default function AutosPage() {
     setSelectedIds(prev => {
       if (prev.includes(id)) return prev.filter(x => x !== id)
       if (prev.length >= MAX_FLYER) {
-        alert(`Máximo ${MAX_FLYER} vehículos por flyer.`)
+        setLimitAlertOpen(true)
         return prev
       }
       return [...prev, id]
@@ -1257,6 +1258,29 @@ export default function AutosPage() {
             </div>
           )
         })()}
+      </Modal>
+
+      <Modal
+        open={limitAlertOpen}
+        onClose={() => setLimitAlertOpen(false)}
+        title="Límite alcanzado"
+        footer={
+          <button className="btn btn-primary" onClick={() => setLimitAlertOpen(false)}>Aceptar</button>
+        }
+      >
+        <div className="flex items-center gap-3">
+          <div style={{
+            width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+            background: 'var(--accent-light)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'var(--accent)',
+          }}>
+            <AlertTriangle size={20} />
+          </div>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            Máximo {MAX_FLYER} vehículos por flyer.
+          </p>
+        </div>
       </Modal>
 
       <ConfirmDialog
