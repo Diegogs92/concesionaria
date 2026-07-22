@@ -676,6 +676,7 @@ export default function AutosPage() {
   const [cotizaciones, setCotizaciones] = useState(null)
   const [selectedIds, setSelectedIds] = useState([])
   const [flyerModalOpen, setFlyerModalOpen] = useState(false)
+  const [flyerTipo, setFlyerTipo] = useState('story')
 
   const MAX_FLYER = 8
 
@@ -1209,28 +1210,53 @@ export default function AutosPage() {
         title="Flyer de vehículos seleccionados"
       >
         <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 0 }}>
-          {selectedIds.length} vehículo{selectedIds.length !== 1 ? 's' : ''} seleccionado{selectedIds.length !== 1 ? 's' : ''}. Elegí el formato para descargar.
+          {selectedIds.length} vehículo{selectedIds.length !== 1 ? 's' : ''} seleccionado{selectedIds.length !== 1 ? 's' : ''}.
         </p>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {['story', 'post'].map(tipo => {
-            const WEB = import.meta.env.VITE_WEB_URL || 'http://localhost:3000'
-            const href = `${WEB}/api/imagen-social-multiple?ids=${selectedIds.join(',')}&tipo=${tipo}`
-            return (
+
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          {['story', 'post'].map(tipo => (
+            <button
+              key={tipo}
+              className={`btn btn-sm ${flyerTipo === tipo ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => setFlyerTipo(tipo)}
+            >
+              {tipo === 'story' ? 'Story (1080×1920)' : 'Feed (1080×1080)'}
+            </button>
+          ))}
+        </div>
+
+        {flyerModalOpen && (() => {
+          const WEB = import.meta.env.VITE_WEB_URL || 'http://localhost:3000'
+          const href = `${WEB}/api/imagen-social-multiple?ids=${selectedIds.join(',')}&tipo=${flyerTipo}`
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+              <div style={{
+                width: flyerTipo === 'story' ? 220 : 320,
+                aspectRatio: flyerTipo === 'story' ? '1080 / 1920' : '1080 / 1080',
+                borderRadius: 8,
+                overflow: 'hidden',
+                background: 'var(--bg-input)',
+              }}>
+                <img
+                  key={href}
+                  src={href}
+                  alt={`Preview flyer ${flyerTipo}`}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
+              </div>
               <a
-                key={tipo}
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
                 download
-                className="btn btn-ghost btn-sm"
+                className="btn btn-primary btn-sm"
                 style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}
               >
-                <Download size={13} />
-                {tipo === 'story' ? 'Story (1080×1920)' : 'Feed (1080×1080)'}
+                <Download size={13} /> Descargar
               </a>
-            )
-          })}
-        </div>
+            </div>
+          )
+        })()}
       </Modal>
 
       <ConfirmDialog

@@ -1,7 +1,6 @@
 import sharp from 'sharp'
 import path from 'path'
 import fs from 'fs'
-import { WHATSAPP_DISPLAY, INSTAGRAM_HANDLE } from './site'
 
 const PAD = 60
 const BG = { r: 28, g: 28, b: 30, alpha: 1 }
@@ -168,12 +167,12 @@ export async function generarImagenSocial(tipo, auto) {
 // ─── Flyer con lista de precios (múltiples vehículos) ─────────────────────
 
 const FLYER_DIMS = {
-  story: { W: 1080, H: 1920, headerH: 220, footerH: 110, rowH: 190, thumb: 150 },
-  post:  { W: 1080, H: 1080, headerH: 130, footerH: 70,  rowH: 108, thumb: 88 },
+  story: { W: 1080, H: 1920, headerH: 220, rowH: 190, thumb: 150 },
+  post:  { W: 1080, H: 1080, headerH: 130, rowH: 108, thumb: 88 },
 }
 
 function buildFlyerSvg(tipo, autos) {
-  const { W, H, headerH, footerH, rowH, thumb } = FLYER_DIMS[tipo]
+  const { W, H, headerH, rowH, thumb } = FLYER_DIMS[tipo]
   const titleSize = tipo === 'story' ? 52 : 36
   const rowTitleSize = tipo === 'story' ? 34 : 24
   const rowSpecSize = tipo === 'story' ? 24 : 18
@@ -197,15 +196,10 @@ function buildFlyerSvg(tipo, autos) {
     `
   }).join('')
 
-  const contactoStr = `${WHATSAPP_DISPLAY}  ·  ${INSTAGRAM_HANDLE}`
-
   return `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
   <text x="${PAD}" y="${headerH * 0.62}" font-family="${FONT}" font-weight="900" font-size="${titleSize}" fill="${WHITE}">STOCK DISPONIBLE</text>
 
   ${rows}
-
-  <line x1="${PAD}" y1="${H - footerH}" x2="${W - PAD}" y2="${H - footerH}" stroke="${RED}" stroke-width="2"/>
-  <text x="${W / 2}" y="${H - footerH / 2 + 6}" font-family="${FONT}" font-size="${tipo === 'story' ? 26 : 20}" fill="${GRAY}" text-anchor="middle">${esc(contactoStr)}</text>
 
   <rect x="0" y="${H - 8}" width="${W}" height="8" fill="${RED}"/>
 </svg>`
