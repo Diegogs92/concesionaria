@@ -128,7 +128,7 @@ export default function ReportesPage() {
             {reporteFiltraado.length} registros
           </p>
 
-          <div style={{ marginBottom: 20, overflowX: 'auto', maxHeight: '400px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+          <div className="table-wrapper reporte-table-wrapper" style={{ marginBottom: 20, maxHeight: '400px', border: '1px solid var(--border-color)' }}>
             {reporteFiltraado.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-state-icon"><FileBarChart size={24} /></div>
@@ -139,7 +139,7 @@ export default function ReportesPage() {
                 <thead>
                   <tr style={{ background: 'var(--bg-input)' }}>
                     {Object.keys(reporteFiltraado[0]).map(header => (
-                      <th key={header} style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid var(--border-color)' }}>
+                      <th key={header} className="reporte-table-cell" style={{ textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid var(--border-color)', whiteSpace: 'nowrap' }}>
                         {header}
                       </th>
                     ))}
@@ -149,7 +149,7 @@ export default function ReportesPage() {
                   {reporteFiltraado.map((row, idx) => (
                     <tr key={idx} style={{ borderBottom: '1px solid var(--divider)' }}>
                       {Object.values(row).map((val, i) => (
-                        <td key={i} style={{ padding: '12px', fontSize: 13 }}>
+                        <td key={i} className="reporte-table-cell" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>
                           {typeof val === 'number' && val > 1000 ? formatCurrency(val) : val}
                         </td>
                       ))}

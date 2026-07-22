@@ -668,7 +668,7 @@ export default function AutosPage() {
 
   const [search, setSearch]       = useState('')
   const [filtroEstado, setFiltro] = useState('todos')
-  const [vista, setVista]         = useState('tabla')
+  const [vista, setVista]         = useState(() => (typeof window !== 'undefined' && window.innerWidth <= 768) ? 'mosaico' : 'tabla')
   const [modalOpen, setModalOpen] = useState(false)
   const [editingAuto, setEditing] = useState(null)
   const [deletingId, setDeleting] = useState(null)
@@ -787,7 +787,7 @@ export default function AutosPage() {
             </button>
           </div>
           {isAdmin && selectedIds.length > 0 && (
-            <>
+            <div className="flyer-selection-bar">
               <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
                 {selectedIds.length} seleccionado{selectedIds.length !== 1 ? 's' : ''}
               </span>
@@ -797,7 +797,7 @@ export default function AutosPage() {
               <button className="btn btn-ghost btn-sm" onClick={clearSelection}>
                 Cancelar
               </button>
-            </>
+            </div>
           )}
           <button className="btn btn-primary btn--icon-spin" onClick={openAdd}>
             <Plus size={16} /> Agregar
@@ -839,13 +839,14 @@ export default function AutosPage() {
                     <tr key={auto.id} onClick={() => setPreview(auto)} style={{ cursor: 'pointer' }}>
                       {isAdmin && (
                         <td onClick={e => e.stopPropagation()}>
-                          <input
-                            type="checkbox"
-                            checked={selectedIds.includes(auto.id)}
-                            onChange={() => toggleSelect(auto.id)}
-                            disabled={!auto.publicado}
-                            title={auto.publicado ? 'Incluir en el flyer' : 'Publicá el vehículo para incluirlo en el flyer'}
-                          />
+                          <label className="select-checkbox-wrap" title={auto.publicado ? 'Incluir en el flyer' : 'Publicá el vehículo para incluirlo en el flyer'}>
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.includes(auto.id)}
+                              onChange={() => toggleSelect(auto.id)}
+                              disabled={!auto.publicado}
+                            />
+                          </label>
                         </td>
                       )}
                       <td>
@@ -931,6 +932,7 @@ export default function AutosPage() {
               <div
                 key={auto.id}
                 onClick={() => setPreview(auto)}
+                className="auto-mosaico-card"
                 style={{
                   position: 'relative',
                   borderRadius: 20,
@@ -939,14 +941,25 @@ export default function AutosPage() {
                   cursor: 'pointer',
                   background: 'var(--bg-input)',
                   boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.22)' }}
-                onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.12)' }}
               >
                 <CardCarousel fotos={auto.fotos} />
 
-                <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 2 }}>
+                <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 2, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {isAdmin && (
+                    <label
+                      className="select-checkbox-wrap select-checkbox-wrap--overlay"
+                      onClick={e => e.stopPropagation()}
+                      title={auto.publicado ? 'Incluir en el flyer' : 'Publicá el vehículo para incluirlo en el flyer'}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(auto.id)}
+                        onChange={() => toggleSelect(auto.id)}
+                        disabled={!auto.publicado}
+                      />
+                    </label>
+                  )}
                   <div style={{
                     display: 'inline-flex', alignItems: 'center', gap: 5,
                     background: 'rgba(255,255,255,0.92)',

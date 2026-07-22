@@ -628,7 +628,7 @@ export default function FinanzasPage() {
                   <th style={{ width: 32 }} />
                   <th>Tipo</th>
                   <th>Concepto</th>
-                  <th>Observaciones</th>
+                  <th className="hide-mobile">Observaciones</th>
                   <th>Monto</th>
                   <th className="hide-mobile" style={{ minWidth: 130 }}>Progreso</th>
                   <th>Estado</th>
@@ -659,7 +659,7 @@ export default function FinanzasPage() {
                         </td>
                         <td><TipoBadge tipo={deuda.tipo} /></td>
                         <td style={{ fontWeight: 600 }}>{deuda.concepto}</td>
-                        <td className="deuda-observaciones">{deuda.observaciones || '—'}</td>
+                        <td className="deuda-observaciones hide-mobile">{deuda.observaciones || '—'}</td>
                         <td className="deuda-col-nativa">
                           {deuda.moneda === 'USD'
                             ? `U$D ${usdFormatter.format(restante)}`
