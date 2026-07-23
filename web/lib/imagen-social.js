@@ -1,6 +1,35 @@
 import sharp from 'sharp'
 import path from 'path'
 import fs from 'fs'
+import os from 'os'
+
+// En el Linux serverless de Vercel no hay fuentes instaladas, así que sharp
+// renderiza el texto del SVG como cuadraditos (.notdef). Empaquetamos Inter en
+// web/fonts/ y le decimos a fontconfig dónde encontrarla vía FONTCONFIG_PATH.
+let fontsReady = false
+function ensureFonts() {
+  if (fontsReady) return
+  fontsReady = true
+  try {
+    const fontDir = path.join(process.cwd(), 'fonts')
+    const confDir = path.join(os.tmpdir(), 'fontconfig')
+    const cacheDir = path.join(os.tmpdir(), 'fontcache')
+    fs.mkdirSync(confDir, { recursive: true })
+    fs.mkdirSync(cacheDir, { recursive: true })
+    fs.writeFileSync(
+      path.join(confDir, 'fonts.conf'),
+      `<?xml version="1.0"?>
+<fontconfig>
+  <dir>${fontDir}</dir>
+  <cachedir>${cacheDir}</cachedir>
+</fontconfig>`
+    )
+    process.env.FONTCONFIG_PATH = confDir
+  } catch {
+    // best effort: si falla, cae al comportamiento anterior
+  }
+}
+ensureFonts()
 
 const PAD = 60
 const BG = { r: 28, g: 28, b: 30, alpha: 1 }
@@ -8,7 +37,7 @@ const RED = '#e51515'
 const WHITE = '#ffffff'
 const GRAY = '#aeaeb2'
 const GRAY2 = '#6e6e73'
-const FONT = 'Liberation Sans, Arial, sans-serif'
+const FONT = 'Inter, sans-serif'
 
 const DIMS = {
   post:  { W: 1080, H: 1080, photoH: 623 },
