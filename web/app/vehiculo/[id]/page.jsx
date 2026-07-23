@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getAutoPublico } from '../../../lib/autos'
 import { formatKm, formatPrecio } from '../../../lib/format'
-import { CITY } from '../../../lib/site'
 import Gallery from '../../../components/vehicle/Gallery'
 import SpecIcon from '../../../components/vehicle/SpecIcon'
 import VehicleActions from '../../../components/vehicle/VehicleActions'
@@ -54,7 +53,6 @@ export default async function VehiculoPage({ params }) {
     ['doors', 'Puertas', auto.puertas],
     ['color', 'Color', auto.color],
     ['condition', 'Condición', auto.condicion],
-    ['location', 'Ciudad', CITY],
   ].filter(([, , valor]) => valor != null && valor !== '')
 
   const mensaje = `Hola, me interesa el ${titulo} que vi en la web. ¿Sigue disponible?`

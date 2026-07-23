@@ -82,7 +82,7 @@ export default function VehicleActions({ titulo, subtitulo, precio, fotos, ficha
 
       // Logo ICY (arriba a la derecha) con su proporción real
       try {
-        const logo = await toDataURL('/logo.png')
+        const logo = await toDataURL('/logo-dark.png')
         const lp = doc.getImageProperties(logo)
         const lh = 40
         const lw = lh * (lp.width / lp.height)
