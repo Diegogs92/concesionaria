@@ -21,7 +21,35 @@ async function toDataURL(url) {
   })
 }
 
-export default function VehicleActions({ titulo, subtitulo, precio, fotoUrl, fichaData, waMensaje, fileName }) {
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = reject
+    img.src = src
+  })
+}
+
+// Recorta la imagen (data URL, mismo origen → canvas sin taint) a un rectángulo
+// exacto de wPt×hPt puntos, tipo "cover", para que todas las fotos queden iguales.
+async function coverCropJPEG(dataUrl, wPt, hPt) {
+  const img = await loadImage(dataUrl)
+  const cw = Math.round(wPt * 2)
+  const ch = Math.round(hPt * 2)
+  const scale = Math.max(cw / img.width, ch / img.height)
+  const sw = cw / scale
+  const sh = ch / scale
+  const sx = (img.width - sw) / 2
+  const sy = (img.height - sh) / 2
+  const canvas = document.createElement('canvas')
+  canvas.width = cw
+  canvas.height = ch
+  const ctx = canvas.getContext('2d')
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, cw, ch)
+  return canvas.toDataURL('image/jpeg', 0.85)
+}
+
+export default function VehicleActions({ titulo, subtitulo, precio, fotos, fichaData, waMensaje, fileName }) {
   const [copiado, setCopiado] = useState(false)
   const [generando, setGenerando] = useState(false)
 
@@ -48,12 +76,17 @@ export default function VehicleActions({ titulo, subtitulo, precio, fotoUrl, fic
       const W = doc.internal.pageSize.getWidth()
       const H = doc.internal.pageSize.getHeight()
       const M = 40
+      const contentW = W - M * 2
+      const footerH = 56
       let y = M
 
-      // Logo ICY (arriba a la derecha)
+      // Logo ICY (arriba a la derecha) con su proporción real
       try {
         const logo = await toDataURL('/logo.png')
-        doc.addImage(logo, 'PNG', W - M - 90, y, 90, 34, undefined, 'FAST')
+        const lp = doc.getImageProperties(logo)
+        const lh = 40
+        const lw = lh * (lp.width / lp.height)
+        doc.addImage(logo, 'PNG', W - M - lw, y, lw, lh, undefined, 'FAST')
       } catch { /* sin logo */ }
 
       // Título
@@ -61,33 +94,21 @@ export default function VehicleActions({ titulo, subtitulo, precio, fotoUrl, fic
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(22)
       doc.text(titulo, M, y + 24)
-      y += 40
+      y += 42
       if (subtitulo) {
         doc.setFont('helvetica', 'normal')
         doc.setFontSize(12)
         doc.setTextColor(INK3)
         doc.text(subtitulo, M, y)
-        y += 16
-      }
-
-      // Foto principal
-      if (fotoUrl) {
-        try {
-          const foto = await toDataURL(fotoUrl)
-          const props = doc.getImageProperties(foto)
-          const imgW = W - M * 2
-          const imgH = Math.min((props.height / props.width) * imgW, 300)
-          doc.addImage(foto, props.fileType, M, y, imgW, imgH, undefined, 'FAST')
-          y += imgH + 24
-        } catch { y += 8 }
+        y += 18
       }
 
       // Precio
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(24)
       doc.setTextColor(RED)
-      doc.text(precio, M, y)
-      y += 30
+      doc.text(precio, M, y + 6)
+      y += 36
 
       // Ficha técnica en dos columnas
       doc.setFontSize(13)
@@ -98,29 +119,57 @@ export default function VehicleActions({ titulo, subtitulo, precio, fotoUrl, fic
       doc.line(M, y, W - M, y)
       y += 18
 
-      const colW = (W - M * 2) / 2
+      const specColW = contentW / 2
       doc.setFontSize(11)
       fichaData.forEach(([label, valor], i) => {
         const col = i % 2
-        const x = M + col * colW
-        const rowY = y + Math.floor(i / 2) * 22
+        const x = M + col * specColW
+        const rowY = y + Math.floor(i / 2) * 20
         doc.setFont('helvetica', 'normal')
         doc.setTextColor(INK3)
         doc.text(`${label}:`, x, rowY)
         doc.setFont('helvetica', 'bold')
         doc.setTextColor(INK)
-        doc.text(String(valor), x + 96, rowY)
+        doc.text(String(valor), x + 92, rowY)
       })
-      y += Math.ceil(fichaData.length / 2) * 22 + 20
+      y += Math.ceil(fichaData.length / 2) * 20 + 24
 
-      // Pie de contacto
-      doc.setDrawColor(230)
-      doc.line(M, H - 70, W - M, H - 70)
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(10)
-      doc.setTextColor(INK3)
-      doc.text(`ICY Automotores · WhatsApp ${WHATSAPP_DISPLAY} · ${INSTAGRAM_HANDLE}`, M, H - 52)
-      doc.text(ADDRESS, M, H - 38)
+      // Todas las fotos, mismo tamaño, en grilla de 2 columnas (con paginado)
+      const gap = 12
+      const cellW = (contentW - gap) / 2
+      const cellH = cellW * 0.72
+      let col = 0
+      for (const url of fotos) {
+        if (y + cellH > H - footerH) {
+          doc.addPage()
+          y = M
+          col = 0
+        }
+        const x = M + col * (cellW + gap)
+        try {
+          const data = await toDataURL(url)
+          const cropped = await coverCropJPEG(data, cellW, cellH)
+          doc.addImage(cropped, 'JPEG', x, y, cellW, cellH, undefined, 'FAST')
+        } catch { /* foto que no se pudo cargar: se omite */ }
+        col++
+        if (col === 2) {
+          col = 0
+          y += cellH + gap
+        }
+      }
+
+      // Pie de contacto en cada página
+      const pages = doc.getNumberOfPages()
+      for (let p = 1; p <= pages; p++) {
+        doc.setPage(p)
+        doc.setDrawColor(230)
+        doc.line(M, H - 44, W - M, H - 44)
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(9)
+        doc.setTextColor(INK3)
+        doc.text(`ICY Automotores · WhatsApp ${WHATSAPP_DISPLAY} · ${INSTAGRAM_HANDLE}`, M, H - 30)
+        doc.text(ADDRESS, M, H - 18)
+      }
 
       doc.save(`${fileName}.pdf`)
     } finally {

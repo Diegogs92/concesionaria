@@ -81,7 +81,7 @@ export default async function VehiculoPage({ params }) {
             titulo={titulo}
             subtitulo={auto.version}
             precio={formatPrecio(auto.precio)}
-            fotoUrl={auto.fotos?.[0] ?? null}
+            fotos={auto.fotos ?? []}
             fichaData={ficha.map(([, label, valor]) => [label, valor])}
             waMensaje={mensaje}
             fileName={`ficha-${[auto.marca, auto.modelo, auto.anio].filter(Boolean).join('-').replace(/\s+/g, '-').toLowerCase()}`}
