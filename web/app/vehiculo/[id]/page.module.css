@@ -100,49 +100,46 @@
   letter-spacing: -0.015em;
 }
 
-.grupos {
+.specGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: clamp(20px, 3vw, 36px);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: clamp(12px, 1.5vw, 16px);
   margin-top: clamp(18px, 2.5vw, 28px);
 }
 
-.grupo {
+.specCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   background: var(--bg-0);
   border: 1px solid rgba(var(--ink-rgb), 0.08);
   border-radius: var(--radius);
-  padding: clamp(18px, 2.5vw, 26px);
+  padding: clamp(16px, 2vw, 22px);
 }
 
-.grupoTitulo {
-  margin: 0 0 14px;
-  font-size: 15px;
-  font-weight: 700;
+.specIcon {
+  color: #e51515;
+  line-height: 0;
 }
 
-.datos {
-  margin: 0;
-  display: grid;
-  gap: 12px;
+.specIcon svg {
+  width: 22px;
+  height: 22px;
+  display: block;
 }
 
-.dato {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.dato dt {
-  color: var(--ink-3);
-  font-size: 14px;
-}
-
-.dato dd {
-  margin: 0;
+.specLabel {
+  font-size: 12px;
   font-weight: 600;
-  font-size: 15px;
-  text-align: right;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.specValue {
+  font-size: clamp(15px, 1.4vw, 17px);
+  font-weight: 600;
+  color: var(--ink);
   text-transform: capitalize;
 }
 

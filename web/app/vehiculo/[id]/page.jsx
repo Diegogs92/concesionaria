@@ -2,9 +2,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getAutoPublico } from '../../../lib/autos'
 import { formatKm, formatPrecio } from '../../../lib/format'
-import { waLink } from '../../../lib/site'
+import { waLink, CITY } from '../../../lib/site'
 import Gallery from '../../../components/vehicle/Gallery'
 import WhatsAppIcon from '../../../components/icons/WhatsAppIcon'
+import SpecIcon from '../../../components/vehicle/SpecIcon'
 import styles from './page.module.css'
 
 export const revalidate = 0
@@ -43,34 +44,18 @@ export default async function VehiculoPage({ params }) {
   const meta = [auto.anio, formatKm(auto.kilometraje)].filter(Boolean).join(' · ')
 
   const ficha = [
-    {
-      grupo: 'Motor y transmisión',
-      datos: [
-        ['Motor', auto.motor],
-        ['Combustible', auto.combustible],
-        ['Transmisión', auto.transmision],
-        ['Tracción', auto.traccion],
-      ],
-    },
-    {
-      grupo: 'Carrocería',
-      datos: [
-        ['Carrocería', auto.carroceria],
-        ['Puertas', auto.puertas],
-        ['Color', auto.color],
-      ],
-    },
-    {
-      grupo: 'Datos generales',
-      datos: [
-        ['Año', auto.anio],
-        ['Kilometraje', formatKm(auto.kilometraje)],
-        ['Condición', auto.condicion],
-      ],
-    },
-  ]
-    .map(({ grupo, datos }) => ({ grupo, datos: datos.filter(([, v]) => v != null && v !== '') }))
-    .filter(({ datos }) => datos.length > 0)
+    ['calendar', 'Año', auto.anio],
+    ['gauge', 'Kilómetros', formatKm(auto.kilometraje)],
+    ['gear', 'Transmisión', auto.transmision],
+    ['engine', 'Motor', auto.motor],
+    ['traction', 'Tracción', auto.traccion],
+    ['body', 'Carrocería', auto.carroceria],
+    ['fuel', 'Combustible', auto.combustible],
+    ['doors', 'Puertas', auto.puertas],
+    ['color', 'Color', auto.color],
+    ['condition', 'Condición', auto.condicion],
+    ['location', 'Ciudad', CITY],
+  ].filter(([, , valor]) => valor != null && valor !== '')
 
   const mensaje = `Hola, me interesa el ${titulo} que vi en la web. ¿Sigue disponible?`
 
@@ -104,18 +89,14 @@ export default async function VehiculoPage({ params }) {
       {ficha.length > 0 && (
         <section className={styles.ficha} aria-label="Ficha técnica">
           <h2 className={styles.fichaTitulo}>Ficha técnica</h2>
-          <div className={styles.grupos}>
-            {ficha.map(({ grupo, datos }) => (
-              <div key={grupo} className={styles.grupo}>
-                <h3 className={styles.grupoTitulo}>{grupo}</h3>
-                <dl className={styles.datos}>
-                  {datos.map(([label, valor]) => (
-                    <div key={label} className={styles.dato}>
-                      <dt>{label}</dt>
-                      <dd>{valor}</dd>
-                    </div>
-                  ))}
-                </dl>
+          <div className={styles.specGrid}>
+            {ficha.map(([icon, label, valor]) => (
+              <div key={label} className={styles.specCard}>
+                <span className={styles.specIcon}>
+                  <SpecIcon name={icon} />
+                </span>
+                <span className={styles.specLabel}>{label}</span>
+                <span className={styles.specValue}>{valor}</span>
               </div>
             ))}
           </div>

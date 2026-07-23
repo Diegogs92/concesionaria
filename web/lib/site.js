@@ -6,6 +6,7 @@ export const EMAIL = 'imanolcardenasypa@gmail.com'
 export const INSTAGRAM_HANDLE = '@icy_automotores_ok'
 export const INSTAGRAM_URL = 'https://instagram.com/icy_automotores_ok'
 export const ADDRESS = 'Av. Aconquija 2579 - Galería Lenna - Local 3/4/5, Yerba Buena, Tucumán'
+export const CITY = 'Yerba Buena, Tucumán'
 export const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ADDRESS)}`
 
 export function waLink(text) {
