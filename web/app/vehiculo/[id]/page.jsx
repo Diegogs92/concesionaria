@@ -2,10 +2,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getAutoPublico } from '../../../lib/autos'
 import { formatKm, formatPrecio } from '../../../lib/format'
-import { waLink, CITY } from '../../../lib/site'
+import { CITY } from '../../../lib/site'
 import Gallery from '../../../components/vehicle/Gallery'
-import WhatsAppIcon from '../../../components/icons/WhatsAppIcon'
 import SpecIcon from '../../../components/vehicle/SpecIcon'
+import VehicleActions from '../../../components/vehicle/VehicleActions'
 import styles from './page.module.css'
 
 export const revalidate = 0
@@ -77,10 +77,15 @@ export default async function VehiculoPage({ params }) {
 
           <p className={styles.precio}>{formatPrecio(auto.precio)}</p>
 
-          <a href={waLink(mensaje)} className={styles.cta}>
-            <WhatsAppIcon />
-            Consultar por WhatsApp
-          </a>
+          <VehicleActions
+            titulo={titulo}
+            subtitulo={auto.version}
+            precio={formatPrecio(auto.precio)}
+            fotoUrl={auto.fotos?.[0] ?? null}
+            fichaData={ficha.map(([, label, valor]) => [label, valor])}
+            waMensaje={mensaje}
+            fileName={`ficha-${[auto.marca, auto.modelo, auto.anio].filter(Boolean).join('-').replace(/\s+/g, '-').toLowerCase()}`}
+          />
 
           {auto.descripcion && <p className={styles.descripcion}>{auto.descripcion}</p>}
         </aside>

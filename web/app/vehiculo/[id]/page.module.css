@@ -60,27 +60,6 @@
   letter-spacing: -0.02em;
 }
 
-.cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  min-height: 52px;
-  padding: 0 28px;
-  margin-top: 18px;
-  border-radius: var(--radius);
-  background: #25d366;
-  color: #ffffff;
-  font-weight: 600;
-  font-size: 16px;
-  transition: background-color 0.25s var(--ease-out), transform 0.25s var(--ease-out);
-}
-
-.cta svg { width: 20px; height: 20px; flex-shrink: 0; }
-
-.cta:hover { background: #1fbb5a; transform: translateY(-1px); }
-.cta:active { transform: scale(0.98); }
-
 .descripcion {
   margin: clamp(20px, 3vw, 28px) 0 0;
   line-height: 1.65;
@@ -147,5 +126,4 @@
 
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; }
-  .cta { width: 100%; }
 }
